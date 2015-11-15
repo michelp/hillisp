@@ -115,7 +115,6 @@ x_any x_cons(x_any cell1, x_any cell2)
 }
 
 void enter(x_any cell)
-/* Add this symbol to the hash table. */
 {
   int hash_val;
 
@@ -124,7 +123,6 @@ void enter(x_any cell)
 }
 
 x_any intern(const char *name)
-/* Return the symbol with this name, creating it if necessary. */
 {
   x_any cell;
 
@@ -140,17 +138,15 @@ x_any intern(const char *name)
 
 x_any x_print(x_any cell)
 {
-  print_cell(cell, stdout);
+  print_cell(car(cell), stdout);
   putchar('\n');
-  return cell;
+  return car(cell);
 }
 
 int length(x_any cell)
 {
   if (cell == x_nil)
     return 0;
-  else if (is_pair(cell))
-    return -1;
   else
     return 1 + length(cdr(cell));
 }
@@ -169,22 +165,29 @@ x_any x_apply(x_any cell, x_any args)
 {
   if (is_symbol(cell))
     return x_cons(cell, args);
+  if (is_pair(cell))
+    return x_cons(x_eval(cell), args);
   if (is_builtin(cell))
     switch (size(cell)) {
     case 0:
       return ((x_fn0)data(cell))();
     case 1:
-      return ((x_fn1)data(cell))(car(args));
+      return ((x_fn1)data(cell))(args);
     case 2:
-      return ((x_fn2)data(cell))(car(args), car(cdr(args)));
+      return ((x_fn2)data(cell))(args, cdr(args));
     case 3:
-      return ((x_fn3)data(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
+      return ((x_fn3)data(cell))(args, cdr(args), car(cdr(args)));
     }
   else if (is_user(cell))
     return x_apply((x_any)data(cell), args);
   else
     assert(0);
   return x_nil;
+}
+
+x_any x_quote(x_any cell)
+{
+  return car(cell);
 }
 
 x_any x_eval(x_any cell)
@@ -270,7 +273,7 @@ x_any read_tail(FILE *infile)
 
   token = read_atom(infile);
 
-  if (is_symbol(token))
+  if (is_symbol(token) || is_builtin(token))
     return x_cons(token, read_tail(infile));
 
   if (token == x_left) {
@@ -344,6 +347,7 @@ void init(void)
   def_builtin("car", (void*)x_car, 1);
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
+  def_builtin("quote", (void*)x_quote, 1);
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("print", (void*)x_print, 1);
@@ -356,11 +360,12 @@ int main(int argc, const char* argv[])
 
   init();
   for (;;) {
-    printf(": ");
+    printf("? ");
     expr = read_sexpr(stdin);
     if (expr == x_eof)
       break;
     value = x_eval(expr);
+    printf(": ");
     print_cell(value, stdout);
     putchar('\n');
   }
