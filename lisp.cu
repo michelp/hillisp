@@ -213,8 +213,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args)
   return cell;
 }
 
-/* This is the lisp tokenizer; it returns a symbol, or one of `(', `)', `.', or EOF */
-x_any read_atom(FILE *infile)
+x_any read_token(FILE *infile)
 {
   int c;
   static char buf[MAX_NAME_LEN];
@@ -238,7 +237,6 @@ x_any read_atom(FILE *infile)
     *ptr++ = c;
     while ((c = getc(infile)) != EOF && !isspace(c) && c != '(' && c != ')')
       *ptr++ = c;
-    /* Return the unused character to the input. */
     if (c != EOF)
       ungetc(c, infile);
     *ptr = '\0';
@@ -247,7 +245,7 @@ x_any read_atom(FILE *infile)
 }
 
 x_any read_sexpr(FILE*);
-x_any read_atom(FILE*);
+x_any read_token(FILE*);
 
 x_any read_cdr(FILE *infile)
 {
@@ -255,7 +253,7 @@ x_any read_cdr(FILE *infile)
   x_any token;
 
   cdr = read_sexpr(infile);
-  token = read_atom(infile);
+  token = read_token(infile);
 
   if (token == x_right)
     return cdr;
@@ -271,7 +269,7 @@ x_any read_tail(FILE *infile)
   x_any token;
   x_any temp;
 
-  token = read_atom(infile);
+  token = read_token(infile);
 
   if (is_symbol(token) || is_builtin(token))
     return x_cons(token, read_tail(infile));
@@ -297,7 +295,7 @@ x_any read_head(FILE *infile)
   x_any token;
   x_any temp;
 
-  token = read_atom(infile);
+  token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
     return x_cons(token, read_tail(infile));
   if (token == x_left) {
@@ -317,7 +315,7 @@ x_any read_sexpr(FILE *infile)
 {
   x_any token;
 
-  token = read_atom(infile);
+  token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
     return token;
   if (token == x_left)
