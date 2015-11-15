@@ -155,17 +155,17 @@ int length(x_any cell)
     return 1 + length(cdr(cell));
 }
 
-x_any eval(x_any);
+x_any x_eval(x_any);
 
 x_any list_eval(x_any cell)
 {
   if (cell == x_nil)
     return x_nil;
   else
-    return x_cons(eval(car(cell)), list_eval(cdr(cell)));
+    return x_cons(x_eval(car(cell)), list_eval(cdr(cell)));
 }
 
-x_any apply(x_any cell, x_any args)
+x_any x_apply(x_any cell, x_any args)
 {
   if (is_symbol(cell))
     return x_cons(cell, args);
@@ -181,20 +181,20 @@ x_any apply(x_any cell, x_any args)
       return ((x_fn3)data(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
     }
   else if (is_user(cell))
-    return apply((x_any)data(cell), args);
+    return x_apply((x_any)data(cell), args);
   else
     assert(0);
   return x_nil;
 }
 
-x_any eval(x_any cell)
+x_any x_eval(x_any cell)
 {
   if (is_atom(cell))
     return cell;
   else if (is_pair(cell) && (is_symbol(car(cell))))
     return x_cons(car(cell), list_eval(cdr(cell)));
   else
-    return apply(car(cell), list_eval(cdr(cell)));
+    return x_apply(car(cell), list_eval(cdr(cell)));
 }
 
 x_any intern(const char*);
@@ -211,7 +211,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args)
 }
 
 /* This is the lisp tokenizer; it returns a symbol, or one of `(', `)', `.', or EOF */
-x_any ratom(FILE *infile)
+x_any read_atom(FILE *infile)
 {
   int c;
   static char buf[MAX_NAME_LEN];
@@ -244,7 +244,7 @@ x_any ratom(FILE *infile)
 }
 
 x_any read_sexpr(FILE*);
-x_any ratom(FILE*);
+x_any read_atom(FILE*);
 
 x_any read_cdr(FILE *infile)
 {
@@ -252,7 +252,7 @@ x_any read_cdr(FILE *infile)
   x_any token;
 
   cdr = read_sexpr(infile);
-  token = ratom(infile);
+  token = read_atom(infile);
 
   if (token == x_right)
     return cdr;
@@ -268,7 +268,7 @@ x_any read_tail(FILE *infile)
   x_any token;
   x_any temp;
 
-  token = ratom(infile);
+  token = read_atom(infile);
 
   if (is_symbol(token))
     return x_cons(token, read_tail(infile));
@@ -294,7 +294,7 @@ x_any read_head(FILE *infile)
   x_any token;
   x_any temp;
 
-  token = ratom(infile);
+  token = read_atom(infile);
   if (is_symbol(token) || is_builtin(token))
     return x_cons(token, read_tail(infile));
   if (token == x_left) {
@@ -314,7 +314,7 @@ x_any read_sexpr(FILE *infile)
 {
   x_any token;
 
-  token = ratom(infile);
+  token = read_atom(infile);
   if (is_symbol(token) || is_builtin(token))
     return token;
   if (token == x_left)
@@ -344,6 +344,8 @@ void init(void)
   def_builtin("car", (void*)x_car, 1);
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
+  def_builtin("eval", (void*)x_eval, 1);
+  def_builtin("apply", (void*)x_apply, 2);
   def_builtin("print", (void*)x_print, 1);
 }
 
@@ -358,7 +360,7 @@ int main(int argc, const char* argv[])
     expr = read_sexpr(stdin);
     if (expr == x_eof)
       break;
-    value = eval(expr);
+    value = x_eval(expr);
     print_cell(value, stdout);
     putchar('\n');
   }
