@@ -13,29 +13,32 @@ __managed__ x_any x_right;
 __managed__ x_any x_eof;
 
 
-x_any new_cell(char* new_name) {
+char* new_name(const char* name) {
+  char *n;
+  cudaMallocManaged(&n, strlen(name) + 1);
+  assert(n != NULL);
+  strcpy(n, name);
+  return n;
+}
+
+x_any new_cell(const char* name) {
   x_any cell;
-  char *name;
   cudaMallocManaged(&cell, sizeof(x_cell));
   assert(cell != NULL);
-  cudaMallocManaged(&name, strlen(new_name) + 1);
-  assert(name != NULL);
-  strcpy(name, new_name);
-  name(cell) = name;
+  name(cell) = new_name(name);
   return cell;
 }
 
 x_any def_token(const char* new_name) {
   x_any cell;
-  cell = new_cell((char*)new_name);
+  cell = new_cell(new_name);
   flags(cell) = TOKEN;
   return cell;
 }
 
 hash_table_type hash_table;
 
-int hash(char *name)
-/* Return a hash value for this name. */
+int hash(const char *name)
 {
   int value = 0;
   while (*name != '\0')
@@ -43,8 +46,7 @@ int hash(char *name)
   return value;
 }
 
-x_any lookup(char *name, x_any cell)
-/* Return the symbol with this name, or NULL if it is not found. */
+x_any lookup(const char *name, x_any cell)
 {
   if (cell == x_nil)
     return NULL;
@@ -54,7 +56,7 @@ x_any lookup(char *name, x_any cell)
     return lookup(name, cdr(cell));
 }
 
-x_any create_symbol(char *new_name)
+x_any create_symbol(const char *new_name)
 {
   x_any cell;
   cell = new_cell(new_name);
@@ -121,7 +123,7 @@ void enter(x_any cell)
   hash_table[hash_val] = x_cons(cell, hash_table[hash_val]);
 }
 
-x_any intern(char *name)
+x_any intern(const char *name)
 /* Return the symbol with this name, creating it if necessary. */
 {
   x_any cell;
@@ -195,13 +197,13 @@ x_any eval(x_any cell)
     return apply(car(cell), list_eval(cdr(cell)));
 }
 
-x_any intern(char*);
+x_any intern(const char*);
 
 x_any def_builtin(char const *name, void *fn, size_t num_args)
 {
   x_any cell;
 
-  cell = intern((char*)name);
+  cell = intern(name);
   flags(cell) = BUILTIN;
   data(cell) = fn;
   size(cell) = num_args;
