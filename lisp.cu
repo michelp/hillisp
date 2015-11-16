@@ -85,6 +85,12 @@ void print_list(x_any cell, FILE *outfile) {
 }
 
 
+x_any x_is(x_any cell1, x_any cell2) {
+  if (cell1 == cell2)
+    return x_true;
+  return x_nil;
+}
+
 x_any x_car(x_any cell) {
   return car(cell);
 }
@@ -124,9 +130,9 @@ x_any intern(const char *name) {
 }
 
 x_any x_print(x_any cell) {
-  print_cell(car(cell), stdout);
+  print_cell(cell, stdout);
   putchar('\n');
-  return car(cell);
+  return cell;
 }
 
 int length(x_any cell) {
@@ -153,11 +159,11 @@ x_any x_apply(x_any cell, x_any args) {
     case 0:
       return ((x_fn0)data(cell))();
     case 1:
-      return ((x_fn1)data(cell))(args);
+      return ((x_fn1)data(cell))(car(args));
     case 2:
-      return ((x_fn2)data(cell))(args, cdr(args));
+      return ((x_fn2)data(cell))(car(args), car(cdr(args)));
     case 3:
-      return ((x_fn3)data(cell))(args, cdr(args), car(cdr(args)));
+      return ((x_fn3)data(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
     }
   else if (is_user(cell))
     return x_apply((x_any)data(cell), args);
@@ -167,7 +173,16 @@ x_any x_apply(x_any cell, x_any args) {
 }
 
 x_any x_quote(x_any cell) {
-  return car(cell);
+  return cell;
+}
+
+x_any x_cond(x_any clauses) {
+  if (clauses == x_nil)
+    return x_nil;
+  else if (x_eval(car(car(clauses))) != x_nil)
+    return x_eval(car(cdr(clauses)));
+  else 
+    return x_cond(car(cdr(clauses)));
 }
 
 x_any x_eval(x_any cell) {
@@ -307,10 +322,12 @@ void init(void) {
   enter(x_nil);
   x_true = intern("true");
 
+  def_builtin("is", (void*)x_is, 2);
   def_builtin("car", (void*)x_car, 1);
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
   def_builtin("quote", (void*)x_quote, 1);
+  def_builtin("cond", (void*)x_cond, 1);
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("print", (void*)x_print, 1);

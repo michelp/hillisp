@@ -98,5 +98,7 @@ x_any x_print(x_any);
 x_any x_eval(x_any);
 x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);
+x_any x_cond(x_any);
+x_any x_is(x_any, x_any);
 
 void init(void);
