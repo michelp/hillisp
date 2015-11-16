@@ -12,6 +12,7 @@ __managed__ x_any x_left;
 __managed__ x_any x_right;
 __managed__ x_any x_eof;
 
+__managed__ hash_table_type hash_table;
 
 char* new_name(const char* name) {
   char *n;
@@ -35,8 +36,6 @@ x_any def_token(const char* new_name) {
   flags(cell) = TOKEN;
   return cell;
 }
-
-hash_table_type hash_table;
 
 int hash(const char *name) {
   int value = 0;
@@ -220,9 +219,6 @@ x_any read_token(FILE *infile) {
   }
 }
 
-x_any read_sexpr(FILE*);
-x_any read_token(FILE*);
-
 x_any read_cdr(FILE *infile) {
   x_any cdr;
   x_any token;
@@ -236,8 +232,6 @@ x_any read_cdr(FILE *infile) {
     assert(0);
   return x_nil;
 }
-
-x_any read_head(FILE*);
 
 x_any read_tail(FILE *infile) {
   x_any token;
