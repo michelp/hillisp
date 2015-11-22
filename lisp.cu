@@ -8,8 +8,10 @@
 __managed__ x_any x_nil;
 __managed__ x_any x_true;
 __managed__ x_any x_dot;
-__managed__ x_any x_left;
-__managed__ x_any x_right;
+__managed__ x_any x_lparen;
+__managed__ x_any x_rparen;
+__managed__ x_any x_lbrack;
+__managed__ x_any x_rbrack;
 __managed__ x_any x_eof;
 
 __managed__ hash_table_type hash_table;
@@ -104,8 +106,8 @@ x_any x_cons(x_any cell1, x_any cell2) {
   cudaMallocManaged(&cell, sizeof(x_cell));
   assert(cell != NULL);
   flags(cell) = PAIR;
-  car(cell) = cell1;
-  cdr(cell) = cell2;
+  set_car(cell, cell1);
+  set_cdr(cell, cell2);
   return cell;
 }
 
@@ -157,16 +159,16 @@ x_any x_apply(x_any cell, x_any args) {
   if (is_builtin(cell))
     switch (size(cell)) {
     case 0:
-      return ((x_fn0)data(cell))();
+      return ((x_fn0)cdr(cell))();
     case 1:
-      return ((x_fn1)data(cell))(car(args));
+      return ((x_fn1)cdr(cell))(car(args));
     case 2:
-      return ((x_fn2)data(cell))(car(args), car(cdr(args)));
+      return ((x_fn2)cdr(cell))(car(args), car(cdr(args)));
     case 3:
-      return ((x_fn3)data(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
+      return ((x_fn3)cdr(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
     }
   else if (is_user(cell))
-    return x_apply((x_any)data(cell), args);
+    return x_apply((x_any)cdr(cell), args);
   else
     assert(0);
   return x_nil;
@@ -199,7 +201,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args) {
 
   cell = intern(name);
   flags(cell) = BUILTIN;
-  data(cell) = fn;
+  set_cdr(cell, fn);
   size(cell) = num_args;
   return cell;
 }
@@ -218,9 +220,13 @@ x_any read_token(FILE *infile) {
   case EOF:
     return x_eof;
   case '(':
-    return x_left;
+    return x_lparen;
   case ')':
-    return x_right;
+    return x_rparen;
+  case '[':
+    return x_lbrack;
+  case ']':
+    return x_rbrack;
   case '.':
     return x_dot;
   default:
@@ -241,7 +247,7 @@ x_any read_cdr(FILE *infile) {
   cdr = read_sexpr(infile);
   token = read_token(infile);
 
-  if (token == x_right)
+  if (token == x_rparen)
     return cdr;
   else
     assert(0);
@@ -257,7 +263,7 @@ x_any read_tail(FILE *infile) {
   if (is_symbol(token) || is_builtin(token))
     return x_cons(token, read_tail(infile));
 
-  if (token == x_left) {
+  if (token == x_lparen) {
     temp = read_head(infile);
     return x_cons(temp, read_tail(infile));
   }
@@ -265,7 +271,7 @@ x_any read_tail(FILE *infile) {
   if (token == x_dot)
     return read_cdr(infile);
 
-  if (token == x_right)
+  if (token == x_rparen)
     return x_nil;
 
   if (token == x_eof)
@@ -280,16 +286,26 @@ x_any read_head(FILE *infile) {
   token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
     return x_cons(token, read_tail(infile));
-  if (token == x_left) {
+  if (token == x_lparen) {
     temp = read_head(infile);
     return x_cons(temp, read_tail(infile));
   }
-  if (token == x_right)
+  if (token == x_rparen)
     return x_nil;
   if (token == x_dot)
     assert(0);
   if (token == x_eof)
     assert(0);
+  return x_nil;
+}
+
+x_any read_xhead(FILE *infile) {
+  x_any token;
+  x_any temp;
+
+  token = read_token(infile);
+  while (token != x_rbrack) {
+  }
   return x_nil;
 }
 
@@ -299,9 +315,11 @@ x_any read_sexpr(FILE *infile) {
   token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
     return token;
-  if (token == x_left)
+  if (token == x_lparen)
     return read_head(infile);
-  if (token == x_right)
+  if (token == x_lbrack)
+    return read_xhead(infile);
+  if (token == x_rparen)
     assert(0);
   if (token == x_dot)
     assert(0);
@@ -312,8 +330,8 @@ x_any read_sexpr(FILE *infile) {
 
 void init(void) {
   x_dot = def_token(".");
-  x_left = def_token("(");
-  x_right = def_token(")");
+  x_lparen = def_token("(");
+  x_rparen = def_token(")");
   x_eof = def_token("EOF");
 
   x_nil = create_symbol("nil");

@@ -24,6 +24,7 @@ typedef enum {
 
 typedef struct x_xector x_xector;
 typedef struct x_cell x_cell, *x_any;
+
 typedef x_any (*x_fn0)();
 typedef x_any (*x_fn1)(x_any);
 typedef x_any (*x_fn2)(x_any, x_any);
@@ -33,10 +34,8 @@ typedef x_any (*x_fn3)(x_any, x_any, x_any);
 #define HEAPSIZE (1*1024*1024/sizeof(x_cell)) // Heap allocation unit 1MB
 
 struct __align__(16) x_cell {
-  x_any car;
-  x_any cdr;
-  void *data;
-  void *device;
+  void *car;
+  void *cdr;
   char *name;
   size_t size;
   x_flags flags;
@@ -48,13 +47,14 @@ typedef struct __align__(16) x_heap {
   struct x_heap *next;
 } x_heap;
 
-#define car(x) ((x)->car)
-#define cdr(x) ((x)->cdr)
+#define car(x) ((x_any)(x)->car)
+#define cdr(x) ((x_any)(x)->cdr)
+#define set_car(x, y) ((x)->car) = (void*)(y)
+#define set_cdr(x, y) ((x)->cdr) = (void*)(y)
 #define flags(x) ((x)->flags)
 #define name(x) ((x)->name)
-#define data(x) ((x)->data)
-#define device(x) ((x)->device)
 #define size(x) ((x)->size)
+
 
 #define is_symbol(x) (flags(x) & SYMBOL)
 #define is_builtin(x) (flags(x) & BUILTIN)
