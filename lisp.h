@@ -17,10 +17,14 @@ typedef enum {
 
   X_INT = 1 << 10,
   X_FLOAT = 1 << 11,
-  X_DOUBLE = 1 << 12
+  X_DOUBLE = 1 << 12,
 
-  // syntax
-} x_flags;
+  X_FN0 = 1 << 13,
+  X_FN1 = 1 << 14,
+  X_FN2 = 1 << 15,
+  X_FN3 = 1 << 16
+
+} x_type;
 
 typedef struct x_xector x_xector;
 typedef struct x_cell x_cell, *x_any;
@@ -37,8 +41,15 @@ struct __align__(16) x_cell {
   void *car;
   void *cdr;
   char *name;
-  size_t size;
-  x_flags flags;
+  uint64_t type;
+};
+
+
+#define INIT_CELL(x) x = x_cell_default
+
+
+struct __align__(16) x_xector {
+  void *data;
 };
 
 typedef struct __align__(16) x_heap {
@@ -51,19 +62,20 @@ typedef struct __align__(16) x_heap {
 #define cdr(x) ((x_any)(x)->cdr)
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
-#define flags(x) ((x)->flags)
+#define type(x) ((x)->type)
+#define set_type(x, y) (type(x) = type(x) | (y))
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
 
 
-#define is_symbol(x) (flags(x) & SYMBOL)
-#define is_builtin(x) (flags(x) & BUILTIN)
-#define is_token(x) (flags(x) & BUILTIN)
+#define is_symbol(x) (type(x) & SYMBOL)
+#define is_builtin(x) (type(x) & BUILTIN)
+#define is_token(x) (type(x) & BUILTIN)
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)))
 
-#define is_user(x) (flags(x) & USER)
-#define is_pair(x) (flags(x) & PAIR)
-#define is_xector(x) (flags(x) & XECTOR)
+#define is_user(x) (type(x) & USER)
+#define is_pair(x) (type(x) & PAIR)
+#define is_xector(x) (type(x) & XECTOR)
 
 #define HASH_TABLE_SIZE	269
 #define HASH_MULTIPLIER	131

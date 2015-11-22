@@ -28,14 +28,20 @@ x_any new_cell(const char* name) {
   x_any cell;
   cudaMallocManaged(&cell, sizeof(x_cell));
   assert(cell != NULL);
-  name(cell) = new_name(name);
+  set_cdr(cell, NULL);
+  set_car(cell, NULL);
+  if (name == NULL)
+    name(cell) = NULL;
+  else
+    name(cell) = new_name(name);
+  type(cell) = 0;
   return cell;
 }
 
 x_any def_token(const char* new_name) {
   x_any cell;
   cell = new_cell(new_name);
-  flags(cell) = TOKEN;
+  set_type(cell, TOKEN);
   return cell;
 }
 
@@ -58,7 +64,7 @@ x_any lookup(const char *name, x_any cell) {
 x_any create_symbol(const char *new_name) {
   x_any cell;
   cell = new_cell(new_name);
-  flags(cell) = SYMBOL;
+  set_type(cell, SYMBOL);
   return cell;
 }
 
@@ -103,9 +109,8 @@ x_any x_cdr(x_any cell) {
 
 x_any x_cons(x_any cell1, x_any cell2) {
   x_any cell;
-  cudaMallocManaged(&cell, sizeof(x_cell));
-  assert(cell != NULL);
-  flags(cell) = PAIR;
+  cell = new_cell(NULL);
+  set_type(cell, PAIR);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   return cell;
@@ -157,15 +162,17 @@ x_any x_apply(x_any cell, x_any args) {
   if (is_pair(cell))
     return x_cons(x_eval(cell), args);
   if (is_builtin(cell))
-    switch (size(cell)) {
-    case 0:
+    switch (type(cell)) {
+    case X_FN0:
       return ((x_fn0)cdr(cell))();
-    case 1:
+    case X_FN1:
       return ((x_fn1)cdr(cell))(car(args));
-    case 2:
+    case X_FN2:
       return ((x_fn2)cdr(cell))(car(args), car(cdr(args)));
-    case 3:
+    case X_FN3:
       return ((x_fn3)cdr(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
+    default:
+      assert(0);
     }
   else if (is_user(cell))
     return x_apply((x_any)cdr(cell), args);
@@ -200,9 +207,22 @@ x_any def_builtin(char const *name, void *fn, size_t num_args) {
   x_any cell;
 
   cell = intern(name);
-  flags(cell) = BUILTIN;
+  set_type(cell, BUILTIN);
   set_cdr(cell, fn);
-  size(cell) = num_args;
+  switch(num_args) {
+  case 0:
+    set_type(cell, X_FN0);
+    break;
+  case 1:
+    set_type(cell, X_FN1);
+    break;
+  case 2:
+    set_type(cell, X_FN2);
+    break;
+  case 3:
+    set_type(cell, X_FN3);
+    break;
+  }
   return cell;
 }
 
