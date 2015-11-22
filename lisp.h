@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -41,6 +36,7 @@ struct __align__(16) x_cell {
   x_any car;
   x_any cdr;
   void *data;
+  void *device;
   char *name;
   size_t size;
   x_flags flags;
@@ -57,6 +53,7 @@ typedef struct __align__(16) x_heap {
 #define flags(x) ((x)->flags)
 #define name(x) ((x)->name)
 #define data(x) ((x)->data)
+#define device(x) ((x)->device)
 #define size(x) ((x)->size)
 
 #define is_symbol(x) (flags(x) & SYMBOL)
@@ -105,13 +102,3 @@ x_any x_cond(x_any);
 x_any x_is(x_any, x_any);
 
 void init(void);
-
-__managed__ x_any x_nil;
-__managed__ x_any x_true;
-__managed__ x_any x_dot;
-__managed__ x_any x_left;
-__managed__ x_any x_right;
-__managed__ x_any x_eof;
-
-__managed__ hash_table_type hash_table;
-
