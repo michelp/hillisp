@@ -24,24 +24,24 @@ char* new_name(const char* name) {
   return n;
 }
 
-x_any new_cell(const char* name) {
+x_any new_cell(const char* name, uint64_t type) {
   x_any cell;
   cudaMallocManaged(&cell, sizeof(x_cell));
+  type(cell) = 0;
   assert(cell != NULL);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
+  set_type_flag(cell, type);
   if (name == NULL)
     name(cell) = NULL;
   else
     name(cell) = new_name(name);
-  type(cell) = 0;
   return cell;
 }
 
 x_any def_token(const char* new_name) {
   x_any cell;
-  cell = new_cell(new_name);
-  set_type(cell, TOKEN);
+  cell = new_cell(new_name, TOKEN);
   return cell;
 }
 
@@ -63,8 +63,7 @@ x_any lookup(const char *name, x_any cell) {
 
 x_any create_symbol(const char *new_name) {
   x_any cell;
-  cell = new_cell(new_name);
-  set_type(cell, SYMBOL);
+  cell = new_cell(new_name, SYMBOL);
   return cell;
 }
 
@@ -109,8 +108,7 @@ x_any x_cdr(x_any cell) {
 
 x_any x_cons(x_any cell1, x_any cell2) {
   x_any cell;
-  cell = new_cell(NULL);
-  set_type(cell, PAIR);
+  cell = new_cell(NULL, PAIR);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   return cell;
@@ -207,20 +205,20 @@ x_any def_builtin(char const *name, void *fn, size_t num_args) {
   x_any cell;
 
   cell = intern(name);
-  set_type(cell, BUILTIN);
+  set_type_flag(cell, BUILTIN);
   set_cdr(cell, fn);
   switch(num_args) {
   case 0:
-    set_type(cell, X_FN0);
+    set_type_flag(cell, X_FN0);
     break;
   case 1:
-    set_type(cell, X_FN1);
+    set_type_flag(cell, X_FN1);
     break;
   case 2:
-    set_type(cell, X_FN2);
+    set_type_flag(cell, X_FN2);
     break;
   case 3:
-    set_type(cell, X_FN3);
+    set_type_flag(cell, X_FN3);
     break;
   }
   return cell;
@@ -233,7 +231,7 @@ x_any read_token(FILE *infile) {
 
   do {
     c = getc(infile);
-    if (c == ';')
+    if (c == '#')
       do c = getc(infile); while (c != '\n' && c != EOF);
   } while (isspace(c));
   switch (c) {
@@ -251,7 +249,7 @@ x_any read_token(FILE *infile) {
     return x_dot;
   default:
     *ptr++ = c;
-    while ((c = getc(infile)) != EOF && !isspace(c) && c != '(' && c != ')')
+    while ((c = getc(infile)) != EOF && !isspace(c) && c != '(' && c != ')' && c != '[' && c!= ']')
       *ptr++ = c;
     if (c != EOF)
       ungetc(c, infile);
@@ -319,14 +317,16 @@ x_any read_head(FILE *infile) {
   return x_nil;
 }
 
-x_any read_xhead(FILE *infile) {
+x_any read_xector(FILE *infile) {
   x_any token;
-  x_any temp;
+  x_any cell;
 
+  cell = new_cell("xector", XECTOR);
   token = read_token(infile);
   while (token != x_rbrack) {
+    token = read_token(infile);
   }
-  return x_nil;
+  return x_cons(cell, read_tail(infile));
 }
 
 x_any read_sexpr(FILE *infile) {
@@ -338,7 +338,7 @@ x_any read_sexpr(FILE *infile) {
   if (token == x_lparen)
     return read_head(infile);
   if (token == x_lbrack)
-    return read_xhead(infile);
+    return read_xector(infile);
   if (token == x_rparen)
     assert(0);
   if (token == x_dot)
@@ -352,6 +352,8 @@ void init(void) {
   x_dot = def_token(".");
   x_lparen = def_token("(");
   x_rparen = def_token(")");
+  x_lbrack = def_token("[");
+  x_rbrack = def_token("]");
   x_eof = def_token("EOF");
 
   x_nil = create_symbol("nil");

@@ -26,7 +26,6 @@ typedef enum {
 
 } x_type;
 
-typedef struct x_xector x_xector;
 typedef struct x_cell x_cell, *x_any;
 
 typedef x_any (*x_fn0)();
@@ -35,7 +34,8 @@ typedef x_any (*x_fn2)(x_any, x_any);
 typedef x_any (*x_fn3)(x_any, x_any, x_any);
 
 
-#define HEAPSIZE (1*1024*1024/sizeof(x_cell)) // Heap allocation unit 1MB
+#define HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
+#define XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
 
 struct __align__(16) x_cell {
   void *car;
@@ -44,16 +44,17 @@ struct __align__(16) x_cell {
   uint64_t type;
 };
 
-
-#define INIT_CELL(x) x = x_cell_default
-
-
 struct __align__(16) x_xector {
-  void *data;
-};
+  void *cars[XECTOR_BLOCK_SIZE];
+  void *cdrs[XECTOR_BLOCK_SIZE];
+  char *names[XECTOR_BLOCK_SIZE];
+  uint64_t types[XECTOR_BLOCK_SIZE];
+  size_t size;
+  struct x_xector *next;
+} x_xector;
 
 typedef struct __align__(16) x_heap {
-  x_cell cells[HEAPSIZE];
+  x_cell cells[HEAP_BLOCK_SIZE];
   size_t used;
   struct x_heap *next;
 } x_heap;
@@ -63,7 +64,7 @@ typedef struct __align__(16) x_heap {
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
 #define type(x) ((x)->type)
-#define set_type(x, y) (type(x) = type(x) | (y))
+#define set_type_flag(x, y) (type(x) = type(x) | (y))
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
 
@@ -81,6 +82,9 @@ typedef struct __align__(16) x_heap {
 #define HASH_MULTIPLIER	131
 #define MAX_NAME_LEN	128
 typedef x_any hash_table_type[HASH_TABLE_SIZE];
+
+
+// REPL functions
 
 char* new_name(const char*);
 x_any new_cell(const char*);
@@ -102,6 +106,9 @@ x_any read_sexpr(FILE*);
 x_any read_cdr(FILE*);
 x_any read_head(FILE*);
 x_any read_tail(FILE*);
+void init(void);
+
+// core functions
 
 x_any x_car(x_any);
 x_any x_cdr(x_any);
@@ -112,5 +119,3 @@ x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);
 x_any x_cond(x_any);
 x_any x_is(x_any, x_any);
-
-void init(void);
