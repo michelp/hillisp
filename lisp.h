@@ -28,10 +28,10 @@ typedef enum {
 
 typedef struct x_cell x_cell, *x_any;
 
-typedef x_any (*x_fn0)();
-typedef x_any (*x_fn1)(x_any);
-typedef x_any (*x_fn2)(x_any, x_any);
-typedef x_any (*x_fn3)(x_any, x_any, x_any);
+typedef x_any (*x_fn0_t)();
+typedef x_any (*x_fn1_t)(x_any);
+typedef x_any (*x_fn2_t)(x_any, x_any);
+typedef x_any (*x_fn3_t)(x_any, x_any, x_any);
 
 
 #define X_HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
@@ -41,17 +41,17 @@ struct __align__(16) x_cell {
   void *car;
   void *cdr;
   char *name;
-  uint64_t type;
+  x_any type;
 };
 
-struct __align__(16) x_xector {
+struct __align__(16) x_xector_t {
   void *cars[X_XECTOR_BLOCK_SIZE];
   void *cdrs[X_XECTOR_BLOCK_SIZE];
   char *names[X_XECTOR_BLOCK_SIZE];
   uint64_t types[X_XECTOR_BLOCK_SIZE];
   size_t size;
-  struct x_xector *next;
-} x_xector;
+  struct x_xector_t *next;
+} x_xector_t;
 
 typedef struct __align__(16) x_heap {
   x_cell cells[X_HEAP_BLOCK_SIZE];
@@ -66,25 +66,26 @@ typedef struct __align__(16) x_heap {
 
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
+
 #define type(x) ((x)->type)
-#define set_type_flag(x, y) (type(x) = type(x) | (y))
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
 
 
-#define is_symbol(x) (type(x) & X_SYMBOL)
-#define is_builtin(x) (type(x) & X_BUILTIN)
-#define is_token(x) (type(x) & X_BUILTIN)
-#define is_int(x) (type(x) & X_INT)
+#define is_symbol(x) ((type(x) == x_symbol) || is_int(x))
+#define is_token(x) (type(x) == x_builtin)
+#define is_user(x) (type(x) == x_user)
+#define is_pair(x) (type(x) == x_pair)
+#define is_xector(x) (type(x) == x_xector)
 
-#define is_user(x) (type(x) & X_USER)
-#define is_pair(x) (type(x) & X_PAIR)
-#define is_xector(x) (type(x) & X_XECTOR)
+#define is_int(x) (type(x) == x_int)
 
-#define is_fn0(x) (type(x) & X_FN0)
-#define is_fn1(x) (type(x) & X_FN1)
-#define is_fn2(x) (type(x) & X_FN2)
-#define is_fn3(x) (type(x) & X_FN3)
+#define is_fn0(x) (type(x) == x_fn0)
+#define is_fn1(x) (type(x) == x_fn1)
+#define is_fn2(x) (type(x) == x_fn2)
+#define is_fn3(x) (type(x) == x_fn3)
+
+#define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
 
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
@@ -131,4 +132,24 @@ x_any x_quote(x_any);
 x_any x_cond(x_any);
 x_any x_is(x_any, x_any);
 
+// math
+
 x_any x_add(x_any, x_any);
+x_any x_sub(x_any, x_any);
+x_any x_mul(x_any, x_any);
+x_any x_div(x_any, x_any);
+
+// cmp
+
+x_any x_eq(x_any, x_any);
+x_any x_lt(x_any, x_any);
+x_any x_gt(x_any, x_any);
+
+// bool
+
+x_any x_not(x_any);
+x_any x_and(x_any, x_any);
+x_any x_or(x_any, x_any);
+x_any x_xor(x_any, x_any);
+
+

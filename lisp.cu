@@ -15,6 +15,20 @@ __managed__ x_any x_lbrack;
 __managed__ x_any x_rbrack;
 __managed__ x_any x_eof;
 
+__managed__ x_any x_symbol;
+__managed__ x_any x_builtin;
+__managed__ x_any x_token;
+__managed__ x_any x_user;
+__managed__ x_any x_pair;
+
+__managed__ x_any x_xector;
+__managed__ x_any x_int;
+
+__managed__ x_any x_fn0;
+__managed__ x_any x_fn1;
+__managed__ x_any x_fn2;
+__managed__ x_any x_fn3;
+
 __managed__ hash_table_type hash_table;
 
 char* new_name(const char* name) {
@@ -25,14 +39,14 @@ char* new_name(const char* name) {
   return n;
 }
 
-x_any new_cell(const char* name, uint64_t type) {
+x_any new_cell(const char* name, x_any type) {
   x_any cell;
   cudaMallocManaged(&cell, sizeof(x_cell));
   type(cell) = 0;
   assert(cell != NULL);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
-  set_type_flag(cell, type);
+  type(cell) = type;
   if (name == NULL)
     name(cell) = NULL;
   else
@@ -42,7 +56,7 @@ x_any new_cell(const char* name, uint64_t type) {
 
 x_any def_token(const char* new_name) {
   x_any cell;
-  cell = new_cell(new_name, X_TOKEN);
+  cell = new_cell(new_name, x_token);
   return cell;
 }
 
@@ -64,10 +78,10 @@ x_any lookup(const char *name, x_any cell) {
 
 x_any create_symbol(const char *new_name) {
   x_any cell;
-  cell = new_cell(new_name, X_SYMBOL);
+  cell = new_cell(new_name, x_symbol);
   if (isdigit(new_name[0])) {
     set_car(cell, atol(new_name));
-    set_type_flag(cell, X_INT);
+    type(cell) = x_int;
   }
   return cell;
 }
@@ -104,6 +118,11 @@ x_any x_is(x_any cell1, x_any cell2) {
   return x_nil;
 }
 
+x_any x_assert(x_any cell) {
+  assert(cell != x_nil);
+  return cell;
+}
+
 x_any x_car(x_any cell) {
   return car(cell);
 }
@@ -114,7 +133,7 @@ x_any x_cdr(x_any cell) {
 
 x_any x_cons(x_any cell1, x_any cell2) {
   x_any cell;
-  cell = new_cell(NULL, X_PAIR);
+  cell = new_cell(NULL, x_pair);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   return cell;
@@ -124,7 +143,7 @@ x_any x_add(x_any cell1, x_any cell2) {
   x_any cell;
 
   if (is_int(cell1) && is_int(cell2)) {
-    cell = new_cell(NULL, X_INT);
+    cell = new_cell(NULL, x_int);
     set_car(cell, int_car(cell1) + int_car(cell2));
     return cell;
   }
@@ -132,11 +151,11 @@ x_any x_add(x_any cell1, x_any cell2) {
   return x_nil;
 }
 
-x_any x_min(x_any cell1, x_any cell2) {
+x_any x_sub(x_any cell1, x_any cell2) {
   x_any cell;
 
   if (is_int(cell1) && is_int(cell2)) {
-    cell = new_cell(NULL, X_INT);
+    cell = new_cell(NULL, x_int);
     set_car(cell, int_car(cell1) - int_car(cell2));
     return cell;
   }
@@ -148,7 +167,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
   x_any cell;
 
   if (is_int(cell1) && is_int(cell2)) {
-    cell = new_cell(NULL, X_INT);
+    cell = new_cell(NULL, x_int);
     set_car(cell, int_car(cell1) * int_car(cell2));
     return cell;
   }
@@ -160,11 +179,60 @@ x_any x_div(x_any cell1, x_any cell2) {
   x_any cell;
 
   if (is_int(cell1) && is_int(cell2)) {
-    cell = new_cell(NULL, X_INT);
+    cell = new_cell(NULL, x_int);
     set_car(cell, int_car(cell1) / int_car(cell2));
     return cell;
   }
   assert(0);
+  return x_nil;
+}
+
+x_any x_eq(x_any cell1, x_any cell2) {
+  if (is_int(cell1) && is_int(cell2)) {
+    if (int_car(cell1) == int_car(cell2))
+      return x_true;
+  }
+  else
+    if (strcmp(cell1->name, cell2->name) == 0)
+      return x_true;
+  return x_nil;
+}
+
+x_any x_gt(x_any cell1, x_any cell2) {
+  if (is_int(cell1) && is_int(cell2)) {
+    if (int_car(cell1) > int_car(cell2))
+      return x_true;
+  }
+  else
+    if (strcmp(cell1->name, cell2->name) > 0)
+      return x_true;
+  return x_nil;
+}
+
+x_any x_lt(x_any cell1, x_any cell2) {
+  if (is_int(cell1) && is_int(cell2)) {
+    if (int_car(cell1) < int_car(cell2))
+      return x_true;
+  }
+  else
+    if (strcmp(cell1->name, cell2->name) < 0)
+      return x_true;
+  return x_nil;
+}
+
+x_any x_not(x_any cell1) {
+  return x_nil;
+}
+
+x_any x_and(x_any cell1, x_any cell2) {
+  return x_nil;
+}
+
+x_any x_or(x_any cell1, x_any cell2) {
+  return x_nil;
+}
+
+x_any x_xor(x_any cell1, x_any cell2) {
   return x_nil;
 }
 
@@ -215,13 +283,13 @@ x_any x_apply(x_any cell, x_any args) {
     return x_cons(x_eval(cell), args);
   if (is_builtin(cell)) {
     if (is_fn0(cell))
-      return ((x_fn0)cdr(cell))();
+      return ((x_fn0_t)cdr(cell))();
     else if (is_fn1(cell))
-      return ((x_fn1)cdr(cell))(car(args));
+      return ((x_fn1_t)cdr(cell))(car(args));
     else if (is_fn2(cell))
-      return ((x_fn2)cdr(cell))(car(args), car(cdr(args)));
+      return ((x_fn2_t)cdr(cell))(car(args), car(cdr(args)));
     else if (is_fn3(cell))
-      return ((x_fn3)cdr(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
+      return ((x_fn3_t)cdr(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
     else
       assert(0);
   }
@@ -258,20 +326,20 @@ x_any def_builtin(char const *name, void *fn, size_t num_args) {
   x_any cell;
 
   cell = intern(name);
-  set_type_flag(cell, X_BUILTIN);
+  type(cell) = x_builtin;
   set_cdr(cell, fn);
   switch(num_args) {
   case 0:
-    set_type_flag(cell, X_FN0);
+    type(cell) = x_fn0;
     break;
   case 1:
-    set_type_flag(cell, X_FN1);
+    type(cell) = x_fn1;
     break;
   case 2:
-    set_type_flag(cell, X_FN2);
+    type(cell) = x_fn2;
     break;
   case 3:
-    set_type_flag(cell, X_FN3);
+    type(cell) = x_fn3;
     break;
   }
   return cell;
@@ -377,7 +445,7 @@ x_any read_xector(FILE *infile) {
   x_any token;
   x_any cell;
 
-  cell = new_cell("xector", X_XECTOR);
+  cell = new_cell("xector", x_xector);
   token = read_token(infile);
   while (token != x_rbrack) {
     token = read_token(infile);
@@ -405,6 +473,8 @@ x_any read_sexpr(FILE *infile) {
 }
 
 void init(void) {
+  x_symbol = intern("symbol"); // must be first
+
   x_dot = def_token(".");
   x_lparen = def_token("(");
   x_rparen = def_token(")");
@@ -416,7 +486,20 @@ void init(void) {
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
     hash_table[i] = x_nil;
   enter(x_nil);
+
+  x_token = intern("token");
+  x_builtin = intern("builtin");
+  x_user = intern("user");
+  x_pair = intern("pair");
   x_true = intern("true");
+  x_xector = intern("xector");
+
+  x_int = intern("int");
+
+  x_fn0 = intern("fn0");
+  x_fn1 = intern("fn1");
+  x_fn2 = intern("fn2");
+  x_fn3 = intern("fn3");
 
   def_builtin("is", (void*)x_is, 2);
   def_builtin("car", (void*)x_car, 1);
@@ -426,12 +509,23 @@ void init(void) {
   def_builtin("cond", (void*)x_cond, 1);
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
+  def_builtin("assert", (void*)x_assert, 1);
+
   def_builtin("print", (void*)x_print, 1);
 
   def_builtin("+", (void*)x_add, 2);
-  def_builtin("-", (void*)x_min, 2);
+  def_builtin("-", (void*)x_sub, 2);
   def_builtin("*", (void*)x_mul, 2);
   def_builtin("/", (void*)x_div, 2);
+
+  def_builtin("==", (void*)x_eq, 2);
+  def_builtin(">", (void*)x_gt, 2);
+  def_builtin("<", (void*)x_lt, 2);
+
+  def_builtin("not", (void*)x_not, 1);
+  def_builtin("and", (void*)x_and, 2);
+  def_builtin("or", (void*)x_or, 2);
+  def_builtin("xor", (void*)x_xor, 2);
 }
 
 int main(int argc, const char* argv[]) {
