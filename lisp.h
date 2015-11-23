@@ -2,22 +2,22 @@
 #include <stdarg.h>
 
 typedef enum {
-  MARK =  1 << 0,
+  X_MARK =  1 << 0,
 
-  SYMBOL =  1 << 1,
-  BUILTIN = 1 << 2,
-  TOKEN = 1 << 3,
-  USER = 1 << 4,
-  PAIR = 1 << 5,
-  XECTOR = 1 << 6,
+  X_SYMBOL =  1 << 1,
+  X_BUILTIN = 1 << 2,
+  X_TOKEN = 1 << 3,
+  X_USER = 1 << 4,
+  X_PAIR = 1 << 5,
+  X_XECTOR = 1 << 6,
 
-  INT = 1 << 7,
-  FLOAT = 1 << 8,
-  DOUBLE = 1 << 9,
+  X_INT = 1 << 7,
+  X_FLOAT = 1 << 8,
+  X_DOUBLE = 1 << 9,
 
-  X_INT = 1 << 10,
-  X_FLOAT = 1 << 11,
-  X_DOUBLE = 1 << 12,
+  X_XINT = 1 << 10,
+  X_XFLOAT = 1 << 11,
+  X_XDOUBLE = 1 << 12,
 
   X_FN0 = 1 << 13,
   X_FN1 = 1 << 14,
@@ -34,8 +34,8 @@ typedef x_any (*x_fn2)(x_any, x_any);
 typedef x_any (*x_fn3)(x_any, x_any, x_any);
 
 
-#define HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
-#define XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
+#define X_HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
+#define X_XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
 
 struct __align__(16) x_cell {
   void *car;
@@ -45,22 +45,25 @@ struct __align__(16) x_cell {
 };
 
 struct __align__(16) x_xector {
-  void *cars[XECTOR_BLOCK_SIZE];
-  void *cdrs[XECTOR_BLOCK_SIZE];
-  char *names[XECTOR_BLOCK_SIZE];
-  uint64_t types[XECTOR_BLOCK_SIZE];
+  void *cars[X_XECTOR_BLOCK_SIZE];
+  void *cdrs[X_XECTOR_BLOCK_SIZE];
+  char *names[X_XECTOR_BLOCK_SIZE];
+  uint64_t types[X_XECTOR_BLOCK_SIZE];
   size_t size;
   struct x_xector *next;
 } x_xector;
 
 typedef struct __align__(16) x_heap {
-  x_cell cells[HEAP_BLOCK_SIZE];
+  x_cell cells[X_HEAP_BLOCK_SIZE];
   size_t used;
   struct x_heap *next;
 } x_heap;
 
 #define car(x) ((x_any)(x)->car)
 #define cdr(x) ((x_any)(x)->cdr)
+#define int_car(x) (uint64_t)((x_any)(x)->car)
+#define int_cdr(x) (uint64_t)((x_any)(x)->cdr)
+
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
 #define type(x) ((x)->type)
@@ -69,19 +72,27 @@ typedef struct __align__(16) x_heap {
 #define size(x) ((x)->size)
 
 
-#define is_symbol(x) (type(x) & SYMBOL)
-#define is_builtin(x) (type(x) & BUILTIN)
-#define is_token(x) (type(x) & BUILTIN)
+#define is_symbol(x) (type(x) & X_SYMBOL)
+#define is_builtin(x) (type(x) & X_BUILTIN)
+#define is_token(x) (type(x) & X_BUILTIN)
+#define is_int(x) (type(x) & X_INT)
+
+#define is_user(x) (type(x) & X_USER)
+#define is_pair(x) (type(x) & X_PAIR)
+#define is_xector(x) (type(x) & X_XECTOR)
+
+#define is_fn0(x) (type(x) & X_FN0)
+#define is_fn1(x) (type(x) & X_FN1)
+#define is_fn2(x) (type(x) & X_FN2)
+#define is_fn3(x) (type(x) & X_FN3)
+
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)))
+#define is_func(x) (is_builtin((x)) || is_user((x)))
 
-#define is_user(x) (type(x) & USER)
-#define is_pair(x) (type(x) & PAIR)
-#define is_xector(x) (type(x) & XECTOR)
-
-#define HASH_TABLE_SIZE	269
-#define HASH_MULTIPLIER	131
-#define MAX_NAME_LEN	128
-typedef x_any hash_table_type[HASH_TABLE_SIZE];
+#define X_HASH_TABLE_SIZE 269
+#define X_HASH_MULTIPLIER 131
+#define X_MAX_NAME_LEN 128
+typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 
 // REPL functions
@@ -119,3 +130,5 @@ x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);
 x_any x_cond(x_any);
 x_any x_is(x_any, x_any);
+
+x_any x_add(x_any, x_any);

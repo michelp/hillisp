@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#include <inttypes.h>
 #include "lisp.h"
 
 __managed__ x_any x_nil;
@@ -41,14 +42,14 @@ x_any new_cell(const char* name, uint64_t type) {
 
 x_any def_token(const char* new_name) {
   x_any cell;
-  cell = new_cell(new_name, TOKEN);
+  cell = new_cell(new_name, X_TOKEN);
   return cell;
 }
 
 int hash(const char *name) {
   int value = 0;
   while (*name != '\0')
-    value = (value * HASH_MULTIPLIER + *name++) % HASH_TABLE_SIZE;
+    value = (value * X_HASH_MULTIPLIER + *name++) % X_HASH_TABLE_SIZE;
   return value;
 }
 
@@ -63,12 +64,18 @@ x_any lookup(const char *name, x_any cell) {
 
 x_any create_symbol(const char *new_name) {
   x_any cell;
-  cell = new_cell(new_name, SYMBOL);
+  cell = new_cell(new_name, X_SYMBOL);
+  if (isdigit(new_name[0])) {
+    set_car(cell, atol(new_name));
+    set_type_flag(cell, X_INT);
+  }
   return cell;
 }
 
 void print_cell(x_any cell, FILE *outfile) {
-  if (is_atom(cell))
+  if (is_int(cell))
+    fprintf(outfile, "%" PRIu64, int_car(cell));
+  else if (is_atom(cell))
     fprintf(outfile, "%s", name(cell));
   else {
     putc('(', outfile);
@@ -91,7 +98,6 @@ void print_list(x_any cell, FILE *outfile) {
   }
 }
 
-
 x_any x_is(x_any cell1, x_any cell2) {
   if (cell1 == cell2)
     return x_true;
@@ -108,10 +114,58 @@ x_any x_cdr(x_any cell) {
 
 x_any x_cons(x_any cell1, x_any cell2) {
   x_any cell;
-  cell = new_cell(NULL, PAIR);
+  cell = new_cell(NULL, X_PAIR);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   return cell;
+}
+
+x_any x_add(x_any cell1, x_any cell2) {
+  x_any cell;
+
+  if (is_int(cell1) && is_int(cell2)) {
+    cell = new_cell(NULL, X_INT);
+    set_car(cell, int_car(cell1) + int_car(cell2));
+    return cell;
+  }
+  assert(0);
+  return x_nil;
+}
+
+x_any x_min(x_any cell1, x_any cell2) {
+  x_any cell;
+
+  if (is_int(cell1) && is_int(cell2)) {
+    cell = new_cell(NULL, X_INT);
+    set_car(cell, int_car(cell1) - int_car(cell2));
+    return cell;
+  }
+  assert(0);
+  return x_nil;
+}
+
+x_any x_mul(x_any cell1, x_any cell2) {
+  x_any cell;
+
+  if (is_int(cell1) && is_int(cell2)) {
+    cell = new_cell(NULL, X_INT);
+    set_car(cell, int_car(cell1) * int_car(cell2));
+    return cell;
+  }
+  assert(0);
+  return x_nil;
+}
+
+x_any x_div(x_any cell1, x_any cell2) {
+  x_any cell;
+
+  if (is_int(cell1) && is_int(cell2)) {
+    cell = new_cell(NULL, X_INT);
+    set_car(cell, int_car(cell1) / int_car(cell2));
+    return cell;
+  }
+  assert(0);
+  return x_nil;
 }
 
 void enter(x_any cell) {
@@ -155,23 +209,22 @@ x_any list_eval(x_any cell) {
 }
 
 x_any x_apply(x_any cell, x_any args) {
-  if (is_symbol(cell))
+  if (is_symbol(cell) && !(is_func(cell)))
     return x_cons(cell, args);
   if (is_pair(cell))
     return x_cons(x_eval(cell), args);
-  if (is_builtin(cell))
-    switch (type(cell)) {
-    case X_FN0:
+  if (is_builtin(cell)) {
+    if (is_fn0(cell))
       return ((x_fn0)cdr(cell))();
-    case X_FN1:
+    else if (is_fn1(cell))
       return ((x_fn1)cdr(cell))(car(args));
-    case X_FN2:
+    else if (is_fn2(cell))
       return ((x_fn2)cdr(cell))(car(args), car(cdr(args)));
-    case X_FN3:
+    else if (is_fn3(cell))
       return ((x_fn3)cdr(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
-    default:
+    else
       assert(0);
-    }
+  }
   else if (is_user(cell))
     return x_apply((x_any)cdr(cell), args);
   else
@@ -195,17 +248,17 @@ x_any x_cond(x_any clauses) {
 x_any x_eval(x_any cell) {
   if (is_atom(cell))
     return cell;
-  else if (is_pair(cell) && (is_symbol(car(cell))))
-    return x_cons(car(cell), list_eval(cdr(cell)));
-  else
+  else if (is_pair(cell) && (is_func(car(cell))))
     return x_apply(car(cell), list_eval(cdr(cell)));
+  else
+    return x_cons(car(cell), list_eval(cdr(cell)));
 }
 
 x_any def_builtin(char const *name, void *fn, size_t num_args) {
   x_any cell;
 
   cell = intern(name);
-  set_type_flag(cell, BUILTIN);
+  set_type_flag(cell, X_BUILTIN);
   set_cdr(cell, fn);
   switch(num_args) {
   case 0:
@@ -226,7 +279,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args) {
 
 x_any read_token(FILE *infile) {
   int c;
-  static char buf[MAX_NAME_LEN];
+  static char buf[X_MAX_NAME_LEN];
   char *ptr = buf;
 
   do {
@@ -249,7 +302,10 @@ x_any read_token(FILE *infile) {
     return x_dot;
   default:
     *ptr++ = c;
-    while ((c = getc(infile)) != EOF && !isspace(c) && c != '(' && c != ')' && c != '[' && c!= ']')
+    while ((c = getc(infile)) != EOF &&
+           !isspace(c) &&
+           c != '(' && c != ')' &&
+           c != '[' && c!= ']')
       *ptr++ = c;
     if (c != EOF)
       ungetc(c, infile);
@@ -321,7 +377,7 @@ x_any read_xector(FILE *infile) {
   x_any token;
   x_any cell;
 
-  cell = new_cell("xector", XECTOR);
+  cell = new_cell("xector", X_XECTOR);
   token = read_token(infile);
   while (token != x_rbrack) {
     token = read_token(infile);
@@ -357,7 +413,7 @@ void init(void) {
   x_eof = def_token("EOF");
 
   x_nil = create_symbol("nil");
-  for (int i = 0; i < HASH_TABLE_SIZE; i++)
+  for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
     hash_table[i] = x_nil;
   enter(x_nil);
   x_true = intern("true");
@@ -371,6 +427,11 @@ void init(void) {
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("print", (void*)x_print, 1);
+
+  def_builtin("+", (void*)x_add, 2);
+  def_builtin("-", (void*)x_min, 2);
+  def_builtin("*", (void*)x_mul, 2);
+  def_builtin("/", (void*)x_div, 2);
 }
 
 int main(int argc, const char* argv[]) {
