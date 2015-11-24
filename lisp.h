@@ -1,31 +1,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-typedef enum {
-  X_MARK =  1 << 0,
-
-  X_SYMBOL =  1 << 1,
-  X_BUILTIN = 1 << 2,
-  X_TOKEN = 1 << 3,
-  X_USER = 1 << 4,
-  X_PAIR = 1 << 5,
-  X_XECTOR = 1 << 6,
-
-  X_INT = 1 << 7,
-  X_FLOAT = 1 << 8,
-  X_DOUBLE = 1 << 9,
-
-  X_XINT = 1 << 10,
-  X_XFLOAT = 1 << 11,
-  X_XDOUBLE = 1 << 12,
-
-  X_FN0 = 1 << 13,
-  X_FN1 = 1 << 14,
-  X_FN2 = 1 << 15,
-  X_FN3 = 1 << 16
-
-} x_type;
-
 typedef struct x_cell x_cell, *x_any;
 
 typedef x_any (*x_fn0_t)();
@@ -61,8 +36,8 @@ typedef struct __align__(16) x_heap {
 
 #define car(x) ((x_any)(x)->car)
 #define cdr(x) ((x_any)(x)->cdr)
-#define int_car(x) (uint64_t)((x_any)(x)->car)
-#define int_cdr(x) (uint64_t)((x_any)(x)->cdr)
+#define int_car(x) (int64_t)((x_any)(x)->car)
+#define int_cdr(x) (int64_t)((x_any)(x)->cdr)
 
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
@@ -131,6 +106,7 @@ x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);
 x_any x_cond(x_any);
 x_any x_is(x_any, x_any);
+x_any x_isinstance(x_any, x_any);
 
 // math
 
@@ -142,6 +118,7 @@ x_any x_div(x_any, x_any);
 // cmp
 
 x_any x_eq(x_any, x_any);
+x_any x_neq(x_any, x_any);
 x_any x_lt(x_any, x_any);
 x_any x_gt(x_any, x_any);
 
@@ -150,6 +127,5 @@ x_any x_gt(x_any, x_any);
 x_any x_not(x_any);
 x_any x_and(x_any, x_any);
 x_any x_or(x_any, x_any);
-x_any x_xor(x_any, x_any);
 
 
