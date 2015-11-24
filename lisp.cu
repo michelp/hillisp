@@ -339,7 +339,7 @@ x_any read_token(FILE *infile) {
 
   do {
     c = getc(infile);
-    if (c == '#')
+    if (c == ';')
       do c = getc(infile); while (c != '\n' && c != EOF);
   } while (isspace(c));
   switch (c) {
