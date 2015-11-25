@@ -191,9 +191,20 @@ x_any x_eq(x_any cell1, x_any cell2) {
     if (int_car(cell1) == int_car(cell2))
       return x_true;
   }
-  else
+  else if (is_atom(cell1) && is_atom(cell2)) {
     if (strcmp(cell1->name, cell2->name) == 0)
       return x_true;
+  }
+  else if (is_pair(cell1) && is_pair(cell2)) {
+    do {
+      if (car(cell1) != car(cell2))
+        return x_nil;
+      cell1 = cdr(cell1);
+      cell2 = cdr(cell2);
+    } while (is_pair(cell1) && is_pair(cell2));
+    if (cell1 == cell2)
+      return x_true;
+  }
   return x_nil;
 }
 
@@ -202,10 +213,21 @@ x_any x_neq(x_any cell1, x_any cell2) {
     if (int_car(cell1) != int_car(cell2))
       return x_true;
   }
-  else
+  else if (is_atom(cell1) && is_atom(cell2)) {
     if (strcmp(cell1->name, cell2->name) != 0)
       return x_true;
-  return x_nil;
+  }
+  else if (is_pair(cell1) && is_pair(cell2)) {
+    do {
+      if (car(cell1) != car(cell2))
+        return x_true;
+      cell1 = cdr(cell1);
+      cell2 = cdr(cell2);
+    } while (is_pair(cell1) && is_pair(cell2));
+    if (cell1 == cell2)
+      return x_nil;
+  }
+  return x_true;
 }
 
 x_any x_gt(x_any cell1, x_any cell2) {
@@ -282,6 +304,8 @@ int length(x_any cell) {
 x_any list_eval(x_any cell) {
   if (cell == x_nil)
     return x_nil;
+  if (is_atom(cell))
+    return cell;
   else
     return x_cons(x_eval(car(cell)), list_eval(cdr(cell)));
 }
@@ -314,13 +338,12 @@ x_any x_quote(x_any cell) {
   return cell;
 }
 
-x_any x_cond(x_any clauses) {
+x_any x_if(x_any clauses) {
   if (clauses == x_nil)
     return x_nil;
-  else if (x_eval(car(car(clauses))) != x_nil)
+  if (x_eval(car(clauses)) != x_nil)
     return x_eval(car(cdr(clauses)));
-  else
-    return x_cond(car(cdr(clauses)));
+  return x_nil;
 }
 
 x_any x_eval(x_any cell) {
@@ -515,7 +538,7 @@ void init(void) {
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
   def_builtin("quote", (void*)x_quote, 1);
-  def_builtin("cond", (void*)x_cond, 1);
+  def_builtin("if", (void*)x_if, 1);
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("assert", (void*)x_assert, 1);

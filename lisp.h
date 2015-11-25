@@ -104,9 +104,12 @@ x_any x_print(x_any);
 x_any x_eval(x_any);
 x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);
-x_any x_cond(x_any);
 x_any x_is(x_any, x_any);
 x_any x_isinstance(x_any, x_any);
+
+// flow
+
+x_any x_if(x_any);
 
 // math
 
