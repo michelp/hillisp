@@ -36,6 +36,12 @@ typedef struct __align__(16) x_heap {
 
 #define car(x) ((x_any)(x)->car)
 #define cdr(x) ((x_any)(x)->cdr)
+
+#define cadr(x) (car(cdr(x)))
+#define caddr(x) (car(cdr(cdr(x))))
+
+#define cddr(x) (cdr(cdr(x)))
+
 #define int_car(x) (int64_t)((x_any)(x)->car)
 #define int_cdr(x) (int64_t)((x_any)(x)->cdr)
 
@@ -101,6 +107,7 @@ x_any x_car(x_any);
 x_any x_cdr(x_any);
 x_any x_cons(x_any, x_any);
 x_any x_print(x_any);
+x_any x_println(x_any);
 x_any x_eval(x_any);
 x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);

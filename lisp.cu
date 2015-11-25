@@ -290,6 +290,11 @@ x_any intern(const char *name) {
 
 x_any x_print(x_any cell) {
   print_cell(cell, stdout);
+  return cell;
+}
+
+x_any x_println(x_any cell) {
+  print_cell(cell, stdout);
   putchar('\n');
   return cell;
 }
@@ -321,9 +326,9 @@ x_any x_apply(x_any cell, x_any args) {
     else if (is_fn1(cell))
       return ((x_fn1_t)cdr(cell))(car(args));
     else if (is_fn2(cell))
-      return ((x_fn2_t)cdr(cell))(car(args), car(cdr(args)));
+      return ((x_fn2_t)cdr(cell))(car(args), cadr(args));
     else if (is_fn3(cell))
-      return ((x_fn3_t)cdr(cell))(car(args), car(cdr(args)), car(cdr(cdr(args))));
+      return ((x_fn3_t)cdr(cell))(car(args), cadr(args), caddr(args));
     else
       assert(0);
   }
@@ -343,6 +348,8 @@ x_any x_if(x_any clauses) {
     return x_nil;
   if (x_eval(car(clauses)) != x_nil)
     return x_eval(car(cdr(clauses)));
+  else if (cdr(cdr(clauses)) != x_nil)
+    return x_eval(car(cdr(cdr(clauses))));
   return x_nil;
 }
 
@@ -451,7 +458,7 @@ x_any read_xector(FILE *infile) {
   do {
     token = read_token(infile);
   } while (token != x_rbrack);
-  return x_cons(cell, read_tail(infile));
+  return cell;
 }
 
 x_any read_sexpr(FILE *infile) {
@@ -459,10 +466,10 @@ x_any read_sexpr(FILE *infile) {
   token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
     return token;
-  if (token == x_lparen)
-    return read_head(infile);
   if (token == x_lbrack)
     return read_xector(infile);
+  if (token == x_lparen)
+    return read_head(infile);
   if (token == x_rparen)
     assert(0);
   if (token == x_dot)
@@ -543,6 +550,7 @@ void init(void) {
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("assert", (void*)x_assert, 1);
   def_builtin("print", (void*)x_print, 1);
+  def_builtin("println", (void*)x_println, 1);
   def_builtin("+", (void*)x_add, 2);
   def_builtin("-", (void*)x_sub, 2);
   def_builtin("*", (void*)x_mul, 2);

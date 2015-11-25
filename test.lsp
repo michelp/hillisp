@@ -36,6 +36,12 @@
 (assert (== (eval (cons 3 4)) (3 . 4)))
 
 (assert (is (if ()) nil))
+(assert (== (if (true 1 2)) 1))
+(assert (== (if (nil 1 2)) 2))
+
+
 (assert (== (if ((== 3 4) (cons 1 2))) nil))
 (assert (== (if ((== 4 4) (cons 1 2))) (1 . 2)))
 
+(assert (== (if ((== 4 4) (cons 1 2) (cons 3 4))) (1 . 2)))
+(assert (== (if ((== 4 5) (cons 1 2) (cons 3 4))) (3 . 4)))
