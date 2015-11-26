@@ -209,24 +209,8 @@ x_any x_eq(x_any cell1, x_any cell2) {
 }
 
 x_any x_neq(x_any cell1, x_any cell2) {
-  if (is_int(cell1) && is_int(cell2)) {
-    if (int_car(cell1) != int_car(cell2))
-      return x_true;
-  }
-  else if (is_atom(cell1) && is_atom(cell2)) {
-    if (strcmp(cell1->name, cell2->name) != 0)
-      return x_true;
-  }
-  else if (is_pair(cell1) && is_pair(cell2)) {
-    do {
-      if (car(cell1) != car(cell2))
-        return x_true;
-      cell1 = cdr(cell1);
-      cell2 = cdr(cell2);
-    } while (is_pair(cell1) && is_pair(cell2));
-    if (cell1 == cell2)
-      return x_nil;
-  }
+  if (x_eq(cell1, cell2) == x_true)
+    return x_nil;
   return x_true;
 }
 
@@ -480,9 +464,7 @@ x_any read_sexpr(FILE *infile) {
 }
 
 x_any def_token(const char* new_name) {
-  x_any cell;
-  cell = new_cell(new_name, x_token);
-  return cell;
+  return new_cell(new_name, x_token);
 }
 
 x_any def_builtin(char const *name, void *fn, size_t num_args) {

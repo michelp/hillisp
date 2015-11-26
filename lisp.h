@@ -42,8 +42,8 @@ typedef struct __align__(16) x_heap {
 
 #define cddr(x) (cdr(cdr(x)))
 
-#define int_car(x) (int64_t)((x_any)(x)->car)
-#define int_cdr(x) (int64_t)((x_any)(x)->cdr)
+#define int_car(x) ((int64_t)(x)->car)
+#define int_cdr(x) ((int64_t)(x)->cdr)
 
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
