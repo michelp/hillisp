@@ -359,7 +359,7 @@ x_any x_eval(x_any cell) {
   else if (is_pair(cell) && (is_func(car(cell))))
     return x_apply(car(cell), list_eval(cdr(cell)));
   else
-    return x_cons(car(cell), list_eval(cdr(cell)));
+    return x_cons(car(cell), cdr(cell));
 }
 
 x_any read_token(FILE *infile) {
