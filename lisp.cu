@@ -347,9 +347,9 @@ x_any x_if(x_any clauses) {
   if (clauses == x_nil)
     return x_nil;
   if (x_eval(car(clauses)) != x_nil)
-    return x_eval(car(cdr(clauses)));
-  else if (cdr(cdr(clauses)) != x_nil)
-    return x_eval(car(cdr(cdr(clauses))));
+    return x_eval(cadr(clauses));
+  else if (cddr(clauses) != x_nil)
+    return x_eval(caddr(clauses));
   return x_nil;
 }
 
