@@ -6,7 +6,7 @@ EXE = lisp
 all: $(EXE)
 
 % : %.cu
-	nvcc $< $(CC_FLAGS) $(LIB_FLAGS) -o $@
+	nvcc device.cu lisp.cu $(CC_FLAGS) $(LIB_FLAGS) -o $@
 
 clean: 
 	rm -f $(EXE)

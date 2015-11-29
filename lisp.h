@@ -1,3 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <assert.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -19,14 +25,14 @@ struct __align__(16) x_cell {
   x_any type;
 };
 
-struct __align__(16) x_xector_t {
+typedef struct __align__(16) x_xector_t {
   void *cars[X_XECTOR_BLOCK_SIZE];
   void *cdrs[X_XECTOR_BLOCK_SIZE];
   char *names[X_XECTOR_BLOCK_SIZE];
   uint64_t types[X_XECTOR_BLOCK_SIZE];
   size_t size;
   struct x_xector_t *next;
-} x_xector_t;
+} x_xector_t, *x_any_x;
 
 typedef struct __align__(16) x_heap {
   x_cell cells[X_HEAP_BLOCK_SIZE];
@@ -36,10 +42,8 @@ typedef struct __align__(16) x_heap {
 
 #define car(x) ((x_any)(x)->car)
 #define cdr(x) ((x_any)(x)->cdr)
-
 #define cadr(x) (car(cdr(x)))
 #define caddr(x) (car(cdr(cdr(x))))
-
 #define cddr(x) (cdr(cdr(x)))
 
 #define int_car(x) ((int64_t)(x)->car)
@@ -52,6 +56,19 @@ typedef struct __align__(16) x_heap {
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
 
+#define xector_size(x) (((x_any_x)cdr((x_any)(x)))->size)
+
+#define cars(x) (((x_any_x)cdr((x_any)(x)))->cars)
+#define cdrs(x) (((x_any_x)cdr((x_any)(x)))->cdrs)
+
+#define int_cars(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cars))
+#define int_cdrs(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cdrs))
+
+#define xector_car_ith(x, i) ((int64_t)(cars((x))[(i)]))
+#define xector_cdr_ith(x, i) ((int64_t)(cdrs((x))[(i)]))
+
+#define xector_set_car_ith(x, i, y) (cars((x))[(i)]) = (void*)(y)
+#define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
 #define is_symbol(x) ((type(x) == x_symbol) || is_int(x))
 #define is_token(x) (type(x) == x_builtin)
@@ -68,7 +85,7 @@ typedef struct __align__(16) x_heap {
 
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
 
-#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)))
+#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)) || is_xector(x))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
 
 #define X_HASH_TABLE_SIZE 269
@@ -81,6 +98,7 @@ typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 char* new_name(const char*);
 x_any new_cell(const char*);
+x_any new_xector(const char*);
 x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, x_any);
@@ -95,10 +113,11 @@ x_any list_eval(x_any);
 x_any intern(const char*);
 x_any def_builtin(const char*, void*, size_t);
 x_any read_token(FILE*);
+x_any read_xector(FILE*);
 x_any read_sexpr(FILE*);
 x_any read_cdr(FILE*);
-x_any read_head(FILE*);
-x_any read_tail(FILE*);
+x_any read_sexpr_head(FILE*);
+x_any read_sexpr_tail(FILE*);
 void init(void);
 
 // core functions
@@ -138,4 +157,43 @@ x_any x_not(x_any);
 x_any x_and(x_any, x_any);
 x_any x_or(x_any, x_any);
 
+__managed__ x_any x_symbol;
+__managed__ x_any x_garbage;
+__managed__ x_any x_nil;
+__managed__ x_any x_true;
+__managed__ x_any x_dot;
+__managed__ x_any x_lparen;
+__managed__ x_any x_rparen;
+__managed__ x_any x_lbrack;
+__managed__ x_any x_rbrack;
+__managed__ x_any x_eof;
+__managed__ x_any x_builtin;
+__managed__ x_any x_token;
+__managed__ x_any x_user;
+__managed__ x_any x_pair;
+__managed__ x_any x_xector;
+__managed__ x_any x_int;
+__managed__ x_any x_fn0;
+__managed__ x_any x_fn1;
+__managed__ x_any x_fn2;
+__managed__ x_any x_fn3;
+__managed__ hash_table_type hash_table;
 
+
+__global__ void xd_add(x_any, x_any, x_any, int size_t);
+__global__ void xd_sub(x_any, x_any, x_any, int size_t);
+__global__ void xd_mul(x_any, x_any, x_any, int size_t);
+__global__ void xd_div(x_any, x_any, x_any, int size_t);
+
+inline void check_cuda_errors(const char *filename, const int line_number)
+{
+  cudaThreadSynchronize();
+  cudaError_t error = cudaGetLastError();
+  if(error != cudaSuccess)
+  {
+    printf("CUDA error at %s:%i: %s\n", filename, line_number, cudaGetErrorString(error));
+    exit(-1);
+  }
+}
+
+#define CHECK check_cuda_errors(__FILE__, __LINE__)

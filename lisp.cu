@@ -6,28 +6,6 @@
 #include <inttypes.h>
 #include "lisp.h"
 
-__managed__ x_any x_symbol;
-__managed__ x_any x_garbage;
-__managed__ x_any x_nil;
-__managed__ x_any x_true;
-__managed__ x_any x_dot;
-__managed__ x_any x_lparen;
-__managed__ x_any x_rparen;
-__managed__ x_any x_lbrack;
-__managed__ x_any x_rbrack;
-__managed__ x_any x_eof;
-__managed__ x_any x_builtin;
-__managed__ x_any x_token;
-__managed__ x_any x_user;
-__managed__ x_any x_pair;
-__managed__ x_any x_xector;
-__managed__ x_any x_int;
-__managed__ x_any x_fn0;
-__managed__ x_any x_fn1;
-__managed__ x_any x_fn2;
-__managed__ x_any x_fn3;
-__managed__ hash_table_type hash_table;
-
 char* new_name(const char* name) {
   char *n;
   cudaMallocManaged(&n, strlen(name) + 1);
@@ -47,6 +25,17 @@ x_any new_cell(const char* name, x_any type) {
     name(cell) = NULL;
   else
     name(cell) = new_name(name);
+  return cell;
+}
+
+x_any new_xector(const char* name) {
+  x_any cell;
+  x_any_x xector;
+  cell = new_cell(name, x_xector);
+  cudaMallocManaged(&xector, sizeof(x_xector_t));
+  assert(xector != NULL);
+  xector->size = 0;
+  set_cdr(cell, xector);
   return cell;
 }
 
@@ -76,9 +65,22 @@ x_any create_symbol(const char *new_name) {
   return cell;
 }
 
+void print_xector(x_any cell, FILE *outfile) {
+    putc('[', outfile);
+    for (int i = 0; i < xector_size(cell); i++) {
+      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      if (i != (xector_size(cell) - 1))
+        putc(' ', outfile);
+    }
+    putc(']', outfile);
+}
+
 void print_cell(x_any cell, FILE *outfile) {
   if (is_int(cell))
     fprintf(outfile, "%" PRIi64, int_car(cell));
+  else if (is_xector(cell)) {
+    print_xector(cell, outfile);
+  }
   else if (is_atom(cell))
     fprintf(outfile, "%s", name(cell));
   else {
@@ -149,6 +151,16 @@ x_any x_add(x_any cell1, x_any cell2) {
     set_car(cell, int_car(cell1) + int_car(cell2));
     return cell;
   }
+  else if (is_xector(cell1) && is_xector(cell2)) {
+    assert(xector_size(cell1) == xector_size(cell2));
+    cell = new_xector(NULL);
+    xector_size(cell) = xector_size(cell1);
+    int threadsPerBlock = 256;
+    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
+    xd_add<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    CHECK;
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
@@ -158,6 +170,16 @@ x_any x_sub(x_any cell1, x_any cell2) {
   if (is_int(cell1) && is_int(cell2)) {
     cell = new_cell(NULL, x_int);
     set_car(cell, int_car(cell1) - int_car(cell2));
+    return cell;
+  }
+  else if (is_xector(cell1) && is_xector(cell2)) {
+    assert(xector_size(cell1) == xector_size(cell2));
+    cell = new_xector(NULL);
+    xector_size(cell) = xector_size(cell1);
+    int threadsPerBlock = 256;
+    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
+    xd_sub<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    CHECK;
     return cell;
   }
   assert(0);
@@ -171,6 +193,16 @@ x_any x_mul(x_any cell1, x_any cell2) {
     set_car(cell, int_car(cell1) * int_car(cell2));
     return cell;
   }
+  else if (is_xector(cell1) && is_xector(cell2)) {
+    assert(xector_size(cell1) == xector_size(cell2));
+    cell = new_xector(NULL);
+    xector_size(cell) = xector_size(cell1);
+    int threadsPerBlock = 256;
+    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
+    xd_mul<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    CHECK;
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
@@ -182,6 +214,16 @@ x_any x_div(x_any cell1, x_any cell2) {
     set_car(cell, int_car(cell1) / int_car(cell2));
     return cell;
   }
+  else if (is_xector(cell1) && is_xector(cell2)) {
+    assert(xector_size(cell1) == xector_size(cell2));
+    cell = new_xector(NULL);
+    xector_size(cell) = xector_size(cell1);
+    int threadsPerBlock = 256;
+    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
+    xd_div<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    CHECK;
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
@@ -191,6 +233,12 @@ x_any x_eq(x_any cell1, x_any cell2) {
     if (int_car(cell1) == int_car(cell2))
       return x_true;
   }
+  else if (is_xector(cell1) && is_xector(cell2)) {
+    if (xector_size(cell1) != xector_size(cell2))
+      return x_nil;
+    if (memcmp(cars(cell1), cars(cell2), xector_size(cell1)) == 0)
+      return x_true;
+    }
   else if (is_atom(cell1) && is_atom(cell2)) {
     if (strcmp(cell1->name, cell2->name) == 0)
       return x_true;
@@ -397,15 +445,19 @@ x_any read_cdr(FILE *infile) {
   return x_nil;
 }
 
-x_any read_tail(FILE *infile) {
+x_any read_sexpr_tail(FILE *infile) {
   x_any token;
   x_any temp;
   token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
-    return x_cons(token, read_tail(infile));
+    return x_cons(token, read_sexpr_tail(infile));
   if (token == x_lparen) {
-    temp = read_head(infile);
-    return x_cons(temp, read_tail(infile));
+    temp = read_sexpr_head(infile);
+    return x_cons(temp, read_sexpr_tail(infile));
+  }
+  if (token == x_lbrack) {
+    temp = read_xector(infile);
+    return x_cons(temp, read_sexpr_tail(infile));
   }
   if (token == x_dot)
     return read_cdr(infile);
@@ -416,32 +468,53 @@ x_any read_tail(FILE *infile) {
   return x_nil;
 }
 
-x_any read_head(FILE *infile) {
+x_any read_sexpr_head(FILE *infile) {
   x_any token;
   x_any temp;
   token = read_token(infile);
   if (is_symbol(token) || is_builtin(token))
-    return x_cons(token, read_tail(infile));
-  if (token == x_lparen) {
-    temp = read_head(infile);
-    return x_cons(temp, read_tail(infile));
+    return x_cons(token, read_sexpr_tail(infile));
+  else if (token == x_lparen) {
+    temp = read_sexpr_head(infile);
+    return x_cons(temp, read_sexpr_tail(infile));
   }
-  if (token == x_rparen)
+  else if (token == x_lbrack) {
+    temp = read_xector(infile);
+    return x_cons(temp, read_sexpr_tail(infile));
+  }
+  else if (token == x_rparen)
     return x_nil;
-  if (token == x_dot)
+  else if (token == x_dot)
     assert(0);
-  if (token == x_eof)
+  else if (token == x_eof)
     assert(0);
   return x_nil;
 }
 
 x_any read_xector(FILE *infile) {
-  x_any token;
+  x_any val;
   x_any cell;
-  cell = new_cell("xector", x_xector);
+  x_any typ = NULL;
+  size_t size = 0;
+  cell = new_xector("xector");
   do {
-    token = read_token(infile);
-  } while (token != x_rbrack);
+    val = x_eval(read_sexpr(infile));
+    if (val == x_nil)
+      break;
+    if (typ == NULL)
+      typ = type(val);
+    else if (type(val) != typ)
+      assert(0); // must all be same type
+
+    if (typ == x_int)
+      xector_set_car_ith(cell, size, int_car(val));
+    else if (typ == x_xector)
+      xector_set_car_ith(cell, size, car(val));
+    else
+      assert(0);
+    size++;
+  } while (1);
+  xector_size(cell) = size;
   return cell;
 }
 
@@ -453,7 +526,7 @@ x_any read_sexpr(FILE *infile) {
   if (token == x_lbrack)
     return read_xector(infile);
   if (token == x_lparen)
-    return read_head(infile);
+    return read_sexpr_head(infile);
   if (token == x_rparen)
     assert(0);
   if (token == x_dot)

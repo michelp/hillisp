@@ -44,3 +44,5 @@
 (assert (== (if ((== 4 4) (cons 1 2) (cons 3 4))) (1 . 2)))
 (assert (== (if ((== 4 5) (cons 1 2) (cons 3 4))) (3 . 4)))
 (assert (== (if ((!= 4 4) (cons 1 2) (cons 3 4))) (3 . 4)))
+(assert (== [1 2 3] [1 2 3]))
+(assert (!= [1 2 3] [4 5 6]))
