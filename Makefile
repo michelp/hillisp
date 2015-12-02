@@ -6,7 +6,7 @@ EXE = lisp
 all: $(EXE)
 
 % : %.cu
-	nvcc device.cu lisp.cu $(CC_FLAGS) $(LIB_FLAGS) -o $@
+	nvcc --relocatable-device-code=true lisp.cu device.cu $(CC_FLAGS) $(LIB_FLAGS) -o $@
 
 clean: 
 	rm -f $(EXE)

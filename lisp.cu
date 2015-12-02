@@ -4,36 +4,72 @@
 #include <ctype.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <sys/time.h>
 #include "lisp.h"
+
+__managed__ x_any x_symbol;
+__managed__ x_any x_garbage;
+__managed__ x_any x_nil;
+__managed__ x_any x_true;
+__managed__ x_any x_dot;
+__managed__ x_any x_lparen;
+__managed__ x_any x_rparen;
+__managed__ x_any x_lbrack;
+__managed__ x_any x_rbrack;
+__managed__ x_any x_eof;
+__managed__ x_any x_builtin;
+__managed__ x_any x_token;
+__managed__ x_any x_user;
+__managed__ x_any x_pair;
+__managed__ x_any x_xector;
+__managed__ x_any x_int;
+__managed__ x_any x_fn0;
+__managed__ x_any x_fn1;
+__managed__ x_any x_fn2;
+__managed__ x_any x_fn3;
+__managed__ hash_table_type hash_table;
+
+
+__device__ __host__ void* bi_malloc(size_t size) {
+void* result;
+#ifdef __CUDA_ARCH__
+  result = malloc(size);
+#else
+  cudaMallocManaged(&result, size);
+#endif
+  assert(result != NULL);
+  return result;
+}
 
 char* new_name(const char* name) {
   char *n;
-  cudaMallocManaged(&n, strlen(name) + 1);
-  assert(n != NULL);
+  n = (char*)bi_malloc(strlen(name) + 1);
   strcpy(n, name);
   return n;
 }
 
-x_any new_cell(const char* name, x_any type) {
+__device__ __host__ x_any new_cell(const char* name, x_any type) {
   x_any cell;
-  cudaMallocManaged(&cell, sizeof(x_cell));
-  assert(cell != NULL);
+  cell = (x_any)bi_malloc(sizeof(x_cell));
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
+#ifdef __CUDA_ARCH__
+  name(cell) = NULL;
+#else
   if (name == NULL)
     name(cell) = NULL;
   else
     name(cell) = new_name(name);
+#endif
   return cell;
 }
 
-x_any new_xector(const char* name) {
+__device__ __host__ x_any new_xector(const char* name) {
   x_any cell;
   x_any_x xector;
   cell = new_cell(name, x_xector);
-  cudaMallocManaged(&xector, sizeof(x_xector_t));
-  assert(xector != NULL);
+  xector = (x_any_x)bi_malloc(sizeof(x_xector_t));
   xector->size = 0;
   set_cdr(cell, xector);
   return cell;
@@ -67,10 +103,20 @@ x_any create_symbol(const char *new_name) {
 
 void print_xector(x_any cell, FILE *outfile) {
     putc('[', outfile);
-    for (int i = 0; i < xector_size(cell); i++) {
-      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
-      if (i != (xector_size(cell) - 1))
-        putc(' ', outfile);
+    if (xector_size(cell) < 1024) {
+      for (int i = 0; i < xector_size(cell); i++) {
+        fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+        if (i != (xector_size(cell) - 1))
+          putc(' ', outfile);
+      }
+    }
+    else {
+      for (int i = 0; i < 30; i++) {
+        fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+        if (i != (xector_size(cell) - 1))
+          putc(' ', outfile);
+      }
+      fprintf(outfile, "... (%zu more)", xector_size(cell) - 30);
     }
     putc(']', outfile);
 }
@@ -129,10 +175,14 @@ x_any x_assert(x_any cell) {
 }
 
 x_any x_car(x_any cell) {
+  if (!is_pair(cell))
+    assert(0);
   return car(cell);
 }
 
 x_any x_cdr(x_any cell) {
+  if (!is_pair(cell))
+    assert(0);
   return cdr(cell);
 }
 
@@ -245,12 +295,12 @@ x_any x_eq(x_any cell1, x_any cell2) {
   }
   else if (is_pair(cell1) && is_pair(cell2)) {
     do {
-      if (car(cell1) != car(cell2))
+      if (x_eq(car(cell1), car(cell2)) == x_nil)
         return x_nil;
       cell1 = cdr(cell1);
       cell2 = cdr(cell2);
     } while (is_pair(cell1) && is_pair(cell2));
-    if (cell1 == cell2)
+    if (x_eq(cell1, cell2) != x_nil)
       return x_true;
   }
   return x_nil;
@@ -300,6 +350,41 @@ x_any x_or(x_any cell1, x_any cell2) {
   if (cell1 == x_true || cell2 == x_true)
     return x_true;
   return x_nil;
+}
+
+x_any x_zeros(x_any size) {
+  x_any cell;
+  if (!is_int(size))
+    assert(0);
+  cell = new_xector(NULL);
+  xector_size(cell) = int_car(size);
+  int threadsPerBlock = 256;
+  int blocksPerGrid =(xector_size(cell) + threadsPerBlock - 1) / threadsPerBlock;
+  xd_zeros<<<blocksPerGrid, threadsPerBlock>>>(cell, xector_size(cell));
+  CHECK;
+  return cell;
+}
+
+x_any x_ones(x_any size) {
+  x_any cell;
+  if (!is_int(size))
+    assert(0);
+  cell = new_xector(NULL);
+  xector_size(cell) = int_car(size);
+  int threadsPerBlock = 256;
+  int blocksPerGrid =(xector_size(cell) + threadsPerBlock - 1) / threadsPerBlock;
+  xd_ones<<<blocksPerGrid, threadsPerBlock>>>(cell, xector_size(cell));
+  CHECK;
+  return cell;
+}
+
+x_any x_time() {
+  x_any cell;
+  cell = new_cell(NULL, x_int);
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  set_car(cell, tv.tv_sec*(uint64_t)1000000+tv.tv_usec);
+  return cell;
 }
 
 void enter(x_any cell) {
@@ -386,12 +471,15 @@ x_any x_if(x_any clauses) {
 }
 
 x_any x_eval(x_any cell) {
+  x_any temp;
   if (is_atom(cell))
     return cell;
   else if (is_pair(cell) && (is_func(car(cell))))
     return x_apply(car(cell), list_eval(cdr(cell)));
-  else
-    return x_cons(car(cell), cdr(cell));
+  else {
+    temp = x_eval(car(cell));
+    return x_cons(temp, list_eval(cdr(cell)));
+  }
 }
 
 x_any read_token(FILE *infile) {
@@ -540,11 +628,12 @@ x_any def_token(const char* new_name) {
   return new_cell(new_name, x_token);
 }
 
-x_any def_builtin(char const *name, void *fn, size_t num_args) {
+x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
   type(cell) = x_builtin;
   set_cdr(cell, fn);
+  set_car(cell, dfn);
   switch(num_args) {
   case 0:
     type(cell) = x_fn0;
@@ -593,30 +682,33 @@ void init(void) {
   x_rbrack = def_token("]");
   x_eof = def_token("EOF");
 
-  def_builtin("is", (void*)x_is, 2);
-  def_builtin("isinstance", (void*)x_isinstance, 2);
-  def_builtin("type", (void*)x_type, 1);
-  def_builtin("car", (void*)x_car, 1);
-  def_builtin("cdr", (void*)x_cdr, 1);
-  def_builtin("cons", (void*)x_cons, 2);
-  def_builtin("quote", (void*)x_quote, 1);
-  def_builtin("if", (void*)x_if, 1);
-  def_builtin("eval", (void*)x_eval, 1);
-  def_builtin("apply", (void*)x_apply, 2);
-  def_builtin("assert", (void*)x_assert, 1);
-  def_builtin("print", (void*)x_print, 1);
-  def_builtin("println", (void*)x_println, 1);
-  def_builtin("+", (void*)x_add, 2);
-  def_builtin("-", (void*)x_sub, 2);
-  def_builtin("*", (void*)x_mul, 2);
-  def_builtin("/", (void*)x_div, 2);
-  def_builtin("==", (void*)x_eq, 2);
-  def_builtin("!=", (void*)x_neq, 2);
-  def_builtin(">", (void*)x_gt, 2);
-  def_builtin("<", (void*)x_lt, 2);
-  def_builtin("not", (void*)x_not, 1);
-  def_builtin("and", (void*)x_and, 2);
-  def_builtin("or", (void*)x_or, 2);
+  def_builtin("is", (void*)x_is, 2, NULL);
+  def_builtin("isinstance", (void*)x_isinstance, 2, NULL);
+  def_builtin("type", (void*)x_type, 1, NULL);
+  def_builtin("car", (void*)x_car, 1, NULL);
+  def_builtin("cdr", (void*)x_cdr, 1, NULL);
+  def_builtin("cons", (void*)x_cons, 2, NULL);
+  def_builtin("quote", (void*)x_quote, 1, NULL);
+  def_builtin("if", (void*)x_if, 1, NULL);
+  def_builtin("eval", (void*)x_eval, 1, NULL);
+  def_builtin("apply", (void*)x_apply, 2, NULL);
+  def_builtin("assert", (void*)x_assert, 1, NULL);
+  def_builtin("print", (void*)x_print, 1, NULL);
+  def_builtin("println", (void*)x_println, 1, NULL);
+  def_builtin("+", (void*)x_add, 2, (void*)xd_add2);
+  def_builtin("-", (void*)x_sub, 2, (void*)xd_sub2);
+  def_builtin("*", (void*)x_mul, 2, (void*)xd_mul2);
+  def_builtin("/", (void*)x_div, 2, (void*)xd_div2);
+  def_builtin("==", (void*)x_eq, 2, NULL);
+  def_builtin("!=", (void*)x_neq, 2, NULL);
+  def_builtin(">", (void*)x_gt, 2, NULL);
+  def_builtin("<", (void*)x_lt, 2, NULL);
+  def_builtin("not", (void*)x_not, 1, NULL);
+  def_builtin("and", (void*)x_and, 2, NULL);
+  def_builtin("or", (void*)x_or, 2, NULL);
+  def_builtin("zeros", (void*)x_zeros, 1, NULL);
+  def_builtin("ones", (void*)x_ones, 1, NULL);
+  def_builtin("time", (void*)x_time, 0, NULL);
 }
 
 int main(int argc, const char* argv[]) {

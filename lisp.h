@@ -52,6 +52,8 @@ typedef struct __align__(16) x_heap {
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
 
+#define copy_cell(x, y) do {set_car(y, car(x)); set_cdr(y, cdr(x));} while(0)
+
 #define type(x) ((x)->type)
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
@@ -96,9 +98,10 @@ typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 // REPL functions
 
+__device__ __host__ void* bi_malloc(size_t);
 char* new_name(const char*);
-x_any new_cell(const char*);
-x_any new_xector(const char*);
+__device__ __host__ x_any new_cell(const char*);
+__device__ __host__ x_any new_xector(const char*);
 x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, x_any);
@@ -157,33 +160,49 @@ x_any x_not(x_any);
 x_any x_and(x_any, x_any);
 x_any x_or(x_any, x_any);
 
-__managed__ x_any x_symbol;
-__managed__ x_any x_garbage;
-__managed__ x_any x_nil;
-__managed__ x_any x_true;
-__managed__ x_any x_dot;
-__managed__ x_any x_lparen;
-__managed__ x_any x_rparen;
-__managed__ x_any x_lbrack;
-__managed__ x_any x_rbrack;
-__managed__ x_any x_eof;
-__managed__ x_any x_builtin;
-__managed__ x_any x_token;
-__managed__ x_any x_user;
-__managed__ x_any x_pair;
-__managed__ x_any x_xector;
-__managed__ x_any x_int;
-__managed__ x_any x_fn0;
-__managed__ x_any x_fn1;
-__managed__ x_any x_fn2;
-__managed__ x_any x_fn3;
-__managed__ hash_table_type hash_table;
+// xector
 
+x_any x_zeros(x_any);
+x_any x_ones(x_any);
+
+// sys
+
+x_any x_time();
+
+__managed__ extern x_any x_symbol;
+__managed__ extern x_any x_garbage;
+__managed__ extern x_any x_nil;
+__managed__ extern x_any x_true;
+__managed__ extern x_any x_dot;
+__managed__ extern x_any x_lparen;
+__managed__ extern x_any x_rparen;
+__managed__ extern x_any x_lbrack;
+__managed__ extern x_any x_rbrack;
+__managed__ extern x_any x_eof;
+__managed__ extern x_any x_builtin;
+__managed__ extern x_any x_token;
+__managed__ extern x_any x_user;
+__managed__ extern x_any x_pair;
+__managed__ extern x_any x_xector;
+__managed__ extern x_any x_int;
+__managed__ extern x_any x_fn0;
+__managed__ extern x_any x_fn1;
+__managed__ extern x_any x_fn2;
+__managed__ extern x_any x_fn3;
+__managed__ extern hash_table_type hash_table;
 
 __global__ void xd_add(x_any, x_any, x_any, int size_t);
 __global__ void xd_sub(x_any, x_any, x_any, int size_t);
 __global__ void xd_mul(x_any, x_any, x_any, int size_t);
 __global__ void xd_div(x_any, x_any, x_any, int size_t);
+
+__global__ void xd_zeros(x_any, int size_t);
+__global__ void xd_ones(x_any, int size_t);
+
+__device__ x_any xd_add2(x_any, x_any);
+__device__ void xd_sub2(x_any, x_any, x_any, int size_t);
+__device__ void xd_mul2(x_any, x_any, x_any, int size_t);
+__device__ void xd_div2(x_any, x_any, x_any, int size_t);
 
 inline void check_cuda_errors(const char *filename, const int line_number)
 {
