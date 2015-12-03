@@ -50,3 +50,4 @@
 
 (assert (== (+ [1 2 3] [4 5 6]) [5 7 9]))
 (assert (== (+ (ones 3) (ones 3)) [2 2 2]))
+(println done)

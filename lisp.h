@@ -7,16 +7,14 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-typedef struct x_cell x_cell, *x_any;
+#define X_HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
+#define X_XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
 
+typedef struct x_cell x_cell, *x_any;
 typedef x_any (*x_fn0_t)();
 typedef x_any (*x_fn1_t)(x_any);
 typedef x_any (*x_fn2_t)(x_any, x_any);
 typedef x_any (*x_fn3_t)(x_any, x_any, x_any);
-
-
-#define X_HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
-#define X_XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
 
 struct __align__(16) x_cell {
   void *car;
@@ -26,10 +24,10 @@ struct __align__(16) x_cell {
 };
 
 typedef struct __align__(16) x_xector_t {
-  void *cars[X_XECTOR_BLOCK_SIZE];
-  void *cdrs[X_XECTOR_BLOCK_SIZE];
-  char *names[X_XECTOR_BLOCK_SIZE];
-  uint64_t types[X_XECTOR_BLOCK_SIZE];
+  void **cars;
+  void **cdrs;
+  char **names;
+  uint64_t **types;
   size_t size;
   struct x_xector_t *next;
 } x_xector_t, *x_any_x;
@@ -46,8 +44,8 @@ typedef struct __align__(16) x_heap {
 #define caddr(x) (car(cdr(cdr(x))))
 #define cddr(x) (cdr(cdr(x)))
 
-#define int_car(x) ((int64_t)(x)->car)
-#define int_cdr(x) ((int64_t)(x)->cdr)
+#define int64_car(x) ((int64_t)(x)->car)
+#define int64_cdr(x) ((int64_t)(x)->cdr)
 
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
@@ -63,8 +61,8 @@ typedef struct __align__(16) x_heap {
 #define cars(x) (((x_any_x)cdr((x_any)(x)))->cars)
 #define cdrs(x) (((x_any_x)cdr((x_any)(x)))->cdrs)
 
-#define int_cars(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cars))
-#define int_cdrs(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cdrs))
+#define int64_cars(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cars))
+#define int64_cdrs(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cdrs))
 
 #define xector_car_ith(x, i) ((int64_t)(cars((x))[(i)]))
 #define xector_cdr_ith(x, i) ((int64_t)(cdrs((x))[(i)]))
@@ -100,8 +98,8 @@ typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 __device__ __host__ void* bi_malloc(size_t);
 char* new_name(const char*);
-__device__ __host__ x_any new_cell(const char*);
-__device__ __host__ x_any new_xector(const char*);
+x_any new_cell(const char*);
+x_any new_xector(const char*);
 x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, x_any);
@@ -191,7 +189,7 @@ __managed__ extern x_any x_fn2;
 __managed__ extern x_any x_fn3;
 __managed__ extern hash_table_type hash_table;
 
-__global__ void xd_add(x_any, x_any, x_any, int size_t);
+__global__ void xd_add_xint64(x_any, x_any, x_any, int size_t);
 __global__ void xd_sub(x_any, x_any, x_any, int size_t);
 __global__ void xd_mul(x_any, x_any, x_any, int size_t);
 __global__ void xd_div(x_any, x_any, x_any, int size_t);
@@ -199,14 +197,11 @@ __global__ void xd_div(x_any, x_any, x_any, int size_t);
 __global__ void xd_zeros(x_any, int size_t);
 __global__ void xd_ones(x_any, int size_t);
 
-__device__ x_any xd_add2(x_any, x_any);
-__device__ void xd_sub2(x_any, x_any, x_any, int size_t);
-__device__ void xd_mul2(x_any, x_any, x_any, int size_t);
-__device__ void xd_div2(x_any, x_any, x_any, int size_t);
+#define SYNC cudaThreadSynchronize()
 
 inline void check_cuda_errors(const char *filename, const int line_number)
 {
-  cudaThreadSynchronize();
+  SYNC;
   cudaError_t error = cudaGetLastError();
   if(error != cudaSuccess)
   {
@@ -216,3 +211,6 @@ inline void check_cuda_errors(const char *filename, const int line_number)
 }
 
 #define CHECK check_cuda_errors(__FILE__, __LINE__)
+#define TID blockDim.x * blockIdx.x + threadIdx.x
+#define GRIDBLOCKS(size) ((size) + threadsPerBlock - 1 / threadsPerBlock)
+

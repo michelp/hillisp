@@ -7,6 +7,10 @@
 #include <sys/time.h>
 #include "lisp.h"
 
+cudaStream_t stream;
+cudaError_t result;
+int threadsPerBlock = 64;
+
 __managed__ x_any x_symbol;
 __managed__ x_any x_garbage;
 __managed__ x_any x_nil;
@@ -29,13 +33,14 @@ __managed__ x_any x_fn2;
 __managed__ x_any x_fn3;
 __managed__ hash_table_type hash_table;
 
-
 __device__ __host__ void* bi_malloc(size_t size) {
 void* result;
 #ifdef __CUDA_ARCH__
   result = malloc(size);
 #else
   cudaMallocManaged(&result, size);
+  cudaStreamAttachMemAsync(stream, result);
+  CHECK;
 #endif
   assert(result != NULL);
   return result;
@@ -48,7 +53,7 @@ char* new_name(const char* name) {
   return n;
 }
 
-__device__ __host__ x_any new_cell(const char* name, x_any type) {
+x_any new_cell(const char* name, x_any type) {
   x_any cell;
   cell = (x_any)bi_malloc(sizeof(x_cell));
   set_cdr(cell, NULL);
@@ -65,11 +70,12 @@ __device__ __host__ x_any new_cell(const char* name, x_any type) {
   return cell;
 }
 
-__device__ __host__ x_any new_xector(const char* name) {
+x_any new_xector(const char* name) {
   x_any cell;
   x_any_x xector;
   cell = new_cell(name, x_xector);
   xector = (x_any_x)bi_malloc(sizeof(x_xector_t));
+  xector->cars = (void**)bi_malloc(X_XECTOR_BLOCK_SIZE * sizeof(void*));
   xector->size = 0;
   set_cdr(cell, xector);
   return cell;
@@ -123,7 +129,7 @@ void print_xector(x_any cell, FILE *outfile) {
 
 void print_cell(x_any cell, FILE *outfile) {
   if (is_int(cell))
-    fprintf(outfile, "%" PRIi64, int_car(cell));
+    fprintf(outfile, "%" PRIi64, int64_car(cell));
   else if (is_xector(cell)) {
     print_xector(cell, outfile);
   }
@@ -198,16 +204,14 @@ x_any x_add(x_any cell1, x_any cell2) {
   x_any cell;
   if (is_int(cell1) && is_int(cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, int_car(cell1) + int_car(cell2));
+    set_car(cell, int64_car(cell1) + int64_car(cell2));
     return cell;
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    int threadsPerBlock = 256;
-    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
-    xd_add<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_add_xint64<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -219,16 +223,14 @@ x_any x_sub(x_any cell1, x_any cell2) {
   x_any cell;
   if (is_int(cell1) && is_int(cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, int_car(cell1) - int_car(cell2));
+    set_car(cell, int64_car(cell1) - int64_car(cell2));
     return cell;
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    int threadsPerBlock = 256;
-    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
-    xd_sub<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_sub<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -240,16 +242,14 @@ x_any x_mul(x_any cell1, x_any cell2) {
   x_any cell;
   if (is_int(cell1) && is_int(cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, int_car(cell1) * int_car(cell2));
+    set_car(cell, int64_car(cell1) * int64_car(cell2));
     return cell;
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    int threadsPerBlock = 256;
-    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
-    xd_mul<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_mul<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -261,16 +261,14 @@ x_any x_div(x_any cell1, x_any cell2) {
   x_any cell;
   if (is_int(cell1) && is_int(cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, int_car(cell1) / int_car(cell2));
+    set_car(cell, int64_car(cell1) / int64_car(cell2));
     return cell;
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    int threadsPerBlock = 256;
-    int blocksPerGrid =(xector_size(cell1) + threadsPerBlock - 1) / threadsPerBlock;
-    xd_div<<<blocksPerGrid, threadsPerBlock>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_div<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -280,7 +278,7 @@ x_any x_div(x_any cell1, x_any cell2) {
 
 x_any x_eq(x_any cell1, x_any cell2) {
   if (is_int(cell1) && is_int(cell2)) {
-    if (int_car(cell1) == int_car(cell2))
+    if (int64_car(cell1) == int64_car(cell2))
       return x_true;
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
@@ -314,7 +312,7 @@ x_any x_neq(x_any cell1, x_any cell2) {
 
 x_any x_gt(x_any cell1, x_any cell2) {
   if (is_int(cell1) && is_int(cell2)) {
-    if (int_car(cell1) > int_car(cell2))
+    if (int64_car(cell1) > int64_car(cell2))
       return x_true;
   }
   else
@@ -325,7 +323,7 @@ x_any x_gt(x_any cell1, x_any cell2) {
 
 x_any x_lt(x_any cell1, x_any cell2) {
   if (is_int(cell1) && is_int(cell2)) {
-    if (int_car(cell1) < int_car(cell2))
+    if (int64_car(cell1) < int64_car(cell2))
       return x_true;
   }
   else
@@ -357,10 +355,8 @@ x_any x_zeros(x_any size) {
   if (!is_int(size))
     assert(0);
   cell = new_xector(NULL);
-  xector_size(cell) = int_car(size);
-  int threadsPerBlock = 256;
-  int blocksPerGrid =(xector_size(cell) + threadsPerBlock - 1) / threadsPerBlock;
-  xd_zeros<<<blocksPerGrid, threadsPerBlock>>>(cell, xector_size(cell));
+  xector_size(cell) = int64_car(size);
+  xd_zeros<<<GRIDBLOCKS(xector_size(cell)), threadsPerBlock, 0, stream>>>(cell, xector_size(cell));
   CHECK;
   return cell;
 }
@@ -370,10 +366,8 @@ x_any x_ones(x_any size) {
   if (!is_int(size))
     assert(0);
   cell = new_xector(NULL);
-  xector_size(cell) = int_car(size);
-  int threadsPerBlock = 256;
-  int blocksPerGrid =(xector_size(cell) + threadsPerBlock - 1) / threadsPerBlock;
-  xd_ones<<<blocksPerGrid, threadsPerBlock>>>(cell, xector_size(cell));
+  xector_size(cell) = int64_car(size);
+  xd_ones<<<GRIDBLOCKS(xector_size(cell)), threadsPerBlock, 0, stream>>>(cell, xector_size(cell));
   CHECK;
   return cell;
 }
@@ -595,7 +589,7 @@ x_any read_xector(FILE *infile) {
       assert(0); // must all be same type
 
     if (typ == x_int)
-      xector_set_car_ith(cell, size, int_car(val));
+      xector_set_car_ith(cell, size, int64_car(val));
     else if (typ == x_xector)
       xector_set_car_ith(cell, size, car(val));
     else
@@ -695,10 +689,10 @@ void init(void) {
   def_builtin("assert", (void*)x_assert, 1, NULL);
   def_builtin("print", (void*)x_print, 1, NULL);
   def_builtin("println", (void*)x_println, 1, NULL);
-  def_builtin("+", (void*)x_add, 2, (void*)xd_add2);
-  def_builtin("-", (void*)x_sub, 2, (void*)xd_sub2);
-  def_builtin("*", (void*)x_mul, 2, (void*)xd_mul2);
-  def_builtin("/", (void*)x_div, 2, (void*)xd_div2);
+  def_builtin("+", (void*)x_add, 2, NULL);
+  def_builtin("-", (void*)x_sub, 2, NULL);
+  def_builtin("*", (void*)x_mul, 2, NULL);
+  def_builtin("/", (void*)x_div, 2, NULL);
   def_builtin("==", (void*)x_eq, 2, NULL);
   def_builtin("!=", (void*)x_neq, 2, NULL);
   def_builtin(">", (void*)x_gt, 2, NULL);
@@ -714,15 +708,39 @@ void init(void) {
 int main(int argc, const char* argv[]) {
   x_any expr;
   x_any value;
+  FILE *fp;
+  result = cudaStreamCreate(&stream);
+
   init();
-  for (;;) {
-    printf("? ");
-    expr = read_sexpr(stdin);
-    if (expr == x_eof)
-      break;
-    value = x_eval(expr);
-    printf(": ");
-    print_cell(value, stdout);
-    putchar('\n');
+  if (argc > 1) {
+    for (int i = 1; i < argc; i++) {
+      if (argv[i][0] == '-') {
+        continue;
+      }
+      else {
+        fp = fopen(argv[i], "r");
+        if (fp == NULL)
+          assert(0);
+        for (;;) {
+          expr = read_sexpr(fp);
+          if (expr == x_eof)
+            break;
+          value = x_eval(expr);
+        }
+      }
+    }
   }
+  else {
+    for (;;) {
+      printf("? ");
+      expr = read_sexpr(stdin);
+      if (expr == x_eof)
+        break;
+      value = x_eval(expr);
+      printf(": ");
+      print_cell(value, stdout);
+      putchar('\n');
+    }
+  }
+  result = cudaStreamDestroy(stream);
 }
