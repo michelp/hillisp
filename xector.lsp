@@ -5,12 +5,12 @@
 (assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
 (assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
 (assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
-(assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
-(assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
-(assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
-(assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
-(assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
-(assert (all (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
+(assert (any (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
+(assert (any (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
+(assert (any (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
+(assert (any (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
+(assert (any (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
+(assert (any (== (+ (fill 1 30000) (fill 1 30000)) (+ (fill 1 30000) (fill 1 30000)))))
 
 (assert 
  (all

@@ -168,27 +168,27 @@ x_any x_ones(x_any);
 
 x_any x_time();
 
-__managed__ extern x_any x_symbol;
-__managed__ extern x_any x_garbage;
-__managed__ extern x_any x_nil;
-__managed__ extern x_any x_true;
-__managed__ extern x_any x_dot;
-__managed__ extern x_any x_lparen;
-__managed__ extern x_any x_rparen;
-__managed__ extern x_any x_lbrack;
-__managed__ extern x_any x_rbrack;
-__managed__ extern x_any x_eof;
-__managed__ extern x_any x_builtin;
-__managed__ extern x_any x_token;
-__managed__ extern x_any x_user;
-__managed__ extern x_any x_pair;
-__managed__ extern x_any x_xector;
-__managed__ extern x_any x_int;
-__managed__ extern x_any x_fn0;
-__managed__ extern x_any x_fn1;
-__managed__ extern x_any x_fn2;
-__managed__ extern x_any x_fn3;
-__managed__ extern hash_table_type hash_table;
+extern x_any x_symbol;
+extern x_any x_garbage;
+extern x_any x_nil;
+extern x_any x_true;
+extern x_any x_dot;
+extern x_any x_lparen;
+extern x_any x_rparen;
+extern x_any x_lbrack;
+extern x_any x_rbrack;
+extern x_any x_eof;
+extern x_any x_builtin;
+extern x_any x_token;
+extern x_any x_user;
+extern x_any x_pair;
+extern x_any x_xector;
+extern x_any x_int;
+extern x_any x_fn0;
+extern x_any x_fn1;
+extern x_any x_fn2;
+extern x_any x_fn3;
+extern hash_table_type hash_table;
 
 __global__ void xd_add_xint64(int64_t*, int64_t*, int64_t*, size_t);
 __global__ void xd_sub_xint64(int64_t*, int64_t*, int64_t*, size_t);
@@ -200,11 +200,15 @@ __global__ void xd_any_xint64(int64_t*, int*, size_t);
 
 __global__ void xd_fill_xint64(int64_t*, int64_t val, size_t);
 
+extern cudaStream_t stream;
+extern cudaError_t result;
+
 #define SYNC cudaThreadSynchronize()
+#define SYNCS(s) cudaStreamSynchronize(s)
 
 inline void check_cuda_errors(const char *filename, const int line_number)
 {
-  SYNC;
+  //SYNCS(stream);
   cudaError_t error = cudaGetLastError();
   if(error != cudaSuccess)
   {

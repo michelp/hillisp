@@ -206,6 +206,7 @@ x_any x_add(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
+    SYNCS(stream);
     xd_add_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -225,6 +226,7 @@ x_any x_sub(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
+    SYNCS(stream);
     xd_sub_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -244,6 +246,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
+    SYNCS(stream);
     xd_mul_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -263,6 +266,7 @@ x_any x_div(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
+    SYNCS(stream);
     xd_div_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -281,6 +285,7 @@ x_any x_eq(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
+    SYNCS(stream);
     xd_eq_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -354,8 +359,8 @@ x_any x_fill(x_any val, x_any size) {
     assert(0);
   cell = new_xector(NULL);
   xector_size(cell) = int64_car(size);
+  SYNCS(stream);
   xd_fill_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), int64_car(val), xector_size(cell));
-  CHECK;
   return cell;
 }
 
@@ -364,10 +369,12 @@ x_any x_all(x_any cell) {
   int* result;
   if (!is_xector(cell))
     assert(0);
+  SYNCS(stream);
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = xector_size(cell);
   xd_all_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), result, xector_size(cell));
+  SYNCS(stream);
   CHECK;
   if (*result != xector_size(cell))
     return x_nil;
@@ -378,10 +385,12 @@ x_any x_any_(x_any cell) {
   int* result;
   if (!is_xector(cell))
     assert(0);
+  SYNCS(stream);
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = 0;
   xd_any_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), result, xector_size(cell));
+  SYNCS(stream);
   CHECK;
   if (*result > 0)
     return x_true;
@@ -502,7 +511,6 @@ x_any read_token(FILE *infile) {
     if (c == ';')
       do c = getc(infile); while (c != '\n' && c != EOF);
   } while (isspace(c));
-  SYNC;
   switch (c) {
   case EOF:
     return x_eof;
