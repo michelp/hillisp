@@ -1,5 +1,6 @@
 ; test comment
 
+(println basic)
 (assert (== 3 3))
 (assert (!= 3 4))
 (assert (== (3 (+ 3 3) (- 3 3)) (3 6 0)))
@@ -20,6 +21,7 @@
 
 ; comments?
 
+(println types)
 (assert (is print (quote print))) ; comment ish
 (assert (is (type print) fn1))
 (assert (is (type 3) int))
@@ -37,25 +39,25 @@
 (assert (== (apply cons (3 4)) (3 . 4)))
 (assert (== (eval (cons 3 4)) (3 . 4)))
 
+(println flow)
 (assert (is (if ()) nil))
 (assert (== (if (true 1 2)) 1))
 (assert (== (if (nil 1 2)) 2))
-
 (assert (== (if ((== 3 4) (cons 1 2))) nil))
 (assert (== (if ((== 4 4) (cons 1 2))) (1 . 2)))
 (assert (== (if ((== 4 4) (cons 1 2) (cons 3 4))) (1 . 2)))
 (assert (== (if ((== 4 5) (cons 1 2) (cons 3 4))) (3 . 4)))
 (assert (== (if ((!= 4 4) (cons 1 2) (cons 3 4))) (3 . 4)))
+
+
+(println xectors)
 (assert (all (== [1 2 3] [1 2 3])))
 (assert (!= [1 2 3] [4 5 6]))
-
 (assert (all (== (+ [1 2 3] [4 5 6]) [5 7 9])))
 (assert (all (== (+ (fill 1 3) (fill 1 3)) [2 2 2])))
-
 (assert (all [1 1 1]))
 (assert (not (all [0 0 0])))
 (assert (not (all [1 1 0])))
-
 (assert (any [1 0 0]))
 (assert (any [1 1 1]))
 (assert (not (any [0 0 0])))

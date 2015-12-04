@@ -208,7 +208,6 @@ extern cudaError_t result;
 
 inline void check_cuda_errors(const char *filename, const int line_number)
 {
-  //SYNCS(stream);
   cudaError_t error = cudaGetLastError();
   if(error != cudaSuccess)
   {

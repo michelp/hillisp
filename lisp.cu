@@ -10,6 +10,12 @@
 cudaStream_t stream;
 cudaError_t result;
 
+//#define DEBUG 1
+
+#ifdef DEBUG
+int debugLevel = 0;
+#endif
+
 x_any x_symbol;
 x_any x_garbage;
 x_any x_nil;
@@ -39,6 +45,7 @@ void* result;
 #else
   cudaMallocManaged(&result, size);
   cudaStreamAttachMemAsync(stream, result);
+  SYNCS(stream);
   CHECK;
 #endif
   assert(result != NULL);
@@ -457,6 +464,9 @@ x_any x_apply(x_any cell, x_any args) {
   if (is_pair(cell))
     return x_cons(x_eval(cell), args);
   if (is_builtin(cell)) {
+#ifdef DEBUG
+    printf("%*s" "%s\n", debugLevel, " ", name(cell));
+#endif
     if (is_fn0(cell))
       return ((x_fn0_t)cdr(cell))();
     else if (is_fn1(cell))
@@ -493,8 +503,16 @@ x_any x_eval(x_any cell) {
   x_any temp;
   if (is_atom(cell))
     return cell;
-  else if (is_pair(cell) && (is_func(car(cell))))
-    return x_apply(car(cell), list_eval(cdr(cell)));
+  else if (is_pair(cell) && (is_func(car(cell)))) {
+#ifdef DEBUG
+    debugLevel += 2;
+#endif
+    temp = x_apply(car(cell), list_eval(cdr(cell)));
+#ifdef DEBUG
+    debugLevel -= 2;
+#endif
+    return temp;
+  }
   else {
     temp = x_eval(car(cell));
     return x_cons(temp, list_eval(cdr(cell)));
