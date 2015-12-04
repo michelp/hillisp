@@ -1,6 +1,7 @@
 ; test comment
 
 (assert (== 3 3))
+(assert (!= 3 4))
 (assert (== (3 (+ 3 3) (- 3 3)) (3 6 0)))
 (assert (== -3 -3))
 (assert (== (1 2) (1 2)))
@@ -45,9 +46,18 @@
 (assert (== (if ((== 4 4) (cons 1 2) (cons 3 4))) (1 . 2)))
 (assert (== (if ((== 4 5) (cons 1 2) (cons 3 4))) (3 . 4)))
 (assert (== (if ((!= 4 4) (cons 1 2) (cons 3 4))) (3 . 4)))
-(assert (== [1 2 3] [1 2 3]))
+(assert (all (== [1 2 3] [1 2 3])))
 (assert (!= [1 2 3] [4 5 6]))
 
-(assert (== (+ [1 2 3] [4 5 6]) [5 7 9]))
-(assert (== (+ (ones 3) (ones 3)) [2 2 2]))
-(println done)
+(assert (all (== (+ [1 2 3] [4 5 6]) [5 7 9])))
+(assert (all (== (+ (fill 1 3) (fill 1 3)) [2 2 2])))
+
+(assert (all [1 1 1]))
+(assert (not (all [0 0 0])))
+(assert (not (all [1 1 0])))
+
+(assert (any [1 0 0]))
+(assert (any [1 1 1]))
+(assert (not (any [0 0 0])))
+
+(println passed)

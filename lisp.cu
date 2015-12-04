@@ -9,29 +9,28 @@
 
 cudaStream_t stream;
 cudaError_t result;
-int threadsPerBlock = 64;
 
-__managed__ x_any x_symbol;
-__managed__ x_any x_garbage;
-__managed__ x_any x_nil;
-__managed__ x_any x_true;
-__managed__ x_any x_dot;
-__managed__ x_any x_lparen;
-__managed__ x_any x_rparen;
-__managed__ x_any x_lbrack;
-__managed__ x_any x_rbrack;
-__managed__ x_any x_eof;
-__managed__ x_any x_builtin;
-__managed__ x_any x_token;
-__managed__ x_any x_user;
-__managed__ x_any x_pair;
-__managed__ x_any x_xector;
-__managed__ x_any x_int;
-__managed__ x_any x_fn0;
-__managed__ x_any x_fn1;
-__managed__ x_any x_fn2;
-__managed__ x_any x_fn3;
-__managed__ hash_table_type hash_table;
+x_any x_symbol;
+x_any x_garbage;
+x_any x_nil;
+x_any x_true;
+x_any x_dot;
+x_any x_lparen;
+x_any x_rparen;
+x_any x_lbrack;
+x_any x_rbrack;
+x_any x_eof;
+x_any x_builtin;
+x_any x_token;
+x_any x_user;
+x_any x_pair;
+x_any x_xector;
+x_any x_int;
+x_any x_fn0;
+x_any x_fn1;
+x_any x_fn2;
+x_any x_fn3;
+hash_table_type hash_table;
 
 __device__ __host__ void* bi_malloc(size_t size) {
 void* result;
@@ -48,25 +47,21 @@ void* result;
 
 char* new_name(const char* name) {
   char *n;
-  n = (char*)bi_malloc(strlen(name) + 1);
+  n = (char*)malloc(strlen(name) + 1);
   strcpy(n, name);
   return n;
 }
 
 x_any new_cell(const char* name, x_any type) {
   x_any cell;
-  cell = (x_any)bi_malloc(sizeof(x_cell));
+  cell = (x_any)malloc(sizeof(x_cell));
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
-#ifdef __CUDA_ARCH__
-  name(cell) = NULL;
-#else
   if (name == NULL)
     name(cell) = NULL;
   else
     name(cell) = new_name(name);
-#endif
   return cell;
 }
 
@@ -74,7 +69,7 @@ x_any new_xector(const char* name) {
   x_any cell;
   x_any_x xector;
   cell = new_cell(name, x_xector);
-  xector = (x_any_x)bi_malloc(sizeof(x_xector_t));
+  xector = (x_any_x)malloc(sizeof(x_xector_t));
   xector->cars = (void**)bi_malloc(X_XECTOR_BLOCK_SIZE * sizeof(void*));
   xector->size = 0;
   set_cdr(cell, xector);
@@ -211,7 +206,7 @@ x_any x_add(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    xd_add_xint64<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_add_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -230,7 +225,7 @@ x_any x_sub(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    xd_sub<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_sub_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -249,7 +244,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    xd_mul<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_mul_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -268,7 +263,7 @@ x_any x_div(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL);
     xector_size(cell) = xector_size(cell1);
-    xd_div<<<GRIDBLOCKS(xector_size(cell1)), threadsPerBlock, 0, stream>>>(cell1, cell2, cell, xector_size(cell1));
+    xd_div_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
   }
@@ -277,16 +272,19 @@ x_any x_div(x_any cell1, x_any cell2) {
 }
 
 x_any x_eq(x_any cell1, x_any cell2) {
+  x_any cell;
   if (is_int(cell1) && is_int(cell2)) {
     if (int64_car(cell1) == int64_car(cell2))
       return x_true;
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
-    if (xector_size(cell1) != xector_size(cell2))
-      return x_nil;
-    if (memcmp(cars(cell1), cars(cell2), xector_size(cell1)) == 0)
-      return x_true;
-    }
+    assert(xector_size(cell1) == xector_size(cell2));
+    cell = new_xector(NULL);
+    xector_size(cell) = xector_size(cell1);
+    xd_eq_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
+    CHECK;
+    return cell;
+  }
   else if (is_atom(cell1) && is_atom(cell2)) {
     if (strcmp(cell1->name, cell2->name) == 0)
       return x_true;
@@ -350,26 +348,44 @@ x_any x_or(x_any cell1, x_any cell2) {
   return x_nil;
 }
 
-x_any x_zeros(x_any size) {
+x_any x_fill(x_any val, x_any size) {
   x_any cell;
   if (!is_int(size))
     assert(0);
   cell = new_xector(NULL);
   xector_size(cell) = int64_car(size);
-  xd_zeros<<<GRIDBLOCKS(xector_size(cell)), threadsPerBlock, 0, stream>>>(cell, xector_size(cell));
+  xd_fill_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), int64_car(val), xector_size(cell));
   CHECK;
   return cell;
 }
 
-x_any x_ones(x_any size) {
-  x_any cell;
-  if (!is_int(size))
+
+x_any x_all(x_any cell) {
+  int* result;
+  if (!is_xector(cell))
     assert(0);
-  cell = new_xector(NULL);
-  xector_size(cell) = int64_car(size);
-  xd_ones<<<GRIDBLOCKS(xector_size(cell)), threadsPerBlock, 0, stream>>>(cell, xector_size(cell));
+  cudaMallocManaged(&result, sizeof(int));
+  assert(result != NULL);
+  *result = xector_size(cell);
+  xd_all_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), result, xector_size(cell));
   CHECK;
-  return cell;
+  if (*result != xector_size(cell))
+    return x_nil;
+  return x_true;
+}
+
+x_any x_any_(x_any cell) {
+  int* result;
+  if (!is_xector(cell))
+    assert(0);
+  cudaMallocManaged(&result, sizeof(int));
+  assert(result != NULL);
+  *result = 0;
+  xd_any_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), result, xector_size(cell));
+  CHECK;
+  if (*result > 0)
+    return x_true;
+  return x_nil;
 }
 
 x_any x_time() {
@@ -486,6 +502,7 @@ x_any read_token(FILE *infile) {
     if (c == ';')
       do c = getc(infile); while (c != '\n' && c != EOF);
   } while (isspace(c));
+  SYNC;
   switch (c) {
   case EOF:
     return x_eof;
@@ -699,9 +716,10 @@ void init(void) {
   def_builtin("<", (void*)x_lt, 2, NULL);
   def_builtin("not", (void*)x_not, 1, NULL);
   def_builtin("and", (void*)x_and, 2, NULL);
+  def_builtin("all", (void*)x_all, 1, NULL);
+  def_builtin("any", (void*)x_any_, 1, NULL);
   def_builtin("or", (void*)x_or, 2, NULL);
-  def_builtin("zeros", (void*)x_zeros, 1, NULL);
-  def_builtin("ones", (void*)x_ones, 1, NULL);
+  def_builtin("fill", (void*)x_fill, 2, NULL);
   def_builtin("time", (void*)x_time, 0, NULL);
 }
 
@@ -743,4 +761,5 @@ int main(int argc, const char* argv[]) {
     }
   }
   result = cudaStreamDestroy(stream);
+  cudaDeviceReset();
 }

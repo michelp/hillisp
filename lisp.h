@@ -157,6 +157,7 @@ x_any x_gt(x_any, x_any);
 x_any x_not(x_any);
 x_any x_and(x_any, x_any);
 x_any x_or(x_any, x_any);
+x_any x_all(x_any);
 
 // xector
 
@@ -189,13 +190,15 @@ __managed__ extern x_any x_fn2;
 __managed__ extern x_any x_fn3;
 __managed__ extern hash_table_type hash_table;
 
-__global__ void xd_add_xint64(x_any, x_any, x_any, int size_t);
-__global__ void xd_sub(x_any, x_any, x_any, int size_t);
-__global__ void xd_mul(x_any, x_any, x_any, int size_t);
-__global__ void xd_div(x_any, x_any, x_any, int size_t);
+__global__ void xd_add_xint64(int64_t*, int64_t*, int64_t*, size_t);
+__global__ void xd_sub_xint64(int64_t*, int64_t*, int64_t*, size_t);
+__global__ void xd_mul_xint64(int64_t*, int64_t*, int64_t*, size_t);
+__global__ void xd_div_xint64(int64_t*, int64_t*, int64_t*, size_t);
+__global__ void xd_eq_xint64(int64_t*, int64_t*, int64_t*, size_t);
+__global__ void xd_all_xint64(int64_t*, int*, size_t);
+__global__ void xd_any_xint64(int64_t*, int*, size_t);
 
-__global__ void xd_zeros(x_any, int size_t);
-__global__ void xd_ones(x_any, int size_t);
+__global__ void xd_fill_xint64(int64_t*, int64_t val, size_t);
 
 #define SYNC cudaThreadSynchronize()
 
@@ -211,6 +214,9 @@ inline void check_cuda_errors(const char *filename, const int line_number)
 }
 
 #define CHECK check_cuda_errors(__FILE__, __LINE__)
-#define TID blockDim.x * blockIdx.x + threadIdx.x
-#define GRIDBLOCKS(size) ((size) + threadsPerBlock - 1 / threadsPerBlock)
-
+#define BDX blockDim.x
+#define BIX blockIdx.x
+#define TIX threadIdx.x
+#define TID (BDX * BIX  + TIX)
+#define THREADSPERBLOCK 64
+#define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
