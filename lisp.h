@@ -75,8 +75,11 @@ typedef struct __align__(16) x_heap {
 #define is_user(x) (type(x) == x_user)
 #define is_pair(x) (type(x) == x_pair)
 #define is_xector(x) (type(x) == x_xector)
+#define are_xectors(x, y) (is_xector(x) && is_xector(y))
+#define xectors_align(x, y) assert(xector_size(x) == xector_size(y));
 
 #define is_int(x) (type(x) == x_int)
+#define are_ints(x, y) (is_int(x) && is_int(y))
 
 #define is_fn0(x) (type(x) == x_fn0)
 #define is_fn1(x) (type(x) == x_fn1)
@@ -94,10 +97,15 @@ typedef struct __align__(16) x_heap {
 typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 #define CHECK check_cuda_errors(__FILE__, __LINE__)
+#define GDX gridDim.x
 #define BDX blockDim.x
 #define BIX blockIdx.x
 #define TIX threadIdx.x
-#define TID (BDX * BIX  + TIX)
+
+#define TID ((BDX * BIX) + TIX)
+#define STRIDE (BDX * GDX)
+#define TIDE (TID * STRIDE)
+
 #define THREADSPERBLOCK 32
 #define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
 

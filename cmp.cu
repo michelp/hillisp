@@ -9,12 +9,12 @@ __global__ void
 
 x_any x_eq(x_any cell1, x_any cell2) {
   x_any cell;
-  if (is_int(cell1) && is_int(cell2)) {
+  if (are_ints(cell1, cell2)) {
     if (int64_car(cell1) == int64_car(cell2))
       return x_true;
   }
-  else if (is_xector(cell1) && is_xector(cell2)) {
-    assert(xector_size(cell1) == xector_size(cell2));
+  else if (are_xectors(cell1, cell2)) {
+    xectors_align(cell1, cell2);
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_eq<int64_t><<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
@@ -46,7 +46,7 @@ x_any x_neq(x_any cell1, x_any cell2) {
 }
 
 x_any x_gt(x_any cell1, x_any cell2) {
-  if (is_int(cell1) && is_int(cell2)) {
+  if (are_ints(cell1, cell2)) {
     if (int64_car(cell1) > int64_car(cell2))
       return x_true;
   }
@@ -57,7 +57,7 @@ x_any x_gt(x_any cell1, x_any cell2) {
 }
 
 x_any x_lt(x_any cell1, x_any cell2) {
-  if (is_int(cell1) && is_int(cell2)) {
+  if (are_ints(cell1, cell2)) {
     if (int64_car(cell1) < int64_car(cell2))
       return x_true;
   }
