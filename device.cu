@@ -22,6 +22,11 @@ __global__ void xd_div_xint64(int64_t* cell1, int64_t* cell2, int64_t* cell3, si
     cell3[TID] = cell1[TID] / cell2[TID];
 }
 
+__global__ void xd_fma_xint64(int64_t* cell1, int64_t* cell2, int64_t* cell3, size_t size) {
+  if (TID < size) 
+    cell3[TID] = cell1[TID] * cell2[TID] + cell3[TID];
+}
+
 __global__ void
  xd_eq_xint64(int64_t* cell1, int64_t* cell2, int64_t* cell3, size_t size) {
   if (TID < size) 

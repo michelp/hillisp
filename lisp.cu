@@ -72,13 +72,13 @@ x_any new_cell(const char* name, x_any type) {
   return cell;
 }
 
-x_any new_xector(const char* name) {
+x_any new_xector(const char* name, size_t size) {
   x_any cell;
   x_any_x xector;
   cell = new_cell(name, x_xector);
   xector = (x_any_x)malloc(sizeof(x_xector_t));
-  xector->cars = (void**)bi_malloc(X_XECTOR_BLOCK_SIZE * sizeof(void*));
-  xector->size = 0;
+  xector->cars = (void**)bi_malloc(size * sizeof(void*));
+  xector->size = size;
   set_cdr(cell, xector);
   return cell;
 }
@@ -111,6 +111,7 @@ x_any create_symbol(const char *new_name) {
 
 void print_xector(x_any cell, FILE *outfile) {
     putc('[', outfile);
+    SYNCS(stream);
     if (xector_size(cell) < 1024) {
       for (int i = 0; i < xector_size(cell); i++) {
         fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
@@ -211,8 +212,7 @@ x_any x_add(x_any cell1, x_any cell2) {
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
-    cell = new_xector(NULL);
-    xector_size(cell) = xector_size(cell1);
+    cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_add_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
@@ -231,8 +231,7 @@ x_any x_sub(x_any cell1, x_any cell2) {
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
-    cell = new_xector(NULL);
-    xector_size(cell) = xector_size(cell1);
+    cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_sub_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
@@ -251,8 +250,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
-    cell = new_xector(NULL);
-    xector_size(cell) = xector_size(cell1);
+    cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_mul_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
@@ -271,12 +269,28 @@ x_any x_div(x_any cell1, x_any cell2) {
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
-    cell = new_xector(NULL);
-    xector_size(cell) = xector_size(cell1);
+    cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_div_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
+  }
+  assert(0);
+  return x_nil;
+}
+
+x_any x_fma(x_any cell1, x_any cell2, x_any cell3) {
+  x_any cell;
+  if (is_int(cell1) && is_int(cell2)) {
+    cell = new_cell(NULL, x_int);
+    set_car(cell, int64_car(cell1) * int64_car(cell2) + int64_car(cell3));
+    return cell;
+  }
+  else if (is_xector(cell1) && is_xector(cell2) && is_xector(cell3)) {
+    SYNCS(stream);
+    xd_fma_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell3), xector_size(cell1));
+    CHECK;
+    return cell3;
   }
   assert(0);
   return x_nil;
@@ -290,8 +304,7 @@ x_any x_eq(x_any cell1, x_any cell2) {
   }
   else if (is_xector(cell1) && is_xector(cell2)) {
     assert(xector_size(cell1) == xector_size(cell2));
-    cell = new_xector(NULL);
-    xector_size(cell) = xector_size(cell1);
+    cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_eq_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
@@ -364,10 +377,9 @@ x_any x_fill(x_any val, x_any size) {
   x_any cell;
   if (!is_int(size))
     assert(0);
-  cell = new_xector(NULL);
-  xector_size(cell) = int64_car(size);
-  SYNCS(stream);
+  cell = new_xector(NULL, int64_car(size));
   xd_fill_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>(int64_cars(cell), int64_car(val), xector_size(cell));
+  CHECK;
   return cell;
 }
 
@@ -499,6 +511,16 @@ x_any x_if(x_any clauses) {
   return x_nil;
 }
 
+x_any x_while(x_any cond, x_any clause) {
+  x_any cell;
+  cell = x_nil;
+  if (cond == x_nil)
+    return x_nil;
+  while (x_eval(cond) != x_nil)
+    cell = x_eval(clause);
+  return cell;
+}
+
 x_any x_eval(x_any cell) {
   x_any temp;
   if (is_atom(cell))
@@ -621,7 +643,7 @@ x_any read_xector(FILE *infile) {
   x_any cell;
   x_any typ = NULL;
   size_t size = 0;
-  cell = new_xector("xector");
+  cell = new_xector("xector", X_XECTOR_BLOCK_SIZE);
   do {
     val = x_eval(read_sexpr(infile));
     if (val == x_nil)
@@ -727,6 +749,7 @@ void init(void) {
   def_builtin("cons", (void*)x_cons, 2, NULL);
   def_builtin("quote", (void*)x_quote, 1, NULL);
   def_builtin("if", (void*)x_if, 1, NULL);
+  def_builtin("while", (void*)x_while, 1, NULL);
   def_builtin("eval", (void*)x_eval, 1, NULL);
   def_builtin("apply", (void*)x_apply, 2, NULL);
   def_builtin("assert", (void*)x_assert, 1, NULL);
@@ -736,6 +759,7 @@ void init(void) {
   def_builtin("-", (void*)x_sub, 2, NULL);
   def_builtin("*", (void*)x_mul, 2, NULL);
   def_builtin("/", (void*)x_div, 2, NULL);
+  def_builtin("fma", (void*)x_fma, 3, NULL);
   def_builtin("==", (void*)x_eq, 2, NULL);
   def_builtin("!=", (void*)x_neq, 2, NULL);
   def_builtin(">", (void*)x_gt, 2, NULL);

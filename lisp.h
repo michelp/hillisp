@@ -137,6 +137,7 @@ x_any x_isinstance(x_any, x_any);
 // flow
 
 x_any x_if(x_any);
+x_any x_while(x_any, x_any);
 
 // math
 
@@ -144,6 +145,8 @@ x_any x_add(x_any, x_any);
 x_any x_sub(x_any, x_any);
 x_any x_mul(x_any, x_any);
 x_any x_div(x_any, x_any);
+
+x_any x_fma(x_any, x_any, x_any);
 
 // cmp
 
@@ -194,6 +197,8 @@ __global__ void xd_add_xint64(int64_t*, int64_t*, int64_t*, size_t);
 __global__ void xd_sub_xint64(int64_t*, int64_t*, int64_t*, size_t);
 __global__ void xd_mul_xint64(int64_t*, int64_t*, int64_t*, size_t);
 __global__ void xd_div_xint64(int64_t*, int64_t*, int64_t*, size_t);
+__global__ void xd_fma_xint64(int64_t*, int64_t*, int64_t*, size_t);
+
 __global__ void xd_eq_xint64(int64_t*, int64_t*, int64_t*, size_t);
 __global__ void xd_all_xint64(int64_t*, int*, size_t);
 __global__ void xd_any_xint64(int64_t*, int*, size_t);
