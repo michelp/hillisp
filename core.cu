@@ -1,6 +1,33 @@
 #include <sys/time.h>
 #include "lisp.h"
 
+template<typename T>
+__global__ void
+ xd_fill(T *cars, T val, size_t size) {
+  if (TID < size)
+    cars[TID] = val;
+}
+
+template<typename T>
+__global__ void
+ xd_all(T* cell1, int *result, size_t size) {
+  if (*result == size)
+    if (TID < size)
+      if (!cell1[TID])
+        atomicSub(result, 1);
+  __syncthreads();
+}
+
+template<typename T>
+__global__ void
+ xd_any(T* cell1, int *result, size_t size) {
+  if (*result == 0)
+    if (TID < size)
+      if (cell1[TID])
+        atomicAdd(result, 1);
+  __syncthreads();
+}
+
 x_any x_is(x_any cell1, x_any cell2) {
   if (cell1 == cell2)
     return x_true;
@@ -119,7 +146,7 @@ x_any x_fill(x_any val, x_any size) {
   if (!is_int(size))
     assert(0);
   cell = new_xector(NULL, int64_car(size));
-  xd_fill_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
+  xd_fill<int64_t><<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
     (int64_cars(cell), int64_car(val), xector_size(cell));
   CHECK;
   return cell;
@@ -133,7 +160,7 @@ x_any x_all(x_any cell) {
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = xector_size(cell);
-  xd_all_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
+  xd_all<int64_t><<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
     (int64_cars(cell), result, xector_size(cell));
   SYNCS(stream);
   CHECK;
@@ -150,7 +177,7 @@ x_any x_any_(x_any cell) {
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = 0;
-  xd_any_xint64<<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
+  xd_any<int64_t><<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
     (int64_cars(cell), result, xector_size(cell));
   SYNCS(stream);
   CHECK;

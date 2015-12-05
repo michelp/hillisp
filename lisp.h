@@ -93,6 +93,13 @@ typedef struct __align__(16) x_heap {
 #define X_MAX_NAME_LEN 128
 typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
+#define CHECK check_cuda_errors(__FILE__, __LINE__)
+#define BDX blockDim.x
+#define BIX blockIdx.x
+#define TIX threadIdx.x
+#define TID (BDX * BIX  + TIX)
+#define THREADSPERBLOCK 32
+#define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
 
 // REPL functions
 
@@ -197,17 +204,18 @@ extern x_any x_fn2;
 extern x_any x_fn3;
 extern hash_table_type hash_table;
 
-__global__ void xd_add_xint64(int64_t*, int64_t*, int64_t*, size_t);
-__global__ void xd_sub_xint64(int64_t*, int64_t*, int64_t*, size_t);
-__global__ void xd_mul_xint64(int64_t*, int64_t*, int64_t*, size_t);
-__global__ void xd_div_xint64(int64_t*, int64_t*, int64_t*, size_t);
-__global__ void xd_fma_xint64(int64_t*, int64_t*, int64_t*, size_t);
+template<typename T> __global__ void xd_add(T*, T*, T*, size_t);
 
-__global__ void xd_eq_xint64(int64_t*, int64_t*, int64_t*, size_t);
-__global__ void xd_all_xint64(int64_t*, int*, size_t);
-__global__ void xd_any_xint64(int64_t*, int*, size_t);
+template<typename T> __global__ void xd_sub(T*, T*, T*, size_t);
+template<typename T> __global__ void xd_mul(T*, T*, T*, size_t);
+template<typename T> __global__ void xd_div(T*, T*, T*, size_t);
+template<typename T> __global__ void xd_fma(T*, T*, T*, size_t);
 
-__global__ void xd_fill_xint64(int64_t*, int64_t val, size_t);
+template<typename T> __global__ void xd_eq(T*, T*, T*, size_t);
+template<typename T> __global__ void xd_all(T*, int*, size_t);
+template<typename T> __global__ void xd_any(T*, int*, size_t);
+
+template<typename T> __global__ void xd_fill(T*, T val, size_t);
 
 extern cudaStream_t stream;
 extern cudaError_t result;
@@ -224,11 +232,3 @@ inline void check_cuda_errors(const char *filename, const int line_number)
     exit(-1);
   }
 }
-
-#define CHECK check_cuda_errors(__FILE__, __LINE__)
-#define BDX blockDim.x
-#define BIX blockIdx.x
-#define TIX threadIdx.x
-#define TID (BDX * BIX  + TIX)
-#define THREADSPERBLOCK 32
-#define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)

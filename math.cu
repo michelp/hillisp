@@ -1,5 +1,37 @@
 #include "lisp.h"
 
+template<typename T>
+__global__ void 
+xd_add(T* cell1, T* cell2, T* cell3, size_t size) {
+  if (TID < size)
+    cell3[TID] = cell1[TID] + cell2[TID];
+}
+
+template<typename T>
+__global__ void
+ xd_sub(T* cell1, T* cell2, T* cell3, size_t size) {
+  if (TID < size)
+    cell3[TID] = cell1[TID] - cell2[TID];
+}
+
+template<typename T>
+__global__ void xd_mul(T* cell1, T* cell2, T* cell3, size_t size) {
+  if (TID < size)
+    cell3[TID] = cell1[TID] * cell2[TID];
+}
+
+template<typename T>
+__global__ void xd_div(T* cell1, T* cell2, T* cell3, size_t size) {
+  if (TID < size) 
+    cell3[TID] = cell1[TID] / cell2[TID];
+}
+
+template<typename T>
+__global__ void xd_fma(T* cell1, T* cell2, T* cell3, size_t size) {
+  if (TID < size) 
+    cell3[TID] = cell1[TID] * cell2[TID] + cell3[TID];
+}
+
 x_any x_add(x_any cell1, x_any cell2) {
   x_any cell;
   if (is_int(cell1) && is_int(cell2)) {
@@ -11,7 +43,7 @@ x_any x_add(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
-    xd_add_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
+    xd_add<int64_t><<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
       (int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -31,7 +63,7 @@ x_any x_sub(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
-    xd_sub_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
+    xd_sub<int64_t><<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
       (int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -51,7 +83,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
-    xd_mul_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
+    xd_mul<int64_t><<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
       (int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -71,7 +103,7 @@ x_any x_div(x_any cell1, x_any cell2) {
     assert(xector_size(cell1) == xector_size(cell2));
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
-    xd_div_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
+    xd_div<int64_t><<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
       (int64_cars(cell1), int64_cars(cell2), int64_cars(cell), xector_size(cell1));
     CHECK;
     return cell;
@@ -89,7 +121,7 @@ x_any x_fma(x_any cell1, x_any cell2, x_any cell3) {
   }
   else if (is_xector(cell1) && is_xector(cell2) && is_xector(cell3)) {
     SYNCS(stream);
-    xd_fma_xint64<<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
+    xd_fma<int64_t><<<GRIDBLOCKS(xector_size(cell1)), THREADSPERBLOCK, 0, stream>>>
       (int64_cars(cell1), int64_cars(cell2), int64_cars(cell3), xector_size(cell1));
     CHECK;
     return cell3;
