@@ -1,3 +1,4 @@
+#include <curand.h>
 #include "lisp.h"
 
 __global__ void 
@@ -35,6 +36,12 @@ __global__ void
 
 __global__ void
  xd_fill_xint64(int64_t *cars, int64_t val, size_t size) {
+  if (TID < size)
+    cars[TID] = val;
+}
+
+__global__ void
+ xd_rand_xint64(int64_t *cars, int64_t val, size_t size) {
   if (TID < size)
     cars[TID] = val;
 }

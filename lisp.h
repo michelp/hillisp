@@ -98,8 +98,8 @@ typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 __device__ __host__ void* bi_malloc(size_t);
 char* new_name(const char*);
-x_any new_cell(const char*);
-x_any new_xector(const char*);
+x_any new_cell(const char*, x_any);
+x_any new_xector(const char*, size_t size);
 x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, x_any);
@@ -133,6 +133,9 @@ x_any x_apply(x_any, x_any);
 x_any x_quote(x_any);
 x_any x_is(x_any, x_any);
 x_any x_isinstance(x_any, x_any);
+x_any x_assert(x_any);
+x_any x_type(x_any);
+x_any x_fill(x_any, x_any);
 
 // flow
 
@@ -161,6 +164,7 @@ x_any x_not(x_any);
 x_any x_and(x_any, x_any);
 x_any x_or(x_any, x_any);
 x_any x_all(x_any);
+x_any x_any_(x_any);
 
 // xector
 
@@ -226,5 +230,5 @@ inline void check_cuda_errors(const char *filename, const int line_number)
 #define BIX blockIdx.x
 #define TIX threadIdx.x
 #define TID (BDX * BIX  + TIX)
-#define THREADSPERBLOCK 64
+#define THREADSPERBLOCK 32
 #define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
