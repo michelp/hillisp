@@ -1,24 +1,30 @@
 #include "lisp.h"
 
 void print_xector(x_any cell, FILE *outfile) {
-    putc('[', outfile);
-    SYNCS(stream);
-    if (xector_size(cell) < 1024) {
-      for (int i = 0; i < xector_size(cell); i++) {
-        fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
-        if (i != (xector_size(cell) - 1))
-          putc(' ', outfile);
-      }
+  int i;
+  putc('[', outfile);
+  SYNCS(stream);
+  if (xector_size(cell) < 1024) {
+    for (int i = 0; i < xector_size(cell); i++) {
+      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      if (i != (xector_size(cell) - 1))
+        putc(' ', outfile);
     }
-    else {
-      for (int i = 0; i < 30; i++) {
-        fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
-        if (i != (xector_size(cell) - 1))
-          putc(' ', outfile);
-      }
-      fprintf(outfile, "... (%zu more)", xector_size(cell) - 30);
+  }
+  else {
+    for (i = 0; i < 15; i++) {
+      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      if (i != (xector_size(cell) - 1))
+        putc(' ', outfile);
     }
-    putc(']', outfile);
+    fprintf(outfile, " ... ");
+    for (i = xector_size(cell) - 15; i < xector_size(cell); i++) {
+      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      if (i != (xector_size(cell) - 1))
+        putc(' ', outfile);
+    }
+  }
+  putc(']', outfile);
 }
 
 void print_cell(x_any cell, FILE *outfile) {

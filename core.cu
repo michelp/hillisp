@@ -4,8 +4,11 @@
 template<typename T>
 __global__ void
  xd_fill(T *cars, T val, size_t size) {
-  if (TID < size)
-    cars[TID] = val;
+  int i = TID;
+  while (i < size) {
+    cars[i] = val;
+    i += STRIDE;
+  }
 }
 
 template<typename T>
@@ -146,7 +149,7 @@ x_any x_fill(x_any val, x_any size) {
   if (!is_int(size))
     assert(0);
   cell = new_xector(NULL, int64_car(size));
-  xd_fill<int64_t><<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
+  xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
     (int64_cars(cell), int64_car(val), xector_size(cell));
   CHECK;
   return cell;
@@ -160,7 +163,7 @@ x_any x_all(x_any cell) {
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = xector_size(cell);
-  xd_all<int64_t><<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
+  xd_all<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
     (int64_cars(cell), result, xector_size(cell));
   SYNCS(stream);
   CHECK;
@@ -177,7 +180,7 @@ x_any x_any_(x_any cell) {
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = 0;
-  xd_any<int64_t><<<GRIDBLOCKS(xector_size(cell)), THREADSPERBLOCK, 0, stream>>>
+  xd_any<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
     (int64_cars(cell), result, xector_size(cell));
   SYNCS(stream);
   CHECK;

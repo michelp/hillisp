@@ -106,7 +106,9 @@ typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 #define STRIDE (BDX * GDX)
 #define TIDE (TID * STRIDE)
 
-#define THREADSPERBLOCK 32
+#define THREADSPERBLOCK 256
+#define BLOCKS 256
+
 #define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
 
 // REPL functions
