@@ -38,12 +38,7 @@ __global__ void
 
 x_any x_add(x_any cell1, x_any cell2) {
   x_any cell;
-  if (are_ints(cell1, cell2)) {
-    cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) + car<int64_t>(cell2));
-    return cell;
-  }
-  else if (are_xectors(cell1, cell2)) {
+  if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
@@ -52,18 +47,18 @@ x_any x_add(x_any cell1, x_any cell2) {
     CHECK;
     return cell;
   }
+  else if (are_ints(cell1, cell2)) {
+    cell = new_cell(NULL, x_int);
+    set_car(cell, car<int64_t>(cell1) + car<int64_t>(cell2));
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
 
 x_any x_sub(x_any cell1, x_any cell2) {
   x_any cell;
-  if (are_ints(cell1, cell2)) {
-    cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) - car<int64_t>(cell2));
-    return cell;
-  }
-  else if (are_xectors(cell1, cell2)) {
+  if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
@@ -72,18 +67,18 @@ x_any x_sub(x_any cell1, x_any cell2) {
     CHECK;
     return cell;
   }
+  else if (are_ints(cell1, cell2)) {
+    cell = new_cell(NULL, x_int);
+    set_car(cell, car<int64_t>(cell1) - car<int64_t>(cell2));
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
 
 x_any x_mul(x_any cell1, x_any cell2) {
   x_any cell;
-  if (are_ints(cell1, cell2)) {
-    cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) * car<int64_t>(cell2));
-    return cell;
-  }
-  else if (are_xectors(cell1, cell2)) {
+  if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
@@ -92,18 +87,18 @@ x_any x_mul(x_any cell1, x_any cell2) {
     CHECK;
     return cell;
   }
+  else if (are_ints(cell1, cell2)) {
+    cell = new_cell(NULL, x_int);
+    set_car(cell, car<int64_t>(cell1) * car<int64_t>(cell2));
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
 
 x_any x_div(x_any cell1, x_any cell2) {
   x_any cell;
-  if (are_ints(cell1, cell2)) {
-    cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) / car<int64_t>(cell2));
-    return cell;
-  }
-  else if (are_xectors(cell1, cell2)) {
+  if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
     cell = new_xector(NULL, xector_size(cell1));
     SYNCS(stream);
@@ -112,18 +107,18 @@ x_any x_div(x_any cell1, x_any cell2) {
     CHECK;
     return cell;
   }
+  else if (are_ints(cell1, cell2)) {
+    cell = new_cell(NULL, x_int);
+    set_car(cell, car<int64_t>(cell1) / car<int64_t>(cell2));
+    return cell;
+  }
   assert(0);
   return x_nil;
 }
 
 x_any x_fma(x_any cell1, x_any cell2, x_any cell3) {
   x_any cell;
-  if (are_ints(cell1, cell2)) {
-    cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) * car<int64_t>(cell2) + car<int64_t>(cell3));
-    return cell;
-  }
-  else if (are_xectors(cell1, cell2)) {
+  if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
     xectors_align(cell1, cell3);
     SYNCS(stream);
@@ -131,6 +126,11 @@ x_any x_fma(x_any cell1, x_any cell2, x_any cell3) {
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell3), xector_size(cell1));
     CHECK;
     return cell3;
+  }
+  else if (are_ints(cell1, cell2)) {
+    cell = new_cell(NULL, x_int);
+    set_car(cell, car<int64_t>(cell1) * car<int64_t>(cell2) + car<int64_t>(cell3));
+    return cell;
   }
   assert(0);
   return x_nil;
