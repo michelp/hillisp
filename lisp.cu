@@ -37,16 +37,12 @@ x_any x_fn2;
 x_any x_fn3;
 hash_table_type hash_table;
 
-__device__ __host__ void* bi_malloc(size_t size) {
+void* x_malloc(size_t size) {
 void* result;
-#ifdef __CUDA_ARCH__
-  result = malloc(size);
-#else
   cudaMallocManaged(&result, size);
   cudaStreamAttachMemAsync(stream, result);
   SYNCS(stream);
   CHECK;
-#endif
   assert(result != NULL);
   return result;
 }
@@ -76,7 +72,7 @@ x_any new_xector(const char* name, size_t size) {
   x_any_x xector;
   cell = new_cell(name, x_xector);
   xector = (x_any_x)malloc(sizeof(x_xector_t));
-  xector->cars = (void**)bi_malloc(size * sizeof(void*));
+  xector->cars = (void**)x_malloc(size * sizeof(void*));
   xector->size = size;
   set_cdr(cell, xector);
   return cell;

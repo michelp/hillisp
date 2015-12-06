@@ -2,50 +2,39 @@
 
 template<typename T>
 __global__ void 
-xd_add(T* cell1, T* cell2, T* cell3, size_t size) {
-  int i = TID;
-  while (i < size) {
-    cell3[i] = cell1[i] + cell2[i];
-    i += STRIDE;
-  }
+xd_add(T* a, T* b, T* c, size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = a[i] + b[i];
 }
 
 template<typename T>
 __global__ void
- xd_sub(T* cell1, T* cell2, T* cell3, size_t size) {
-  int i = TID;
-  while (i < size) {
-    cell3[i] = cell1[i] - cell2[i];
-    i += STRIDE;
-  }
+ xd_sub(T* a, T* b, T* c, size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = a[i] - b[i];
 }
 
 template<typename T>
-__global__ void xd_mul(T* cell1, T* cell2, T* cell3, size_t size) {
-  int i = TID;
-  while (i < size) {
-    cell3[i] = cell1[i] * cell2[i];
-    i += STRIDE;
-  }
+__global__ void
+ xd_mul(T* a, T* b, T* c, size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = a[i] * b[i];
 }
 
 template<typename T>
-__global__ void xd_div(T* cell1, T* cell2, T* cell3, size_t size) {
-  int i = TID;
-  while (i < size) {
-    cell3[i] = cell1[i] / cell2[i];
-    i += STRIDE;
-  }
+__global__ void
+ xd_div(T* a, T* b, T* c, size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = a[i] / b[i];
 }
 
 template<typename T>
-__global__ void xd_fma(T* cell1, T* cell2, T* cell3, size_t size) {
-  int i = TID;
-  while (i < size) {
-    cell3[i] = cell1[i] * cell2[i] + cell3[i];
-    i += STRIDE;
-  }
+__global__ void
+ xd_fma(T* a, T* b, T* c, size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = a[i] * b[i] + c[i];
 }
+
 
 x_any x_add(x_any cell1, x_any cell2) {
   x_any cell;
@@ -135,9 +124,9 @@ x_any x_fma(x_any cell1, x_any cell2, x_any cell3) {
     return cell;
   }
   else if (are_xectors(cell1, cell2)) {
-    SYNCS(stream);
     xectors_align(cell1, cell2);
     xectors_align(cell1, cell3);
+    SYNCS(stream);
     xd_fma<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell3), xector_size(cell1));
     CHECK;

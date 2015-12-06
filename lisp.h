@@ -14,6 +14,20 @@
 #define X_HASH_MULTIPLIER 131
 #define X_MAX_NAME_LEN 128
 
+#define THREADSPERBLOCK 256
+#define BLOCKS 256
+
+#define CHECK check_cuda_errors(__FILE__, __LINE__)
+#define GDX gridDim.x
+#define BDX blockDim.x
+#define BIX blockIdx.x
+#define TIX threadIdx.x
+#define TID ((BDX * BIX) + TIX)
+#define STRIDE (BDX * GDX)
+#define TIDE (TID * STRIDE)
+
+#define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
+
 typedef struct x_cell x_cell, *x_any;
 typedef x_any (*x_fn0_t)();
 typedef x_any (*x_fn1_t)(x_any);
@@ -85,18 +99,6 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(((x_any_x)cdr<x_any>
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
 
-#define THREADSPERBLOCK 256
-#define BLOCKS 256
-#define CHECK check_cuda_errors(__FILE__, __LINE__)
-#define GDX gridDim.x
-#define BDX blockDim.x
-#define BIX blockIdx.x
-#define TIX threadIdx.x
-#define TID ((BDX * BIX) + TIX)
-#define STRIDE (BDX * GDX)
-#define TIDE (TID * STRIDE)
-
-#define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
 
 // REPL functions
 
@@ -226,3 +228,4 @@ inline void check_cuda_errors(const char *filename, const int line_number)
     exit(-1);
   }
 }
+
