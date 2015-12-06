@@ -10,6 +10,10 @@
 #define X_HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
 #define X_XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
 
+#define X_HASH_TABLE_SIZE 269
+#define X_HASH_MULTIPLIER 131
+#define X_MAX_NAME_LEN 128
+
 typedef struct x_cell x_cell, *x_any;
 typedef x_any (*x_fn0_t)();
 typedef x_any (*x_fn1_t)(x_any);
@@ -37,6 +41,8 @@ typedef struct __align__(16) x_heap {
   size_t used;
   struct x_heap *next;
 } x_heap;
+
+typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
 
 template <typename T> inline T car(x_any x) { return (T)(x->car); }
 template <typename T> inline T cdr(x_any x) { return (T)(x->cdr); }
@@ -75,27 +81,20 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(((x_any_x)cdr<x_any>
 #define is_fn2(x) (type(x) == x_fn2)
 #define is_fn3(x) (type(x) == x_fn3)
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
-#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)) || is_xector(x))
+#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
 
-#define X_HASH_TABLE_SIZE 269
-#define X_HASH_MULTIPLIER 131
-#define X_MAX_NAME_LEN 128
-typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
-
+#define THREADSPERBLOCK 256
+#define BLOCKS 256
 #define CHECK check_cuda_errors(__FILE__, __LINE__)
 #define GDX gridDim.x
 #define BDX blockDim.x
 #define BIX blockIdx.x
 #define TIX threadIdx.x
-
 #define TID ((BDX * BIX) + TIX)
 #define STRIDE (BDX * GDX)
 #define TIDE (TID * STRIDE)
-
-#define THREADSPERBLOCK 256
-#define BLOCKS 256
 
 #define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
 

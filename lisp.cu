@@ -197,7 +197,7 @@ x_any read_sexpr_tail(FILE *infile) {
   x_any token;
   x_any temp;
   token = read_token(infile);
-  if (is_symbol(token) || is_builtin(token))
+  if (is_atom(token))
     return x_cons(token, read_sexpr_tail(infile));
   if (token == x_lparen) {
     temp = read_sexpr_head(infile);
@@ -220,7 +220,7 @@ x_any read_sexpr_head(FILE *infile) {
   x_any token;
   x_any temp;
   token = read_token(infile);
-  if (is_symbol(token) || is_builtin(token))
+  if (is_atom(token))
     return x_cons(token, read_sexpr_tail(infile));
   else if (token == x_lparen) {
     temp = read_sexpr_head(infile);
@@ -269,7 +269,7 @@ x_any read_xector(FILE *infile) {
 x_any read_sexpr(FILE *infile) {
   x_any token;
   token = read_token(infile);
-  if (is_symbol(token) || is_builtin(token))
+  if (is_atom(token))
     return token;
   if (token == x_lbrack)
     return read_xector(infile);
