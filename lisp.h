@@ -38,14 +38,11 @@ typedef struct __align__(16) x_heap {
   struct x_heap *next;
 } x_heap;
 
-#define car(x) ((x_any)(x)->car)
-#define cdr(x) ((x_any)(x)->cdr)
-#define cadr(x) (car(cdr(x)))
-#define caddr(x) (car(cdr(cdr(x))))
-#define cddr(x) (cdr(cdr(x)))
-
-#define int64_car(x) ((int64_t)(x)->car)
-#define int64_cdr(x) ((int64_t)(x)->cdr)
+template <typename T> T __inline__ carr(x_any x) { return (T)(x->car); }
+template <typename T> T __inline__ cdrr(x_any x) { return (T)(x->cdr); }
+template <typename T> T __inline__ cadr(x_any x) { return carr<T>(cdrr<T>(x)); }
+template <typename T> T __inline__ caddr(x_any x) { return carr<T>(cdrr<T>(cdrr<T>(x))); }
+template <typename T> T __inline__ cddr(x_any x) { return cdrr<T>(cdrr<T>(x)); }
 
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
@@ -56,27 +53,26 @@ typedef struct __align__(16) x_heap {
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
 
-#define xector_size(x) (((x_any_x)cdr((x_any)(x)))->size)
+#define xector_size(x) (((x_any_x)cdrr<x_any>(x))->size)
 
-#define cars(x) (((x_any_x)cdr((x_any)(x)))->cars)
-#define cdrs(x) (((x_any_x)cdr((x_any)(x)))->cdrs)
+template <typename T> T* carrs(x_any x) { return (T*)(((x_any_x)cdrr<x_any>(x))->cars); }
 
-#define int64_cars(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cars))
 #define int64_cdrs(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cdrs))
 
-#define xector_car_ith(x, i) ((int64_t)(cars((x))[(i)]))
+#define xector_car_ith(x, i) (carrs<int64_t>((x))[(i)])
 #define xector_cdr_ith(x, i) ((int64_t)(cdrs((x))[(i)]))
 
-#define xector_set_car_ith(x, i, y) (cars((x))[(i)]) = (void*)(y)
+#define xector_set_car_ith(x, i, y) (carrs<void*>((x))[(i)]) = (void*)(y)
 #define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
 #define is_symbol(x) ((type(x) == x_symbol) || is_int(x))
 #define is_token(x) (type(x) == x_builtin)
 #define is_user(x) (type(x) == x_user)
 #define is_pair(x) (type(x) == x_pair)
+#define are_pairs(x, y) (is_pair(x) && is_pair(y))
 #define is_xector(x) (type(x) == x_xector)
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
-#define xectors_align(x, y) assert(xector_size(x) == xector_size(y));
+#define xectors_align(x, y) assert(xector_size(x) == xector_size(y))
 
 #define is_int(x) (type(x) == x_int)
 #define are_ints(x, y) (is_int(x) && is_int(y))
@@ -89,6 +85,7 @@ typedef struct __align__(16) x_heap {
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
 
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)) || is_xector(x))
+#define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
 
 #define X_HASH_TABLE_SIZE 269
@@ -215,16 +212,13 @@ extern x_any x_fn3;
 extern hash_table_type hash_table;
 
 template<typename T> __global__ void xd_add(T*, T*, T*, size_t);
-
 template<typename T> __global__ void xd_sub(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_mul(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_div(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_fma(T*, T*, T*, size_t);
-
 template<typename T> __global__ void xd_eq(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_all(T*, int*, size_t);
 template<typename T> __global__ void xd_any(T*, int*, size_t);
-
 template<typename T> __global__ void xd_fill(T*, T val, size_t);
 
 extern cudaStream_t stream;

@@ -29,7 +29,7 @@ void print_xector(x_any cell, FILE *outfile) {
 
 void print_cell(x_any cell, FILE *outfile) {
   if (is_int(cell))
-    fprintf(outfile, "%" PRIi64, int64_car(cell));
+    fprintf(outfile, "%" PRIi64, carr<int64_t>(cell));
   else if (is_xector(cell)) {
     print_xector(cell, outfile);
   }
@@ -42,17 +42,17 @@ void print_cell(x_any cell, FILE *outfile) {
 }
 
 void print_list(x_any cell, FILE *outfile) {
-  print_cell(car(cell), outfile);
-  if (cdr(cell) == x_nil)
+  print_cell(carr<x_any>(cell), outfile);
+  if (cdrr<x_any>(cell) == x_nil)
     putc(')', outfile);
-  else if (!is_pair(cdr(cell)) ) {
+  else if (!is_pair(cdrr<x_any>(cell)) ) {
     fprintf(outfile, " . ");
-    print_cell(cdr(cell), outfile);
+    print_cell(cdrr<x_any>(cell), outfile);
     putc(')', outfile);
   }
   else {
     putc(' ', outfile);
-    print_list(cdr(cell), outfile);
+    print_list(cdrr<x_any>(cell), outfile);
   }
 }
 
