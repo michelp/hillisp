@@ -38,11 +38,11 @@ typedef struct __align__(16) x_heap {
   struct x_heap *next;
 } x_heap;
 
-template <typename T> T __inline__ carr(x_any x) { return (T)(x->car); }
-template <typename T> T __inline__ cdrr(x_any x) { return (T)(x->cdr); }
-template <typename T> T __inline__ cadr(x_any x) { return carr<T>(cdrr<T>(x)); }
-template <typename T> T __inline__ caddr(x_any x) { return carr<T>(cdrr<T>(cdrr<T>(x))); }
-template <typename T> T __inline__ cddr(x_any x) { return cdrr<T>(cdrr<T>(x)); }
+template <typename T> T __inline__ car(x_any x) { return (T)(x->car); }
+template <typename T> T __inline__ cdr(x_any x) { return (T)(x->cdr); }
+template <typename T> T __inline__ cadr(x_any x) { return car<T>(cdr<T>(x)); }
+template <typename T> T __inline__ caddr(x_any x) { return car<T>(cdr<T>(cdr<T>(x))); }
+template <typename T> T __inline__ cddr(x_any x) { return cdr<T>(cdr<T>(x)); }
 
 #define set_car(x, y) ((x)->car) = (void*)(y)
 #define set_cdr(x, y) ((x)->cdr) = (void*)(y)
@@ -53,16 +53,16 @@ template <typename T> T __inline__ cddr(x_any x) { return cdrr<T>(cdrr<T>(x)); }
 #define name(x) ((x)->name)
 #define size(x) ((x)->size)
 
-#define xector_size(x) (((x_any_x)cdrr<x_any>(x))->size)
+#define xector_size(x) (((x_any_x)cdr<x_any>(x))->size)
 
-template <typename T> T* carrs(x_any x) { return (T*)(((x_any_x)cdrr<x_any>(x))->cars); }
+template <typename T> T* cars(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->cars); }
 
 #define int64_cdrs(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cdrs))
 
-#define xector_car_ith(x, i) (carrs<int64_t>((x))[(i)])
+#define xector_car_ith(x, i) (cars<int64_t>((x))[(i)])
 #define xector_cdr_ith(x, i) ((int64_t)(cdrs((x))[(i)]))
 
-#define xector_set_car_ith(x, i, y) (carrs<void*>((x))[(i)]) = (void*)(y)
+#define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
 #define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
 #define is_symbol(x) ((type(x) == x_symbol) || is_int(x))

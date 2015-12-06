@@ -3,7 +3,7 @@
 x_any x_if(x_any clauses) {
   if (clauses == x_nil)
     return x_nil;
-  if (x_eval(carr<x_any>(clauses)) != x_nil)
+  if (x_eval(car<x_any>(clauses)) != x_nil)
     return x_eval(cadr<x_any>(clauses));
   else if (cddr<x_any>(clauses) != x_nil)
     return x_eval(caddr<x_any>(clauses));

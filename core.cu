@@ -58,13 +58,13 @@ x_any x_assert(x_any cell) {
 x_any x_car(x_any cell) {
   if (!is_pair(cell))
     assert(0);
-  return carr<x_any>(cell);
+  return car<x_any>(cell);
 }
 
 x_any x_cdr(x_any cell) {
   if (!is_pair(cell))
     assert(0);
-  return cdrr<x_any>(cell);
+  return cdr<x_any>(cell);
 }
 
 x_any x_cons(x_any cell1, x_any cell2) {
@@ -85,18 +85,18 @@ x_any x_apply(x_any cell, x_any args) {
     printf("%*s" "%s\n", debugLevel, " ", name(cell));
 #endif
     if (is_fn0(cell))
-      return ((x_fn0_t)cdrr<x_any>(cell))();
+      return ((x_fn0_t)cdr<x_any>(cell))();
     else if (is_fn1(cell))
-      return ((x_fn1_t)cdrr<x_any>(cell))(carr<x_any>(args));
+      return ((x_fn1_t)cdr<x_any>(cell))(car<x_any>(args));
     else if (is_fn2(cell))
-      return ((x_fn2_t)cdrr<x_any>(cell))(carr<x_any>(args), cadr<x_any>(args));
+      return ((x_fn2_t)cdr<x_any>(cell))(car<x_any>(args), cadr<x_any>(args));
     else if (is_fn3(cell))
-      return ((x_fn3_t)cdrr<x_any>(cell))(carr<x_any>(args), cadr<x_any>(args), caddr<x_any>(args));
+      return ((x_fn3_t)cdr<x_any>(cell))(car<x_any>(args), cadr<x_any>(args), caddr<x_any>(args));
     else
       assert(0);
   }
   else if (is_user(cell))
-    return x_apply((x_any)cdrr<x_any>(cell), args);
+    return x_apply((x_any)cdr<x_any>(cell), args);
   else
     assert(0);
   return x_nil;
@@ -110,19 +110,19 @@ x_any x_eval(x_any cell) {
   x_any temp;
   if (is_atom(cell))
     return cell;
-  else if (is_pair(cell) && (is_func(carr<x_any>(cell)))) {
+  else if (is_pair(cell) && (is_func(car<x_any>(cell)))) {
 #ifdef DEBUG
     debugLevel += 2;
 #endif
-    temp = x_apply(carr<x_any>(cell), list_eval(cdrr<x_any>(cell)));
+    temp = x_apply(car<x_any>(cell), list_eval(cdr<x_any>(cell)));
 #ifdef DEBUG
     debugLevel -= 2;
 #endif
     return temp;
   }
   else {
-    temp = x_eval(carr<x_any>(cell));
-    return x_cons(temp, list_eval(cdrr<x_any>(cell)));
+    temp = x_eval(car<x_any>(cell));
+    return x_cons(temp, list_eval(cdr<x_any>(cell)));
   }
 }
 
@@ -148,9 +148,9 @@ x_any x_fill(x_any val, x_any size) {
   x_any cell;
   if (!is_int(size))
     assert(0);
-  cell = new_xector(NULL, carr<int64_t>(size));
+  cell = new_xector(NULL, car<int64_t>(size));
   xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
-    (carrs<int64_t>(cell), carr<int64_t>(val), xector_size(cell));
+    (cars<int64_t>(cell), car<int64_t>(val), xector_size(cell));
   CHECK;
   return cell;
 }
@@ -164,7 +164,7 @@ x_any x_all(x_any cell) {
   assert(result != NULL);
   *result = xector_size(cell);
   xd_all<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
-    (carrs<int64_t>(cell), result, xector_size(cell));
+    (cars<int64_t>(cell), result, xector_size(cell));
   SYNCS(stream);
   CHECK;
   if (*result != xector_size(cell))
@@ -181,7 +181,7 @@ x_any x_any_(x_any cell) {
   assert(result != NULL);
   *result = 0;
   xd_any<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
-    (carrs<int64_t>(cell), result, xector_size(cell));
+    (cars<int64_t>(cell), result, xector_size(cell));
   SYNCS(stream);
   CHECK;
   if (*result > 0)

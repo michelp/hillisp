@@ -92,10 +92,10 @@ int hash(const char *name) {
 x_any lookup(const char *name, x_any cell) {
   if (cell == x_nil)
     return NULL;
-  else if (strcmp(name(carr<x_any>(cell)), name) == 0)
-    return carr<x_any>(cell);
+  else if (strcmp(name(car<x_any>(cell)), name) == 0)
+    return car<x_any>(cell);
   else
-    return lookup(name, cdrr<x_any>(cell));
+    return lookup(name, cdr<x_any>(cell));
 }
 
 x_any create_symbol(const char *new_name) {
@@ -130,7 +130,7 @@ int length(x_any cell) {
   if (cell == x_nil)
     return 0;
   else
-    return 1 + length(cdrr<x_any>(cell));
+    return 1 + length(cdr<x_any>(cell));
 }
 
 x_any list_eval(x_any cell) {
@@ -139,7 +139,7 @@ x_any list_eval(x_any cell) {
   if (is_atom(cell))
     return cell;
   else
-    return x_cons(x_eval(carr<x_any>(cell)), list_eval(cdrr<x_any>(cell)));
+    return x_cons(x_eval(car<x_any>(cell)), list_eval(cdr<x_any>(cell)));
 }
 
 x_any read_token(FILE *infile) {
@@ -255,9 +255,9 @@ x_any read_xector(FILE *infile) {
       assert(0); // must all be same type
 
     if (typ == x_int)
-      xector_set_car_ith(cell, size, carr<int64_t>(val));
+      xector_set_car_ith(cell, size, car<int64_t>(val));
     else if (typ == x_xector)
-      xector_set_car_ith(cell, size, carr<x_any>(val));
+      xector_set_car_ith(cell, size, car<x_any>(val));
     else
       assert(0);
     size++;
