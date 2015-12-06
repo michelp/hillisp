@@ -38,16 +38,15 @@ typedef struct __align__(16) x_heap {
   struct x_heap *next;
 } x_heap;
 
-template <typename T> T __inline__ car(x_any x) { return (T)(x->car); }
-template <typename T> T __inline__ cdr(x_any x) { return (T)(x->cdr); }
-template <typename T> T __inline__ cadr(x_any x) { return car<T>(cdr<T>(x)); }
-template <typename T> T __inline__ caddr(x_any x) { return car<T>(cdr<T>(cdr<T>(x))); }
-template <typename T> T __inline__ cddr(x_any x) { return cdr<T>(cdr<T>(x)); }
-
-#define set_car(x, y) ((x)->car) = (void*)(y)
-#define set_cdr(x, y) ((x)->cdr) = (void*)(y)
-
-#define copy_cell(x, y) do {set_car(y, car(x)); set_cdr(y, cdr(x));} while(0)
+template <typename T> inline T car(x_any x) { return (T)(x->car); }
+template <typename T> inline T cdr(x_any x) { return (T)(x->cdr); }
+template <typename T> inline T cadr(x_any x) { return car<T>(cdr<T>(x)); }
+template <typename T> inline T caddr(x_any x) { return car<T>(cdr<T>(cdr<T>(x))); }
+template <typename T> inline T cddr(x_any x) { return cdr<T>(cdr<T>(x)); }
+template <typename T> inline void set_car(x_any x, T y) { x->car = (void*)y; }
+template <typename T> inline void set_cdr(x_any x, T y) { x->cdr = (void*)y; }
+template <typename T> inline T* cars(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->cars); }
+template <typename T> inline T* cdrs(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->cdrs); }
 
 #define type(x) ((x)->type)
 #define name(x) ((x)->name)
@@ -55,12 +54,8 @@ template <typename T> T __inline__ cddr(x_any x) { return cdr<T>(cdr<T>(x)); }
 
 #define xector_size(x) (((x_any_x)cdr<x_any>(x))->size)
 
-template <typename T> T* cars(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->cars); }
-
-#define int64_cdrs(x) ((int64_t*)(((x_any_x)cdr((x_any)(x)))->cdrs))
-
 #define xector_car_ith(x, i) (cars<int64_t>((x))[(i)])
-#define xector_cdr_ith(x, i) ((int64_t)(cdrs((x))[(i)]))
+#define xector_cdr_ith(x, i) ((int64_t)(cdrs<int64_t>((x))[(i)]))
 
 #define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
 #define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
@@ -73,17 +68,13 @@ template <typename T> T* cars(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->c
 #define is_xector(x) (type(x) == x_xector)
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
 #define xectors_align(x, y) assert(xector_size(x) == xector_size(y))
-
 #define is_int(x) (type(x) == x_int)
 #define are_ints(x, y) (is_int(x) && is_int(y))
-
 #define is_fn0(x) (type(x) == x_fn0)
 #define is_fn1(x) (type(x) == x_fn1)
 #define is_fn2(x) (type(x) == x_fn2)
 #define is_fn3(x) (type(x) == x_fn3)
-
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
-
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_token((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))

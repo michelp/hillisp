@@ -102,7 +102,7 @@ x_any create_symbol(const char *new_name) {
   x_any cell;
   cell = new_cell(new_name, x_symbol);
   if (isdigit(new_name[0]) || (new_name[0] == '-' && isdigit(new_name[1]))) {
-    set_car(cell, atol(new_name));
+    set_car<long>(cell, atoll(new_name));
     type(cell) = x_int;
   }
   return cell;
