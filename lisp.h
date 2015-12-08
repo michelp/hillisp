@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,11 +54,19 @@ typedef struct __align__(16) x_xector_t {
 
 typedef struct __align__(16) x_heap {
   x_cell cells[X_HEAP_BLOCK_SIZE];
-  size_t used;
+  x_any free;
   struct x_heap *next;
 } x_heap;
 
-typedef x_any hash_table_type[X_HASH_TABLE_SIZE];
+#define free_cell(p) ((p)->car = (void*)x_heaps->free, x_heaps->free=(p))
+
+typedef struct __align__(16) x_frame {
+  x_frame *next;
+  x_frame *prev;
+  x_any names[X_HASH_TABLE_SIZE];
+} x_frame;
+
+template<typename T> x_any new_xector(const char*, size_t size);
 
 template <typename T> inline T car(x_any x) { return (T)(x->car); }
 template <typename T> inline T cdr(x_any x) { return (T)(x->cdr); }
@@ -99,13 +109,11 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(((x_any_x)cdr<x_any>
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
 
-
 // REPL functions
 
 __device__ __host__ void* bi_malloc(size_t);
 char* new_name(const char*);
 x_any new_cell(const char*, x_any);
-x_any new_xector(const char*, size_t size);
 x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, x_any);
@@ -201,7 +209,9 @@ extern x_any x_fn0;
 extern x_any x_fn1;
 extern x_any x_fn2;
 extern x_any x_fn3;
-extern hash_table_type hash_table;
+
+extern x_frame* x_frames;
+extern x_heap* x_heaps;
 
 template<typename T> __global__ void xd_add(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_sub(T*, T*, T*, size_t);
@@ -215,6 +225,7 @@ template<typename T> __global__ void xd_fill(T*, T val, size_t);
 
 extern cudaStream_t stream;
 extern cudaError_t result;
+extern int debugLevel;
 
 #define SYNC cudaThreadSynchronize()
 #define SYNCS(s) cudaStreamSynchronize(s)
@@ -228,4 +239,3 @@ inline void check_cuda_errors(const char *filename, const int line_number)
     exit(-1);
   }
 }
-

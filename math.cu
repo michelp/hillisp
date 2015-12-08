@@ -40,7 +40,7 @@ x_any x_add(x_any cell1, x_any cell2) {
   x_any cell;
   if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
-    cell = new_xector(NULL, xector_size(cell1));
+    cell = new_xector<int64_t>(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_add<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
@@ -60,7 +60,7 @@ x_any x_sub(x_any cell1, x_any cell2) {
   x_any cell;
   if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
-    cell = new_xector(NULL, xector_size(cell1));
+    cell = new_xector<int64_t>(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_sub<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
@@ -80,7 +80,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
   x_any cell;
   if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
-    cell = new_xector(NULL, xector_size(cell1));
+    cell = new_xector<int64_t>(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_mul<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
@@ -100,7 +100,7 @@ x_any x_div(x_any cell1, x_any cell2) {
   x_any cell;
   if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
-    cell = new_xector(NULL, xector_size(cell1));
+    cell = new_xector<int64_t>(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_div<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));

@@ -10,10 +10,7 @@ cudaStream_t stream;
 cudaError_t result;
 
 //#define DEBUG 1
-
-#ifdef DEBUG
 int debugLevel = 0;
-#endif
 
 x_any x_symbol;
 x_any x_garbage;
@@ -35,7 +32,9 @@ x_any x_fn0;
 x_any x_fn1;
 x_any x_fn2;
 x_any x_fn3;
-hash_table_type hash_table;
+
+x_frame* x_frames;
+x_heap* x_heaps;
 
 void* x_malloc(size_t size) {
 void* result;
@@ -56,7 +55,11 @@ char* new_name(const char* name) {
 
 x_any new_cell(const char* name, x_any type) {
   x_any cell;
-  cell = (x_any)malloc(sizeof(x_cell));
+
+  if (!(cell = x_heaps->free))
+    assert(0);
+  x_heaps->free = car<x_any>(cell);
+
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
@@ -67,12 +70,13 @@ x_any new_cell(const char* name, x_any type) {
   return cell;
 }
 
+template<typename T>
 x_any new_xector(const char* name, size_t size) {
   x_any cell;
   x_any_x xector;
   cell = new_cell(name, x_xector);
   xector = (x_any_x)malloc(sizeof(x_xector_t));
-  xector->cars = (void**)x_malloc(size * sizeof(void*));
+  xector->cars = (void**)x_malloc(size * sizeof(T));
   xector->size = size;
   set_cdr(cell, xector);
   return cell;
@@ -107,12 +111,12 @@ x_any create_symbol(const char *new_name) {
 void enter(x_any cell) {
   int hash_val;
   hash_val = hash(name(cell));
-  hash_table[hash_val] = x_cons(cell, hash_table[hash_val]);
+  x_frames->names[hash_val] = x_cons(cell, x_frames->names[hash_val]);
 }
 
 x_any intern(const char *name) {
   x_any cell;
-  cell = lookup(name, hash_table[hash(name)]);
+  cell = lookup(name, x_frames->names[hash(name)]);
   if (cell != NULL)
     return cell;
   else {
@@ -240,7 +244,7 @@ x_any read_xector(FILE *infile) {
   x_any cell;
   x_any typ = NULL;
   size_t size = 0;
-  cell = new_xector("xector", X_XECTOR_BLOCK_SIZE);
+  cell = new_xector<int64_t>("xector", X_XECTOR_BLOCK_SIZE);
   do {
     val = x_eval(read_sexpr(infile));
     if (val == x_nil)
@@ -308,6 +312,16 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
 }
 
 void init(void) {
+  x_any cell;
+
+  x_frames = (x_frame*)malloc(sizeof(x_frame));
+  x_heaps = (x_heap*)malloc(sizeof(x_heap));
+
+   cell = x_heaps->cells + X_HEAP_BLOCK_SIZE - 1;
+   do
+      free_cell(cell);
+   while (--cell >= x_heaps->cells);
+
   x_symbol = new_cell("symbol", NULL);
   type(x_symbol) = x_symbol;
   x_pair = new_cell("pair", NULL);
@@ -315,8 +329,11 @@ void init(void) {
   enter(x_pair);
 
   x_nil = create_symbol("nil");
+
+  x_frames->next = NULL;
+  x_frames->prev = NULL;
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    hash_table[i] = x_nil;
+    x_frames->names[i] = x_nil;
   enter(x_nil);
 
   x_garbage = intern("garbage");

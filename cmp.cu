@@ -18,7 +18,7 @@ x_any x_eq(x_any cell1, x_any cell2) {
   }
   else if (are_xectors(cell1, cell2)) {
     xectors_align(cell1, cell2);
-    cell = new_xector(NULL, xector_size(cell1));
+    cell = new_xector<int64_t>(NULL, xector_size(cell1));
     SYNCS(stream);
     xd_eq<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
       (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
