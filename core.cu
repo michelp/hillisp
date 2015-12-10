@@ -148,11 +148,6 @@ x_any x_fill(x_any value, x_any size) {
   x_any cell;
   if (!are_ints(value, size))
     assert(0);
-
-
-
-
-
   cell = new_xector<int64_t>(NULL, ival(size));
   xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
     (cars<int64_t>(cell), ival(value), xector_size(cell));

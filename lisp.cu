@@ -112,6 +112,7 @@ void enter(x_any cell) {
 
 x_any intern(const char *name) {
   x_any cell;
+  // numbers cannot be interned, you always get a new one
   if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
     cell = c_alloc(x_int);
     set_val(cell, atoll(name));

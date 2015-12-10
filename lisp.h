@@ -224,6 +224,8 @@ template<typename T> __global__ void xd_sub(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_mul(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_div(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_fma(T*, T*, T*, size_t);
+template<typename T> __global__ void xd_saxpy(T*, T*, T*, size_t);
+
 template<typename T> __global__ void xd_eq(T*, T*, T*, size_t);
 template<typename T> __global__ void xd_all(T*, int*, size_t);
 template<typename T> __global__ void xd_any(T*, int*, size_t);
