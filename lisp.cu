@@ -53,20 +53,26 @@ char* new_name(const char* name) {
   return n;
 }
 
-x_any new_cell(const char* name, x_any type) {
+x_any c_alloc(x_any type) {
   x_any cell;
 
   if (!(cell = x_heaps->free))
     assert(0);
-  x_heaps->free = car<x_any>(cell);
 
+  x_heaps->free = car(cell);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
+  return cell;
+}
+
+x_any new_cell(const char* name, x_any type) {
+  x_any cell;
+  cell = c_alloc(type);
   if (name == NULL)
-    name(cell) = NULL;
+    set_val(cell, NULL);
   else
-    name(cell) = new_name(name);
+    set_val(cell, new_name(name));
   return cell;
 }
 
@@ -78,7 +84,7 @@ x_any new_xector(const char* name, size_t size) {
   xector = (x_any_x)malloc(sizeof(x_xector_t));
   xector->cars = (void**)x_malloc(size * sizeof(T));
   xector->size = size;
-  set_cdr(cell, xector);
+  set_val(cell, xector);
   return cell;
 }
 
@@ -92,45 +98,39 @@ int hash(const char *name) {
 x_any lookup(const char *name, x_any cell) {
   if (cell == x_nil)
     return NULL;
-  else if (strcmp(name(car<x_any>(cell)), name) == 0)
-    return car<x_any>(cell);
+  else if (strcmp(sval(car(cell)), name) == 0)
+    return car(cell);
   else
-    return lookup(name, cdr<x_any>(cell));
-}
-
-x_any create_symbol(const char *new_name) {
-  x_any cell;
-  cell = new_cell(new_name, x_symbol);
-  if (isdigit(new_name[0]) || (new_name[0] == '-' && isdigit(new_name[1]))) {
-    set_car<long>(cell, atoll(new_name));
-    type(cell) = x_int;
-  }
-  return cell;
+    return lookup(name, cdr(cell));
 }
 
 void enter(x_any cell) {
   int hash_val;
-  hash_val = hash(name(cell));
+  hash_val = hash(sval(cell));
   x_frames->names[hash_val] = x_cons(cell, x_frames->names[hash_val]);
 }
 
 x_any intern(const char *name) {
   x_any cell;
+  if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
+    cell = c_alloc(x_int);
+    set_val(cell, atoll(name));
+    return cell;
+  }
   cell = lookup(name, x_frames->names[hash(name)]);
   if (cell != NULL)
     return cell;
-  else {
-    cell = create_symbol(name);
-    enter(cell);
-    return cell;
-  }
+
+  cell = new_cell(name, x_symbol);
+  enter(cell);
+  return cell;
 }
 
 int length(x_any cell) {
   if (cell == x_nil)
     return 0;
   else
-    return 1 + length(cdr<x_any>(cell));
+    return 1 + length(cdr(cell));
 }
 
 x_any list_eval(x_any cell) {
@@ -139,7 +139,7 @@ x_any list_eval(x_any cell) {
   if (is_atom(cell))
     return cell;
   else
-    return x_cons(x_eval(car<x_any>(cell)), list_eval(cdr<x_any>(cell)));
+    return x_cons(x_eval(car(cell)), list_eval(cdr(cell)));
 }
 
 x_any read_token(FILE *infile) {
@@ -255,9 +255,9 @@ x_any read_xector(FILE *infile) {
       assert(0); // must all be same type
 
     if (typ == x_int)
-      xector_set_car_ith(cell, size, car<int64_t>(val));
+      xector_set_car_ith(cell, size, ival(val));
     else if (typ == x_xector)
-      xector_set_car_ith(cell, size, car<x_any>(val));
+      xector_set_car_ith(cell, size, car(val));
     else
       assert(0);
     size++;
@@ -292,8 +292,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
   type(cell) = x_builtin;
-  set_cdr(cell, fn);
-  set_car(cell, dfn);
+  set_cdr(cell, (x_any)fn);
   switch(num_args) {
   case 0:
     type(cell) = x_fn0;
@@ -328,7 +327,7 @@ void init(void) {
   enter(x_symbol);
   enter(x_pair);
 
-  x_nil = create_symbol("nil");
+  x_nil = new_cell("nil", x_symbol);
 
   x_frames->next = NULL;
   x_frames->prev = NULL;

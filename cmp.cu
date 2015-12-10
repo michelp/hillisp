@@ -13,7 +13,7 @@ __global__ void
 x_any x_eq(x_any cell1, x_any cell2) {
   x_any cell;
   if (are_ints(cell1, cell2)) {
-    if (car<int64_t>(cell1) == car<int64_t>(cell2))
+    if (ival(cell1) == ival(cell2))
       return x_true;
   }
   else if (are_xectors(cell1, cell2)) {
@@ -26,15 +26,15 @@ x_any x_eq(x_any cell1, x_any cell2) {
     return cell;
   }
   else if (are_atoms(cell1, cell2)) {
-    if (strcmp(cell1->name, cell2->name) == 0)
+    if (strcmp(sval(cell1), sval(cell2)) == 0)
       return x_true;
   }
   else if (are_pairs(cell1, cell2)) {
     do {
-      if (x_eq(car<x_any>(cell1), car<x_any>(cell2)) == x_nil)
+      if (x_eq(car(cell1), car(cell2)) == x_nil)
         return x_nil;
-      cell1 = cdr<x_any>(cell1);
-      cell2 = cdr<x_any>(cell2);
+      cell1 = cdr(cell1);
+      cell2 = cdr(cell2);
     } while (are_pairs(cell1, cell2));
     if (x_eq(cell1, cell2) != x_nil)
       return x_true;
@@ -50,22 +50,22 @@ x_any x_neq(x_any cell1, x_any cell2) {
 
 x_any x_gt(x_any cell1, x_any cell2) {
   if (are_ints(cell1, cell2)) {
-    if (car<int64_t>(cell1) > car<int64_t>(cell2))
+    if (ival(cell1) > ival(cell2))
       return x_true;
   }
   else
-    if (strcmp(cell1->name, cell2->name) > 0)
+    if (strcmp(sval(cell1), sval(cell2)) > 0)
       return x_true;
   return x_nil;
 }
 
 x_any x_lt(x_any cell1, x_any cell2) {
   if (are_ints(cell1, cell2)) {
-    if (car<int64_t>(cell1) < car<int64_t>(cell2))
+    if (ival(cell1) < ival(cell2))
       return x_true;
   }
   else
-    if (strcmp(cell1->name, cell2->name) < 0)
+    if (strcmp(sval(cell1), sval(cell2)) < 0)
       return x_true;
   return x_nil;
 }

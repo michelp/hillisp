@@ -58,13 +58,13 @@ x_any x_assert(x_any cell) {
 x_any x_car(x_any cell) {
   if (!is_pair(cell))
     assert(0);
-  return car<x_any>(cell);
+  return car(cell);
 }
 
 x_any x_cdr(x_any cell) {
   if (!is_pair(cell))
     assert(0);
-  return cdr<x_any>(cell);
+  return cdr(cell);
 }
 
 x_any x_cons(x_any cell1, x_any cell2) {
@@ -82,21 +82,21 @@ x_any x_apply(x_any cell, x_any args) {
     return x_cons(x_eval(cell), args);
   if (is_builtin(cell)) {
 #ifdef DEBUG
-    printf("%*s" "%s\n", debugLevel, " ", name(cell));
+    printf("%*s" "%s\n", debugLevel, " ", sval(cell));
 #endif
     if (is_fn0(cell))
-      return ((x_fn0_t)cdr<x_any>(cell))();
+      return ((x_fn0_t)cdr(cell))();
     else if (is_fn1(cell))
-      return ((x_fn1_t)cdr<x_any>(cell))(car<x_any>(args));
+      return ((x_fn1_t)cdr(cell))(car(args));
     else if (is_fn2(cell))
-      return ((x_fn2_t)cdr<x_any>(cell))(car<x_any>(args), cadr<x_any>(args));
+      return ((x_fn2_t)cdr(cell))(car(args), cadr(args));
     else if (is_fn3(cell))
-      return ((x_fn3_t)cdr<x_any>(cell))(car<x_any>(args), cadr<x_any>(args), caddr<x_any>(args));
+      return ((x_fn3_t)cdr(cell))(car(args), cadr(args), caddr(args));
     else
       assert(0);
   }
   else if (is_user(cell))
-    return x_apply((x_any)cdr<x_any>(cell), args);
+    return x_apply((x_any)cdr(cell), args);
   else
     assert(0);
   return x_nil;
@@ -110,19 +110,19 @@ x_any x_eval(x_any cell) {
   x_any temp;
   if (is_atom(cell))
     return cell;
-  else if (is_pair(cell) && (is_func(car<x_any>(cell)))) {
+  else if (is_pair(cell) && (is_func(car(cell)))) {
 #ifdef DEBUG
     debugLevel += 2;
 #endif
-    temp = x_apply(car<x_any>(cell), list_eval(cdr<x_any>(cell)));
+    temp = x_apply(car(cell), list_eval(cdr(cell)));
 #ifdef DEBUG
     debugLevel -= 2;
 #endif
     return temp;
   }
   else {
-    temp = x_eval(car<x_any>(cell));
-    return x_cons(temp, list_eval(cdr<x_any>(cell)));
+    temp = x_eval(car(cell));
+    return x_cons(temp, list_eval(cdr(cell)));
   }
 }
 
@@ -144,13 +144,18 @@ x_any x_or(x_any cell1, x_any cell2) {
   return x_nil;
 }
 
-x_any x_fill(x_any val, x_any size) {
+x_any x_fill(x_any value, x_any size) {
   x_any cell;
-  if (!is_int(size))
+  if (!are_ints(value, size))
     assert(0);
-  cell = new_xector<int64_t>(NULL, car<int64_t>(size));
+
+
+
+
+
+  cell = new_xector<int64_t>(NULL, ival(size));
   xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
-    (cars<int64_t>(cell), car<int64_t>(val), xector_size(cell));
+    (cars<int64_t>(cell), ival(value), xector_size(cell));
   CHECK;
   return cell;
 }
@@ -193,8 +198,8 @@ x_any x_time() {
   x_any cell;
   cell = new_cell(NULL, x_int);
   struct timeval tv;
-  gettimeofday(&tv,NULL);
-  set_car(cell, tv.tv_sec*(uint64_t)1000000+tv.tv_usec);
+  gettimeofday(&tv, NULL);
+  set_val(cell, 1);
   return cell;
 }
 

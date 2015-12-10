@@ -49,7 +49,7 @@ x_any x_add(x_any cell1, x_any cell2) {
   }
   else if (are_ints(cell1, cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) + car<int64_t>(cell2));
+    set_val(cell, ival(cell1) + ival(cell2));
     return cell;
   }
   assert(0);
@@ -69,7 +69,7 @@ x_any x_sub(x_any cell1, x_any cell2) {
   }
   else if (are_ints(cell1, cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) - car<int64_t>(cell2));
+    set_val(cell, ival(cell1) - ival(cell2));
     return cell;
   }
   assert(0);
@@ -89,7 +89,7 @@ x_any x_mul(x_any cell1, x_any cell2) {
   }
   else if (are_ints(cell1, cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) * car<int64_t>(cell2));
+    set_val(cell, ival(cell1) * ival(cell2));
     return cell;
   }
   assert(0);
@@ -109,7 +109,7 @@ x_any x_div(x_any cell1, x_any cell2) {
   }
   else if (are_ints(cell1, cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) / car<int64_t>(cell2));
+    set_val(cell, ival(cell1) / ival(cell2));
     return cell;
   }
   assert(0);
@@ -129,7 +129,7 @@ x_any x_fma(x_any cell1, x_any cell2, x_any cell3) {
   }
   else if (are_ints(cell1, cell2)) {
     cell = new_cell(NULL, x_int);
-    set_car(cell, car<int64_t>(cell1) * car<int64_t>(cell2) + car<int64_t>(cell3));
+    set_val(cell, ival(cell1) * ival(cell2) + ival(cell3));
     return cell;
   }
   assert(0);

@@ -9,8 +9,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#define X_HEAP_BLOCK_SIZE (1024*1024/sizeof(x_cell))
-#define X_XECTOR_BLOCK_SIZE (256*1024/sizeof(void*))
+#define X_HEAP_BLOCK_SIZE (1024*1024)
+#define X_XECTOR_BLOCK_SIZE (1024*1024)
 
 #define X_HASH_TABLE_SIZE 269
 #define X_HASH_MULTIPLIER 131
@@ -37,10 +37,10 @@ typedef x_any (*x_fn2_t)(x_any, x_any);
 typedef x_any (*x_fn3_t)(x_any, x_any, x_any);
 
 struct __align__(16) x_cell {
-  void *car;
-  void *cdr;
-  char *name;
+  x_any car;
+  x_any cdr;
   x_any type;
+  void *value;
 };
 
 typedef struct __align__(16) x_xector_t {
@@ -58,7 +58,7 @@ typedef struct __align__(16) x_heap {
   struct x_heap *next;
 } x_heap;
 
-#define free_cell(p) ((p)->car = (void*)x_heaps->free, x_heaps->free=(p))
+#define free_cell(p) (car(p) = x_heaps->free, x_heaps->free=(p))
 
 typedef struct __align__(16) x_frame {
   x_frame *next;
@@ -68,21 +68,27 @@ typedef struct __align__(16) x_frame {
 
 template<typename T> x_any new_xector(const char*, size_t size);
 
-template <typename T> inline T car(x_any x) { return (T)(x->car); }
-template <typename T> inline T cdr(x_any x) { return (T)(x->cdr); }
-template <typename T> inline T cadr(x_any x) { return car<T>(cdr<T>(x)); }
-template <typename T> inline T caddr(x_any x) { return car<T>(cdr<T>(cdr<T>(x))); }
-template <typename T> inline T cddr(x_any x) { return cdr<T>(cdr<T>(x)); }
-template <typename T> inline void set_car(x_any x, T y) { x->car = (void*)y; }
-template <typename T> inline void set_cdr(x_any x, T y) { x->cdr = (void*)y; }
-template <typename T> inline T* cars(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->cars); }
-template <typename T> inline T* cdrs(x_any x) { return (T*)(((x_any_x)cdr<x_any>(x))->cdrs); }
+#define car(x) ((x)->car)
+#define cdr(x) ((x)->cdr)
+#define cadr(x) (car(cdr(x)))
+#define caddr(x) (car(cdr(cdr(x))))
+#define cddr(x) (cdr(cdr(x)))
 
 #define type(x) ((x)->type)
-#define name(x) ((x)->name)
-#define size(x) ((x)->size)
+#define val(x) ((x)->value)
+#define ival(x) ((int64_t)val(x))
+#define sval(x) ((char*)val(x))
+#define xval(x) ((x_any_x)val(x))
 
-#define xector_size(x) (((x_any_x)cdr<x_any>(x))->size)
+#define set_car(x, y) (car(x) = (y))
+#define set_cdr(x, y) (cdr(x) = (y))
+//#define set_val(x, y) val(x) = ((void*)y)
+#define set_val(x, y) ((x->value) = (void*)(y))
+
+template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)->cars); }
+template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
+
+#define xector_size(x) (xval(x)->size)
 
 #define xector_car_ith(x, i) (cars<int64_t>((x))[(i)])
 #define xector_cdr_ith(x, i) ((int64_t)(cdrs<int64_t>((x))[(i)]))
@@ -91,7 +97,7 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(((x_any_x)cdr<x_any>
 #define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
 #define is_symbol(x) ((type(x) == x_symbol) || is_int(x))
-#define is_token(x) (type(x) == x_builtin)
+#define is_token(x) (type(x) == x_token)
 #define is_user(x) (type(x) == x_user)
 #define is_pair(x) (type(x) == x_pair)
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
