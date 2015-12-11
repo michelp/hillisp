@@ -13,7 +13,6 @@ cudaError_t result;
 int debugLevel = 0;
 
 x_any x_symbol;
-x_any x_garbage;
 x_any x_nil;
 x_any x_true;
 x_any x_dot;
@@ -311,32 +310,41 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   return cell;
 }
 
-void init(void) {
+x_heap* new_heap() {
+  x_heap* h;
   x_any cell;
+  h = (x_heap*)malloc(sizeof(x_heap));
+  cell = h->cells + X_HEAP_BLOCK_SIZE - 1;
+  do
+    free_cell(h, cell);
+  while (--cell >= h->cells);
+  return h;
+}
 
-  x_frames = (x_frame*)malloc(sizeof(x_frame));
-  x_heaps = (x_heap*)malloc(sizeof(x_heap));
+x_frame* new_frame() {
+  x_frame * f;
+  f = (x_frame*)malloc(sizeof(x_frame));
+  f->next = NULL;
+  f->prev = NULL;
+  for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
+    f->names[i] = x_nil;
+  return f;
+}
 
-   cell = x_heaps->cells + X_HEAP_BLOCK_SIZE - 1;
-   do
-      free_cell(cell);
-   while (--cell >= x_heaps->cells);
+void init(void) {
+  x_heaps = new_heap();
 
   x_symbol = new_cell("symbol", NULL);
   type(x_symbol) = x_symbol;
   x_pair = new_cell("pair", NULL);
+  x_nil = new_cell("nil", x_symbol);
+
+  x_frames = new_frame();
+
+  enter(x_nil);
   enter(x_symbol);
   enter(x_pair);
 
-  x_nil = new_cell("nil", x_symbol);
-
-  x_frames->next = NULL;
-  x_frames->prev = NULL;
-  for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    x_frames->names[i] = x_nil;
-  enter(x_nil);
-
-  x_garbage = intern("garbage");
   x_token = intern("token");
   x_builtin = intern("builtin");
   x_user = intern("user");
@@ -385,6 +393,7 @@ void init(void) {
   def_builtin("or", (void*)x_or, 2, NULL);
   def_builtin("fill", (void*)x_fill, 2, NULL);
   def_builtin("time", (void*)x_time, 0, NULL);
+  def_builtin("gc", (void*)x_gc, 0, NULL);
 }
 
 int main(int argc, const char* argv[]) {

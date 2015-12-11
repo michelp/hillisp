@@ -58,7 +58,7 @@ typedef struct __align__(16) x_heap {
   struct x_heap *next;
 } x_heap;
 
-#define free_cell(p) (car(p) = x_heaps->free, x_heaps->free=(p))
+#define free_cell(h, p) (car(p) = h->free, h->free=(p))
 
 typedef struct __align__(16) x_frame {
   x_frame *next;
@@ -68,8 +68,8 @@ typedef struct __align__(16) x_frame {
 
 template<typename T> x_any new_xector(const char*, size_t size);
 
-#define car(x) ((x)->car)
-#define cdr(x) ((x)->cdr)
+#define car(x) (x->car)
+#define cdr(x) (x->cdr)
 #define cadr(x) (car(cdr(x)))
 #define caddr(x) (car(cdr(cdr(x))))
 #define cddr(x) (cdr(cdr(x)))
@@ -114,6 +114,10 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
+
+#define testmark(x) ((uint64_t)(x) & 1)
+#define setmark(x) ((*(uint64_t*)&x) |= 1)
+#define clearmark(x) ((*(uint64_t*)&x) &= ~1)
 
 // REPL functions
 
@@ -193,10 +197,10 @@ x_any x_ones(x_any);
 
 // sys
 
+x_any x_gc();
 x_any x_time();
 
 extern x_any x_symbol;
-extern x_any x_garbage;
 extern x_any x_nil;
 extern x_any x_true;
 extern x_any x_dot;
