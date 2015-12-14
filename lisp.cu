@@ -292,7 +292,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
   type(cell) = x_builtin;
-  set_cdr(cell, (x_any)fn);
+  set_car(cell, (x_any)fn);
   switch(num_args) {
   case 0:
     type(cell) = x_fn0;
@@ -314,6 +314,7 @@ x_heap* new_heap() {
   x_heap* h;
   x_any cell;
   h = (x_heap*)malloc(sizeof(x_heap));
+  h->next = NULL;
   cell = h->cells + X_HEAP_BLOCK_SIZE - 1;
   do
     free_cell(h, cell);
@@ -417,6 +418,7 @@ int main(int argc, const char* argv[]) {
           if (expr == x_eof)
             break;
           value = x_eval(expr);
+          x_gc();
         }
       }
     }
@@ -431,6 +433,7 @@ int main(int argc, const char* argv[]) {
       printf(": ");
       print_cell(value, stdout);
       putchar('\n');
+      x_gc();
     }
   }
   result = cudaStreamDestroy(stream);

@@ -1,5 +1,6 @@
 ; test comment
 
+(gc)
 (println basic)
 (assert (== 3 3))
 (assert (!= 3 4))
@@ -63,3 +64,4 @@
 (assert (not (any [0 0 0])))
 
 (println passed)
+(gc)

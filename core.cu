@@ -85,18 +85,18 @@ x_any x_apply(x_any cell, x_any args) {
     printf("%*s" "%s\n", debugLevel, " ", sval(cell));
 #endif
     if (is_fn0(cell))
-      return ((x_fn0_t)cdr(cell))();
+      return ((x_fn0_t)car(cell))();
     else if (is_fn1(cell))
-      return ((x_fn1_t)cdr(cell))(car(args));
+      return ((x_fn1_t)car(cell))(car(args));
     else if (is_fn2(cell))
-      return ((x_fn2_t)cdr(cell))(car(args), cadr(args));
+      return ((x_fn2_t)car(cell))(car(args), cadr(args));
     else if (is_fn3(cell))
-      return ((x_fn3_t)cdr(cell))(car(args), cadr(args), caddr(args));
+      return ((x_fn3_t)car(cell))(car(args), cadr(args), caddr(args));
     else
       assert(0);
   }
   else if (is_user(cell))
-    return x_apply((x_any)cdr(cell), args);
+    return x_apply((x_any)car(cell), args);
   else
     assert(0);
   return x_nil;

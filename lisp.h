@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#define X_HEAP_BLOCK_SIZE (1024*1024)
+#define X_HEAP_BLOCK_SIZE (1024*128)
 #define X_XECTOR_BLOCK_SIZE (1024*1024)
 
 #define X_HASH_TABLE_SIZE 269
@@ -17,7 +17,7 @@
 #define X_MAX_NAME_LEN 128
 
 #define THREADSPERBLOCK 256
-#define BLOCKS 256
+#define BLOCKS 512
 
 #define CHECK check_cuda_errors(__FILE__, __LINE__)
 #define GDX gridDim.x
@@ -114,10 +114,6 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
-
-#define testmark(x) ((uint64_t)(x) & 1)
-#define setmark(x) ((*(uint64_t*)&x) |= 1)
-#define clearmark(x) ((*(uint64_t*)&x) &= ~1)
 
 // REPL functions
 
