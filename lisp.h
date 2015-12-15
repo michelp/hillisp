@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#define X_HEAP_BLOCK_SIZE (1024*128)
+#define X_HEAP_BLOCK_SIZE (1024*64)
 #define X_XECTOR_BLOCK_SIZE (1024*1024)
 
 #define X_HASH_TABLE_SIZE 269
@@ -17,7 +17,7 @@
 #define X_MAX_NAME_LEN 128
 
 #define THREADSPERBLOCK 256
-#define BLOCKS 512
+#define BLOCKS 256
 
 #define CHECK check_cuda_errors(__FILE__, __LINE__)
 #define GDX gridDim.x

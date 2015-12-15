@@ -35,11 +35,10 @@ x_any x_fn3;
 x_frame* x_frames;
 x_heap* x_heaps;
 
-void* x_malloc(size_t size) {
+void* x_alloc(size_t size) {
 void* result;
   cudaMallocManaged(&result, size);
   cudaStreamAttachMemAsync(stream, result);
-  SYNCS(stream);
   CHECK;
   assert(result != NULL);
   return result;
@@ -81,7 +80,7 @@ x_any new_xector(const char* name, size_t size) {
   x_any_x xector;
   cell = new_cell(name, x_xector);
   xector = (x_any_x)malloc(sizeof(x_xector_t));
-  xector->cars = (void**)x_malloc(size * sizeof(T));
+  xector->cars = (void**)x_alloc(size * sizeof(T));
   xector->size = size;
   set_val(cell, xector);
   return cell;
