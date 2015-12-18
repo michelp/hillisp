@@ -3,7 +3,7 @@
 
 template<typename T>
 __global__ void
- xd_fill(T *cars, T val, size_t size) {
+ xd_fill(T* __restrict__ cars, const T val, const size_t size) {
   int i = TID;
   while (i < size) {
     cars[i] = val;
@@ -13,20 +13,20 @@ __global__ void
 
 template<typename T>
 __global__ void
- xd_all(T* cell1, int *result, size_t size) {
+ xd_all(const T* __restrict__ cell, int* __restrict__ result, const size_t size) {
   if (*result == size)
     if (TID < size)
-      if (!cell1[TID])
+      if (!cell[TID])
         atomicSub(result, 1);
   __syncthreads();
 }
 
 template<typename T>
 __global__ void
- xd_any(T* cell1, int *result, size_t size) {
+ xd_any(const T* __restrict__ cell, int* __restrict__ result, const size_t size) {
   if (*result == 0)
     if (TID < size)
-      if (cell1[TID])
+      if (cell[TID])
         atomicAdd(result, 1);
   __syncthreads();
 }

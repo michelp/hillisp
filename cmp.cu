@@ -2,7 +2,7 @@
 
 template<typename T>
 __global__ void
- xd_eq(T *cell1, T* cell2, T* cell3, size_t size) {
+ xd_eq(const T* __restrict__ cell1, const T* __restrict__ cell2, T* __restrict__ cell3, const size_t size) {
   int i = TID;
   while (i < size) {
     cell3[i] = (T)(cell1[i] == cell2[i]);

@@ -2,35 +2,35 @@
 
 template<typename T>
 __global__ void 
-xd_add(T* a, T* b, T* c, size_t size) {
+xd_add(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     c[i] = a[i] + b[i];
 }
 
 template<typename T>
 __global__ void
-xd_sub(T* a, T* b, T* c, size_t size) {
+xd_sub(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     c[i] = a[i] - b[i];
 }
 
 template<typename T>
 __global__ void
-xd_mul(T* a, T* b, T* c, size_t size) {
+xd_mul(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     c[i] = a[i] * b[i];
 }
 
 template<typename T>
 __global__ void
-xd_div(T* a, T* b, T* c, size_t size) {
+xd_div(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     c[i] = a[i] / b[i];
 }
 
 template<typename T>
 __global__ void
-xd_fma(T* a, T* b, T* c, T* d, size_t size) {
+xd_fma(const T* __restrict__ a, const T* __restrict__ b, const T* __restrict__ c, T* __restrict__ d, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     d[i] = a[i] * b[i] + c[i];
 }

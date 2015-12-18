@@ -219,17 +219,17 @@ extern x_any x_fn3;
 extern x_frame* x_frames;
 extern x_heap* x_heaps;
 
-template<typename T> __global__ void xd_add(T*, T*, T*, size_t);
-template<typename T> __global__ void xd_sub(T*, T*, T*, size_t);
-template<typename T> __global__ void xd_mul(T*, T*, T*, size_t);
-template<typename T> __global__ void xd_div(T*, T*, T*, size_t);
-template<typename T> __global__ void xd_fma(T*, T*, T*, size_t);
-template<typename T> __global__ void xd_saxpy(T*, T*, T*, size_t);
+template<typename T> __global__ void xd_add(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_sub(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_mul(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_div(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_fma(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_saxpy(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
 
-template<typename T> __global__ void xd_eq(T*, T*, T*, size_t);
-template<typename T> __global__ void xd_all(T*, int*, size_t);
-template<typename T> __global__ void xd_any(T*, int*, size_t);
-template<typename T> __global__ void xd_fill(T*, T val, size_t);
+template<typename T> __global__ void xd_eq(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_all(const T* __restrict__, int* __restrict__, const size_t);
+template<typename T> __global__ void xd_any(const T* __restrict__, int* __restrict__, const size_t);
+template<typename T> __global__ void xd_fill(T* __restrict__, const T, const size_t);
 
 extern cudaStream_t stream;
 extern cudaError_t result;
