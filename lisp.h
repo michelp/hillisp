@@ -9,7 +9,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#define X_HEAP_BLOCK_SIZE (1024*64)
+#define X_YOUNG_HEAP_SIZE (1024*64)
+#define X_OLD_HEAP_SIZE (1024*512)
 #define X_XECTOR_BLOCK_SIZE (1024*1024)
 
 #define X_HASH_TABLE_SIZE 269
@@ -53,7 +54,7 @@ typedef struct __align__(16) x_xector_t {
 } x_xector_t, *x_any_x;
 
 typedef struct __align__(16) x_heap {
-  x_cell cells[X_HEAP_BLOCK_SIZE];
+  x_cell cells[X_YOUNG_HEAP_SIZE];
   x_any free;
   struct x_heap *next;
 } x_heap;
@@ -65,6 +66,38 @@ typedef struct __align__(16) x_frame {
   x_frame *prev;
   x_any names[X_HASH_TABLE_SIZE];
 } x_frame;
+
+typedef struct __align__(16) x_environ {
+  x_frame* x_frames;
+  x_heap* x_heaps;
+
+  cudaStream_t stream;
+  cudaError_t result;
+  int debugLevel;
+
+  x_any x_symbol;
+  x_any x_nil;
+  x_any x_true;
+  x_any x_dot;
+  x_any x_lparen;
+  x_any x_rparen;
+  x_any x_lbrack;
+  x_any x_rbrack;
+  x_any x_eof;
+  x_any x_builtin;
+  x_any x_token;
+  x_any x_user;
+  x_any x_pair;
+  x_any x_xector;
+  x_any x_int;
+  x_any x_fn0;
+  x_any x_fn1;
+  x_any x_fn2;
+  x_any x_fn3;
+} x_environ;
+
+
+extern __thread x_environ x_env;
 
 template<typename T> x_any new_xector(const char*, size_t size);
 
@@ -96,20 +129,20 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 #define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
 #define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
-#define is_symbol(x) ((type(x) == x_symbol) || is_int(x))
-#define is_token(x) (type(x) == x_token)
-#define is_user(x) (type(x) == x_user)
-#define is_pair(x) (type(x) == x_pair)
+#define is_symbol(x) ((type(x) == x_env.x_symbol) || is_int(x))
+#define is_token(x) (type(x) == x_env.x_token)
+#define is_user(x) (type(x) == x_env.x_user)
+#define is_pair(x) (type(x) == x_env.x_pair)
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
-#define is_xector(x) (type(x) == x_xector)
+#define is_xector(x) (type(x) == x_env.x_xector)
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
 #define xectors_align(x, y) assert(xector_size(x) == xector_size(y))
-#define is_int(x) (type(x) == x_int)
+#define is_int(x) (type(x) == x_env.x_int)
 #define are_ints(x, y) (is_int(x) && is_int(y))
-#define is_fn0(x) (type(x) == x_fn0)
-#define is_fn1(x) (type(x) == x_fn1)
-#define is_fn2(x) (type(x) == x_fn2)
-#define is_fn3(x) (type(x) == x_fn3)
+#define is_fn0(x) (type(x) == x_env.x_fn0)
+#define is_fn1(x) (type(x) == x_env.x_fn1)
+#define is_fn2(x) (type(x) == x_env.x_fn2)
+#define is_fn3(x) (type(x) == x_env.x_fn3)
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
@@ -155,6 +188,7 @@ x_any x_is(x_any, x_any);
 x_any x_isinstance(x_any, x_any);
 x_any x_assert(x_any);
 x_any x_type(x_any);
+x_any x_set(x_any, x_any);
 x_any x_fill(x_any, x_any);
 
 // flow
@@ -196,28 +230,6 @@ x_any x_ones(x_any);
 x_any x_gc();
 x_any x_time();
 
-extern x_any x_symbol;
-extern x_any x_nil;
-extern x_any x_true;
-extern x_any x_dot;
-extern x_any x_lparen;
-extern x_any x_rparen;
-extern x_any x_lbrack;
-extern x_any x_rbrack;
-extern x_any x_eof;
-extern x_any x_builtin;
-extern x_any x_token;
-extern x_any x_user;
-extern x_any x_pair;
-extern x_any x_xector;
-extern x_any x_int;
-extern x_any x_fn0;
-extern x_any x_fn1;
-extern x_any x_fn2;
-extern x_any x_fn3;
-
-extern x_frame* x_frames;
-extern x_heap* x_heaps;
 
 template<typename T> __global__ void xd_add(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
 template<typename T> __global__ void xd_sub(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
@@ -230,10 +242,6 @@ template<typename T> __global__ void xd_eq(const T* __restrict__, const T* __res
 template<typename T> __global__ void xd_all(const T* __restrict__, int* __restrict__, const size_t);
 template<typename T> __global__ void xd_any(const T* __restrict__, int* __restrict__, const size_t);
 template<typename T> __global__ void xd_fill(T* __restrict__, const T, const size_t);
-
-extern cudaStream_t stream;
-extern cudaError_t result;
-extern int debugLevel;
 
 #define SYNC cudaThreadSynchronize()
 #define SYNCS(s) cudaStreamSynchronize(s)

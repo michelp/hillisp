@@ -6,39 +6,12 @@
 #include <inttypes.h>
 #include "lisp.h"
 
-cudaStream_t stream;
-cudaError_t result;
-
-//#define DEBUG 1
-int debugLevel = 0;
-
-x_any x_symbol;
-x_any x_nil;
-x_any x_true;
-x_any x_dot;
-x_any x_lparen;
-x_any x_rparen;
-x_any x_lbrack;
-x_any x_rbrack;
-x_any x_eof;
-x_any x_builtin;
-x_any x_token;
-x_any x_user;
-x_any x_pair;
-x_any x_xector;
-x_any x_int;
-x_any x_fn0;
-x_any x_fn1;
-x_any x_fn2;
-x_any x_fn3;
-
-x_frame* x_frames;
-x_heap* x_heaps;
+__thread x_environ x_env;
 
 void* x_alloc(size_t size) {
 void* result;
   cudaMallocManaged(&result, size);
-  cudaStreamAttachMemAsync(stream, result);
+  cudaStreamAttachMemAsync(x_env.stream, result);
   CHECK;
   assert(result != NULL);
   return result;
@@ -53,11 +26,9 @@ char* new_name(const char* name) {
 
 x_any c_alloc(x_any type) {
   x_any cell;
-
-  if (!(cell = x_heaps->free))
+  if (!(cell = x_env.x_heaps->free))
     assert(0);
-
-  x_heaps->free = car(cell);
+  x_env.x_heaps->free = car(cell);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
@@ -78,7 +49,7 @@ template<typename T>
 x_any new_xector(const char* name, size_t size) {
   x_any cell;
   x_any_x xector;
-  cell = new_cell(name, x_xector);
+  cell = new_cell(name, x_env.x_xector);
   xector = (x_any_x)malloc(sizeof(x_xector_t));
   xector->cars = (void**)x_alloc(size * sizeof(T));
   xector->size = size;
@@ -94,7 +65,7 @@ int hash(const char *name) {
 }
 
 x_any lookup(const char *name, x_any cell) {
-  if (cell == x_nil)
+  if (cell == x_env.x_nil)
     return NULL;
   else if (strcmp(sval(car(cell)), name) == 0)
     return car(cell);
@@ -105,36 +76,36 @@ x_any lookup(const char *name, x_any cell) {
 void enter(x_any cell) {
   int hash_val;
   hash_val = hash(sval(cell));
-  x_frames->names[hash_val] = x_cons(cell, x_frames->names[hash_val]);
+  x_env.x_frames->names[hash_val] = x_cons(cell, x_env.x_frames->names[hash_val]);
 }
 
 x_any intern(const char *name) {
   x_any cell;
   // numbers cannot be interned, you always get a new one
   if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
-    cell = c_alloc(x_int);
+    cell = c_alloc(x_env.x_int);
     set_val(cell, atoll(name));
     return cell;
   }
-  cell = lookup(name, x_frames->names[hash(name)]);
+  cell = lookup(name, x_env.x_frames->names[hash(name)]);
   if (cell != NULL)
     return cell;
 
-  cell = new_cell(name, x_symbol);
+  cell = new_cell(name, x_env.x_symbol);
   enter(cell);
   return cell;
 }
 
 int length(x_any cell) {
-  if (cell == x_nil)
+  if (cell == x_env.x_nil)
     return 0;
   else
     return 1 + length(cdr(cell));
 }
 
 x_any list_eval(x_any cell) {
-  if (cell == x_nil)
-    return x_nil;
+  if (cell == x_env.x_nil)
+    return x_env.x_nil;
   if (is_atom(cell))
     return cell;
   else
@@ -153,17 +124,17 @@ x_any read_token(FILE *infile) {
   } while (isspace(c));
   switch (c) {
   case EOF:
-    return x_eof;
+    return x_env.x_eof;
   case '(':
-    return x_lparen;
+    return x_env.x_lparen;
   case ')':
-    return x_rparen;
+    return x_env.x_rparen;
   case '[':
-    return x_lbrack;
+    return x_env.x_lbrack;
   case ']':
-    return x_rbrack;
+    return x_env.x_rbrack;
   case '.':
-    return x_dot;
+    return x_env.x_dot;
   default:
     *ptr++ = c;
     while ((c = getc(infile)) != EOF &&
@@ -175,7 +146,7 @@ x_any read_token(FILE *infile) {
       ungetc(c, infile);
     *ptr = '\0';
     if (strcmp(buf, "symbol") == 0)
-      return x_symbol;
+      return x_env.x_symbol;
     return intern(buf);
   }
 }
@@ -185,11 +156,11 @@ x_any read_cdr(FILE *infile) {
   x_any token;
   cdr = read_sexpr(infile);
   token = read_token(infile);
-  if (token == x_rparen)
+  if (token == x_env.x_rparen)
     return cdr;
   else
     assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any read_sexpr_tail(FILE *infile) {
@@ -198,21 +169,21 @@ x_any read_sexpr_tail(FILE *infile) {
   token = read_token(infile);
   if (is_atom(token))
     return x_cons(token, read_sexpr_tail(infile));
-  if (token == x_lparen) {
+  if (token == x_env.x_lparen) {
     temp = read_sexpr_head(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  if (token == x_lbrack) {
+  if (token == x_env.x_lbrack) {
     temp = read_xector(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  if (token == x_dot)
+  if (token == x_env.x_dot)
     return read_cdr(infile);
-  if (token == x_rparen)
-    return x_nil;
-  if (token == x_eof)
+  if (token == x_env.x_rparen)
+    return x_env.x_nil;
+  if (token == x_env.x_eof)
     assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any read_sexpr_head(FILE *infile) {
@@ -221,21 +192,21 @@ x_any read_sexpr_head(FILE *infile) {
   token = read_token(infile);
   if (is_atom(token))
     return x_cons(token, read_sexpr_tail(infile));
-  else if (token == x_lparen) {
+  else if (token == x_env.x_lparen) {
     temp = read_sexpr_head(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  else if (token == x_lbrack) {
+  else if (token == x_env.x_lbrack) {
     temp = read_xector(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  else if (token == x_rparen)
-    return x_nil;
-  else if (token == x_dot)
+  else if (token == x_env.x_rparen)
+    return x_env.x_nil;
+  else if (token == x_env.x_dot)
     assert(0);
-  else if (token == x_eof)
+  else if (token == x_env.x_eof)
     assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any read_xector(FILE *infile) {
@@ -246,16 +217,16 @@ x_any read_xector(FILE *infile) {
   cell = new_xector<int64_t>("xector", X_XECTOR_BLOCK_SIZE);
   do {
     val = x_eval(read_sexpr(infile));
-    if (val == x_nil)
+    if (val == x_env.x_nil)
       break;
     if (typ == NULL)
       typ = type(val);
     else if (type(val) != typ)
       assert(0); // must all be same type
 
-    if (typ == x_int)
+    if (typ == x_env.x_int)
       xector_set_car_ith(cell, size, ival(val));
-    else if (typ == x_xector)
+    else if (typ == x_env.x_xector)
       xector_set_car_ith(cell, size, car(val));
     else
       assert(0);
@@ -270,51 +241,51 @@ x_any read_sexpr(FILE *infile) {
   token = read_token(infile);
   if (is_atom(token))
     return token;
-  if (token == x_lbrack)
+  if (token == x_env.x_lbrack)
     return read_xector(infile);
-  if (token == x_lparen)
+  if (token == x_env.x_lparen)
     return read_sexpr_head(infile);
-  if (token == x_rparen)
+  if (token == x_env.x_rparen)
     assert(0);
-  if (token == x_dot)
+  if (token == x_env.x_dot)
     assert(0);
-  if (token == x_eof)
+  if (token == x_env.x_eof)
     return token;
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any def_token(const char* new_name) {
-  return new_cell(new_name, x_token);
+  return new_cell(new_name, x_env.x_token);
 }
 
 x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
-  type(cell) = x_builtin;
+  type(cell) = x_env.x_builtin;
   set_car(cell, (x_any)fn);
   switch(num_args) {
   case 0:
-    type(cell) = x_fn0;
+    type(cell) = x_env.x_fn0;
     break;
   case 1:
-    type(cell) = x_fn1;
+    type(cell) = x_env.x_fn1;
     break;
   case 2:
-    type(cell) = x_fn2;
+    type(cell) = x_env.x_fn2;
     break;
   case 3:
-    type(cell) = x_fn3;
+    type(cell) = x_env.x_fn3;
     break;
   }
   return cell;
 }
 
-x_heap* new_heap() {
+x_heap* new_heap(x_heap* old) {
   x_heap* h;
   x_any cell;
   h = (x_heap*)malloc(sizeof(x_heap));
-  h->next = NULL;
-  cell = h->cells + X_HEAP_BLOCK_SIZE - 1;
+  h->next = old;
+  cell = h->cells + X_YOUNG_HEAP_SIZE - 1;
   do
     free_cell(h, cell);
   while (--cell >= h->cells);
@@ -327,41 +298,41 @@ x_frame* new_frame() {
   f->next = NULL;
   f->prev = NULL;
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    f->names[i] = x_nil;
+    f->names[i] = x_env.x_nil;
   return f;
 }
 
 void init(void) {
-  x_heaps = new_heap();
+  x_env.x_heaps = new_heap(NULL);
 
-  x_symbol = new_cell("symbol", NULL);
-  type(x_symbol) = x_symbol;
-  x_pair = new_cell("pair", NULL);
-  x_nil = new_cell("nil", x_symbol);
+  x_env.x_symbol = new_cell("symbol", NULL);
+  type(x_env.x_symbol) = x_env.x_symbol;
+  x_env.x_pair = new_cell("pair", NULL);
+  x_env.x_nil = new_cell("nil", x_env.x_symbol);
 
-  x_frames = new_frame();
+  x_env.x_frames = new_frame();
 
-  enter(x_nil);
-  enter(x_symbol);
-  enter(x_pair);
+  enter(x_env.x_nil);
+  enter(x_env.x_symbol);
+  enter(x_env.x_pair);
 
-  x_token = intern("token");
-  x_builtin = intern("builtin");
-  x_user = intern("user");
-  x_true = intern("true");
-  x_xector = intern("xector");
-  x_int = intern("int");
-  x_fn0 = intern("fn0");
-  x_fn1 = intern("fn1");
-  x_fn2 = intern("fn2");
-  x_fn3 = intern("fn3");
+  x_env.x_token = intern("token");
+  x_env.x_builtin = intern("builtin");
+  x_env.x_user = intern("user");
+  x_env.x_true = intern("true");
+  x_env.x_xector = intern("xector");
+  x_env.x_int = intern("int");
+  x_env.x_fn0 = intern("fn0");
+  x_env.x_fn1 = intern("fn1");
+  x_env.x_fn2 = intern("fn2");
+  x_env.x_fn3 = intern("fn3");
 
-  x_dot = def_token(".");
-  x_lparen = def_token("(");
-  x_rparen = def_token(")");
-  x_lbrack = def_token("[");
-  x_rbrack = def_token("]");
-  x_eof = def_token("EOF");
+  x_env.x_dot = def_token(".");
+  x_env.x_lparen = def_token("(");
+  x_env.x_rparen = def_token(")");
+  x_env.x_lbrack = def_token("[");
+  x_env.x_rbrack = def_token("]");
+  x_env.x_eof = def_token("EOF");
 
   def_builtin("is", (void*)x_is, 2, NULL);
   def_builtin("isinstance", (void*)x_isinstance, 2, NULL);
@@ -394,13 +365,14 @@ void init(void) {
   def_builtin("fill", (void*)x_fill, 2, NULL);
   def_builtin("time", (void*)x_time, 0, NULL);
   def_builtin("gc", (void*)x_gc, 0, NULL);
+  def_builtin("set", (void*)x_set, 2, NULL);
 }
 
 int main(int argc, const char* argv[]) {
   x_any expr;
   x_any value;
   FILE *fp;
-  result = cudaStreamCreate(&stream);
+  x_env.result = cudaStreamCreate(&x_env.stream);
 
   init();
   if (argc > 1) {
@@ -414,7 +386,7 @@ int main(int argc, const char* argv[]) {
           assert(0);
         for (;;) {
           expr = read_sexpr(fp);
-          if (expr == x_eof)
+          if (expr == x_env.x_eof)
             break;
           value = x_eval(expr);
           x_gc();
@@ -426,7 +398,7 @@ int main(int argc, const char* argv[]) {
     for (;;) {
       printf("? ");
       expr = read_sexpr(stdin);
-      if (expr == x_eof)
+      if (expr == x_env.x_eof)
         break;
       value = x_eval(expr);
       printf(": ");
@@ -435,6 +407,6 @@ int main(int argc, const char* argv[]) {
       x_gc();
     }
   }
-  result = cudaStreamDestroy(stream);
+  x_env.result = cudaStreamDestroy(x_env.stream);
   cudaDeviceReset();
 }

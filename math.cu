@@ -40,19 +40,19 @@ x_any x_add(x_any a, x_any b) {
   if (are_xectors(a, b)) {
     xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
-    SYNCS(stream);
-    xd_add<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+    SYNCS(x_env.stream);
+    xd_add<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_int);
+    c = new_cell(NULL, x_env.x_int);
     set_val(c, ival(a) + ival(b));
     return c;
   }
   assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any x_sub(x_any a, x_any b) {
@@ -60,19 +60,19 @@ x_any x_sub(x_any a, x_any b) {
   if (are_xectors(a, b)) {
     xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
-    SYNCS(stream);
-    xd_sub<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+    SYNCS(x_env.stream);
+    xd_sub<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_int);
+    c = new_cell(NULL, x_env.x_int);
     set_val(c, ival(a) - ival(b));
     return c;
   }
   assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any x_mul(x_any a, x_any b) {
@@ -80,19 +80,19 @@ x_any x_mul(x_any a, x_any b) {
   if (are_xectors(a, b)) {
     xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
-    SYNCS(stream);
-    xd_mul<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+    SYNCS(x_env.stream);
+    xd_mul<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_int);
+    c = new_cell(NULL, x_env.x_int);
     set_val(c, ival(a) * ival(b));
     return c;
   }
   assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any x_div(x_any a, x_any b) {
@@ -100,19 +100,19 @@ x_any x_div(x_any a, x_any b) {
   if (are_xectors(a, b)) {
     xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
-    SYNCS(stream);
-    xd_div<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+    SYNCS(x_env.stream);
+    xd_div<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_int);
+    c = new_cell(NULL, x_env.x_int);
     set_val(c, ival(a) / ival(b));
     return c;
   }
   assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any x_fma(x_any a, x_any b, x_any c) {
@@ -121,17 +121,17 @@ x_any x_fma(x_any a, x_any b, x_any c) {
     xectors_align(a, b);
     xectors_align(a, c);
     d = new_xector<int64_t>(NULL, xector_size(a));
-    SYNCS(stream);
-    xd_fma<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+    SYNCS(x_env.stream);
+    xd_fma<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), cars<int64_t>(d), xector_size(a));
     CHECK;
     return d;
   }
   else if (are_ints(a, b)) {
-    d = new_cell(NULL, x_int);
+    d = new_cell(NULL, x_env.x_int);
     set_val(d, ival(a) * ival(b) + ival(c));
     return d;
   }
   assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }

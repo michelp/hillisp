@@ -16,28 +16,28 @@ x_any x_gc() {
   x_any cell;
   int64_t freed = 0;
 
-   heap = x_heaps;
+   heap = x_env.x_heaps;
    do {
-      cell = heap->cells + X_HEAP_BLOCK_SIZE-1;
+      cell = heap->cells + X_YOUNG_HEAP_SIZE-1;
       do
          *(int64_t*)&cdr(cell) |= 1;
       while (--cell >= heap->cells);
    } while (heap = heap->next);
 
-  mark(x_dot);
-  mark(x_lparen);
-  mark(x_rparen);
-  mark(x_lbrack);
-  mark(x_rbrack);
-  mark(x_eof);
+  mark(x_env.x_dot);
+  mark(x_env.x_lparen);
+  mark(x_env.x_rparen);
+  mark(x_env.x_lbrack);
+  mark(x_env.x_rbrack);
+  mark(x_env.x_eof);
 
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    mark(x_frames->names[i]);
+    mark(x_env.x_frames->names[i]);
 
-   heap = x_heaps;
-   SYNCS(stream);
+   heap = x_env.x_heaps;
+   SYNCS(x_env.stream);
    do {
-     cell = heap->cells + X_HEAP_BLOCK_SIZE-1;
+     cell = heap->cells + X_YOUNG_HEAP_SIZE-1;
      do
        if ((int64_t)(cell->cdr) & 1) {
          if (is_xector(cell)) {
@@ -56,7 +56,7 @@ x_any x_gc() {
        }
      while (--cell >= heap->cells);
    } while (heap = heap->next);
-   cell = new_cell(NULL, x_int);
+   cell = new_cell(NULL, x_env.x_int);
    set_val(cell, freed);
    return cell;
 }

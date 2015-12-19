@@ -33,17 +33,17 @@ __global__ void
 
 x_any x_is(x_any cell1, x_any cell2) {
   if (cell1 == cell2)
-    return x_true;
-  return x_nil;
+    return x_env.x_true;
+  return x_env.x_nil;
 }
 
 x_any x_isinstance(x_any cell1, x_any cell2) {
   do {
     cell1 = type(cell1);
     if (cell1 == cell2)
-      return x_true;
-  } while(cell1 != x_symbol);
-  return x_nil;
+      return x_env.x_true;
+  } while(cell1 != x_env.x_symbol);
+  return x_env.x_nil;
 }
 
 x_any x_type(x_any cell) {
@@ -51,7 +51,7 @@ x_any x_type(x_any cell) {
 }
 
 x_any x_assert(x_any cell) {
-  assert(cell != x_nil);
+  assert(cell != x_env.x_nil);
   return cell;
 }
 
@@ -69,7 +69,7 @@ x_any x_cdr(x_any cell) {
 
 x_any x_cons(x_any cell1, x_any cell2) {
   x_any cell;
-  cell = new_cell(NULL, x_pair);
+  cell = new_cell(NULL, x_env.x_pair);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   return cell;
@@ -99,7 +99,7 @@ x_any x_apply(x_any cell, x_any args) {
     return x_apply((x_any)car(cell), args);
   else
     assert(0);
-  return x_nil;
+  return x_env.x_nil;
 }
 
 x_any x_quote(x_any cell) {
@@ -127,21 +127,21 @@ x_any x_eval(x_any cell) {
 }
 
 x_any x_not(x_any cell1) {
-  if (cell1 == x_true)
-    return x_nil;
-  return x_true;
+  if (cell1 == x_env.x_true)
+    return x_env.x_nil;
+  return x_env.x_true;
 }
 
 x_any x_and(x_any cell1, x_any cell2) {
-  if (cell1 == x_true && cell2 == x_true)
-    return x_true;
-  return x_nil;
+  if (cell1 == x_env.x_true && cell2 == x_env.x_true)
+    return x_env.x_true;
+  return x_env.x_nil;
 }
 
 x_any x_or(x_any cell1, x_any cell2) {
-  if (cell1 == x_true || cell2 == x_true)
-    return x_true;
-  return x_nil;
+  if (cell1 == x_env.x_true || cell2 == x_env.x_true)
+    return x_env.x_true;
+  return x_env.x_nil;
 }
 
 x_any x_fill(x_any value, x_any size) {
@@ -149,7 +149,7 @@ x_any x_fill(x_any value, x_any size) {
   if (!are_ints(value, size))
     assert(0);
   cell = new_xector<int64_t>(NULL, ival(size));
-  xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+  xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
     (cars<int64_t>(cell), ival(value), xector_size(cell));
   CHECK;
   return cell;
@@ -159,42 +159,47 @@ x_any x_all(x_any cell) {
   int* result;
   if (!is_xector(cell))
     assert(0);
-  SYNCS(stream);
+  SYNCS(x_env.stream);
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = xector_size(cell);
-  xd_all<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+  xd_all<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
     (cars<int64_t>(cell), result, xector_size(cell));
-  SYNCS(stream);
+  SYNCS(x_env.stream);
   CHECK;
   if (*result != xector_size(cell))
-    return x_nil;
-  return x_true;
+    return x_env.x_nil;
+  return x_env.x_true;
 }
 
 x_any x_any_(x_any cell) {
   int* result;
   if (!is_xector(cell))
     assert(0);
-  SYNCS(stream);
+  SYNCS(x_env.stream);
   cudaMallocManaged(&result, sizeof(int));
   assert(result != NULL);
   *result = 0;
-  xd_any<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, stream>>>
+  xd_any<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
     (cars<int64_t>(cell), result, xector_size(cell));
-  SYNCS(stream);
+  SYNCS(x_env.stream);
   CHECK;
   if (*result > 0)
-    return x_true;
-  return x_nil;
+    return x_env.x_true;
+  return x_env.x_nil;
 }
 
 x_any x_time() {
   x_any cell;
-  cell = new_cell(NULL, x_int);
+  cell = new_cell(NULL, x_env.x_int);
   struct timeval tv;
   gettimeofday(&tv, NULL);
   set_val(cell, 1);
   return cell;
 }
 
+x_any x_set(x_any cell, x_any value) {
+  val(cell) = val(value);
+  type(cell) = type(value);
+  return cell;
+}

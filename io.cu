@@ -3,7 +3,7 @@
 void print_xector(x_any cell, FILE *outfile) {
   int i;
   putc('[', outfile);
-  SYNCS(stream);
+  SYNCS(x_env.stream);
   if (xector_size(cell) < 1024) {
     for (int i = 0; i < xector_size(cell); i++) {
       fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
@@ -43,7 +43,7 @@ void print_cell(x_any cell, FILE *outfile) {
 
 void print_list(x_any cell, FILE *outfile) {
   print_cell(car(cell), outfile);
-  if (cdr(cell) == x_nil)
+  if (cdr(cell) == x_env.x_nil)
     putc(')', outfile);
   else if (!is_pair(cdr(cell)) ) {
     fprintf(outfile, " . ");
