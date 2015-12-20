@@ -73,6 +73,7 @@ typedef struct __align__(16) x_environ {
   int debugLevel;
 
   x_any x_symbol;
+  x_any x_binding;
   x_any x_nil;
   x_any x_true;
   x_any x_dot;
@@ -156,12 +157,13 @@ char* new_name(const char*);
 x_any new_cell(const char*, x_any);
 x_any def_token(const char*);
 int hash(const char*);
-x_any lookup(const char*, x_any);
+x_any _lookup(const char*, x_any);
+x_any lookup(const char*);
 x_any create_symbol(const char*);
 void print_list(x_any, FILE*);
 void print_cell(x_any, FILE*);
 void print_list(x_any, FILE*);
-void enter(x_any);
+void bind(const char*, x_any, x_frame*);
 x_any intern(const char*);
 int length(x_any);
 x_any list_eval(x_any);

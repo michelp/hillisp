@@ -8,6 +8,17 @@
 
 __thread x_environ x_env;
 
+x_any c_alloc(x_any type) {
+  x_any cell;
+  if (!(cell = x_env.x_heaps->free))
+    assert(0);
+  x_env.x_heaps->free = car(cell);
+  set_cdr(cell, NULL);
+  set_car(cell, NULL);
+  type(cell) = type;
+  return cell;
+}
+
 void* x_alloc(size_t size) {
 void* result;
   cudaMallocManaged(&result, size);
@@ -24,17 +35,6 @@ char* new_name(const char* name) {
   return n;
 }
 
-x_any c_alloc(x_any type) {
-  x_any cell;
-  if (!(cell = x_env.x_heaps->free))
-    assert(0);
-  x_env.x_heaps->free = car(cell);
-  set_cdr(cell, NULL);
-  set_car(cell, NULL);
-  type(cell) = type;
-  return cell;
-}
-
 x_any new_cell(const char* name, x_any type) {
   x_any cell;
   cell = c_alloc(type);
@@ -43,6 +43,28 @@ x_any new_cell(const char* name, x_any type) {
   else
     set_val(cell, new_name(name));
   return cell;
+}
+
+x_heap* new_heap(x_heap* old) {
+  x_heap* h;
+  x_any cell;
+  h = (x_heap*)malloc(sizeof(x_heap));
+  h->next = old;
+  cell = h->cells + X_YOUNG_HEAP_SIZE - 1;
+  do
+    free_cell(h, cell);
+  while (--cell >= h->cells);
+  return h;
+}
+
+x_frame* new_frame() {
+  x_frame * f;
+  f = (x_frame*)malloc(sizeof(x_frame));
+  f->next = NULL;
+  f->prev = NULL;
+  for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
+    f->names[i] = x_env.x_nil;
+  return f;
 }
 
 template<typename T>
@@ -54,39 +76,6 @@ x_any new_xector(const char* name, size_t size) {
   xector->cars = (void**)x_alloc(size * sizeof(T));
   xector->size = size;
   set_val(cell, xector);
-  return cell;
-}
-
-int hash(const char *name) {
-  int value = 0;
-  while (*name != '\0')
-    value = (value * X_HASH_MULTIPLIER + *name++) % X_HASH_TABLE_SIZE;
-  return value;
-}
-
-x_any lookup(const char *name, x_any cell) {
-  if (cell == x_env.x_nil)
-    return NULL;
-  else if (strcmp(sval(car(cell)), name) == 0)
-    return car(cell);
-  else
-    return lookup(name, cdr(cell));
-}
-
-void enter(x_any cell) {
-  int hash_val;
-  hash_val = hash(sval(cell));
-  x_env.x_frames->names[hash_val] = x_cons(cell, x_env.x_frames->names[hash_val]);
-}
-
-x_any intern(const char *name) {
-  x_any cell;
-  cell = lookup(name, x_env.x_frames->names[hash(name)]);
-  if (cell != NULL)
-    return cell;
-
-  cell = new_cell(name, x_env.x_symbol);
-  enter(cell);
   return cell;
 }
 
@@ -281,28 +270,6 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   return cell;
 }
 
-x_heap* new_heap(x_heap* old) {
-  x_heap* h;
-  x_any cell;
-  h = (x_heap*)malloc(sizeof(x_heap));
-  h->next = old;
-  cell = h->cells + X_YOUNG_HEAP_SIZE - 1;
-  do
-    free_cell(h, cell);
-  while (--cell >= h->cells);
-  return h;
-}
-
-x_frame* new_frame() {
-  x_frame * f;
-  f = (x_frame*)malloc(sizeof(x_frame));
-  f->next = NULL;
-  f->prev = NULL;
-  for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    f->names[i] = x_env.x_nil;
-  return f;
-}
-
 void init(void) {
   x_env.x_heaps = new_heap(NULL);
 
@@ -313,10 +280,11 @@ void init(void) {
 
   x_env.x_frames = new_frame();
 
-  enter(x_env.x_nil);
-  enter(x_env.x_symbol);
-  enter(x_env.x_pair);
+  bind("nil", x_env.x_nil, x_env.x_frames);
+  bind("symbol", x_env.x_symbol, x_env.x_frames);
+  bind("pair", x_env.x_pair, x_env.x_frames);
 
+  x_env.x_binding = intern("binding");
   x_env.x_token = intern("token");
   x_env.x_builtin = intern("builtin");
   x_env.x_user = intern("user");
