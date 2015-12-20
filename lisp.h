@@ -27,9 +27,6 @@
 #define TIX threadIdx.x
 #define TID ((BDX * BIX) + TIX)
 #define STRIDE (BDX * GDX)
-#define TIDE (TID * STRIDE)
-
-#define GRIDBLOCKS(size) ((size) + THREADSPERBLOCK - 1 / THREADSPERBLOCK)
 
 typedef struct x_cell x_cell, *x_any;
 typedef x_any (*x_fn0_t)();
@@ -90,12 +87,12 @@ typedef struct __align__(16) x_environ {
   x_any x_pair;
   x_any x_xector;
   x_any x_int;
+  x_any x_str;
   x_any x_fn0;
   x_any x_fn1;
   x_any x_fn2;
   x_any x_fn3;
 } x_environ;
-
 
 extern __thread x_environ x_env;
 
@@ -136,9 +133,11 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
 #define is_xector(x) (type(x) == x_env.x_xector)
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
-#define xectors_align(x, y) assert(xector_size(x) == xector_size(y))
 #define is_int(x) (type(x) == x_env.x_int)
 #define are_ints(x, y) (is_int(x) && is_int(y))
+#define is_str(x) (type(x) == x_env.x_str)
+#define are_strs(x, y) (is_str(x) && is_str(y))
+
 #define is_fn0(x) (type(x) == x_env.x_fn0)
 #define is_fn1(x) (type(x) == x_env.x_fn1)
 #define is_fn2(x) (type(x) == x_env.x_fn2)
@@ -147,6 +146,8 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
+
+#define assert_xectors_align(x, y) assert(xector_size(x) == xector_size(y))
 
 // REPL functions
 

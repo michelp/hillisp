@@ -81,12 +81,6 @@ void enter(x_any cell) {
 
 x_any intern(const char *name) {
   x_any cell;
-  // numbers cannot be interned, you always get a new one
-  if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
-    cell = c_alloc(x_env.x_int);
-    set_val(cell, atoll(name));
-    return cell;
-  }
   cell = lookup(name, x_env.x_frames->names[hash(name)]);
   if (cell != NULL)
     return cell;
@@ -116,6 +110,7 @@ x_any read_token(FILE *infile) {
   int c;
   static char buf[X_MAX_NAME_LEN];
   char *ptr = buf;
+  x_any cell;
 
   do {
     c = getc(infile);
@@ -147,6 +142,12 @@ x_any read_token(FILE *infile) {
     *ptr = '\0';
     if (strcmp(buf, "symbol") == 0)
       return x_env.x_symbol;
+
+    if (isdigit(buf[0]) || (buf[0] == '-' && isdigit(buf[1]))) {
+      cell = c_alloc(x_env.x_int);
+      set_val(cell, atoll(buf));
+      return cell;
+    }
     return intern(buf);
   }
 }
@@ -322,6 +323,8 @@ void init(void) {
   x_env.x_true = intern("true");
   x_env.x_xector = intern("xector");
   x_env.x_int = intern("int");
+  x_env.x_str = intern("str");
+
   x_env.x_fn0 = intern("fn0");
   x_env.x_fn1 = intern("fn1");
   x_env.x_fn2 = intern("fn2");

@@ -15,10 +15,10 @@
 (assert (< 1 4))
 (assert (> 10 -4))
 (assert (< -1 40))
-(assert (== foo foo))
-(assert (!= foo bar))
-(assert (> foo bar))
-(assert (< bar foo))
+;; (assert (== foo foo))
+;; (assert (!= foo bar))
+;; (assert (> foo bar))
+;; (assert (< bar foo))
 
 ; comments?
 

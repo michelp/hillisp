@@ -38,7 +38,7 @@ xd_fma(const T* __restrict__ a, const T* __restrict__ b, const T* __restrict__ c
 x_any x_add(x_any a, x_any b) {
   x_any c;
   if (are_xectors(a, b)) {
-    xectors_align(a, b);
+    assert_xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
     SYNCS(x_env.stream);
     xd_add<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
@@ -58,7 +58,7 @@ x_any x_add(x_any a, x_any b) {
 x_any x_sub(x_any a, x_any b) {
   x_any c;
   if (are_xectors(a, b)) {
-    xectors_align(a, b);
+    assert_xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
     SYNCS(x_env.stream);
     xd_sub<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
@@ -78,7 +78,7 @@ x_any x_sub(x_any a, x_any b) {
 x_any x_mul(x_any a, x_any b) {
   x_any c;
   if (are_xectors(a, b)) {
-    xectors_align(a, b);
+    assert_xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
     SYNCS(x_env.stream);
     xd_mul<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
@@ -98,7 +98,7 @@ x_any x_mul(x_any a, x_any b) {
 x_any x_div(x_any a, x_any b) {
   x_any c;
   if (are_xectors(a, b)) {
-    xectors_align(a, b);
+    assert_xectors_align(a, b);
     c = new_xector<int64_t>(NULL, xector_size(a));
     SYNCS(x_env.stream);
     xd_div<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
@@ -118,8 +118,8 @@ x_any x_div(x_any a, x_any b) {
 x_any x_fma(x_any a, x_any b, x_any c) {
   x_any d;
   if (are_xectors(a, b)) {
-    xectors_align(a, b);
-    xectors_align(a, c);
+    assert_xectors_align(a, b);
+    assert_xectors_align(a, c);
     d = new_xector<int64_t>(NULL, xector_size(a));
     SYNCS(x_env.stream);
     xd_fma<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>

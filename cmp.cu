@@ -12,12 +12,14 @@ __global__ void
 
 x_any x_eq(x_any cell1, x_any cell2) {
   x_any cell;
+  if (cell1 == cell2)
+    return x_env.x_true;
   if (are_ints(cell1, cell2)) {
     if (ival(cell1) == ival(cell2))
       return x_env.x_true;
   }
   else if (are_xectors(cell1, cell2)) {
-    xectors_align(cell1, cell2);
+    assert_xectors_align(cell1, cell2);
     cell = new_xector<int64_t>(NULL, xector_size(cell1));
     SYNCS(x_env.stream);
     xd_eq<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
@@ -25,7 +27,7 @@ x_any x_eq(x_any cell1, x_any cell2) {
     CHECK;
     return cell;
   }
-  else if (are_atoms(cell1, cell2)) {
+  else if (are_strs(cell1, cell2)) {
     if (strcmp(sval(cell1), sval(cell2)) == 0)
       return x_env.x_true;
   }
@@ -53,9 +55,10 @@ x_any x_gt(x_any cell1, x_any cell2) {
     if (ival(cell1) > ival(cell2))
       return x_env.x_true;
   }
-  else
+  else if (are_strs(cell1, cell2)) {
     if (strcmp(sval(cell1), sval(cell2)) > 0)
       return x_env.x_true;
+  }
   return x_env.x_nil;
 }
 
@@ -64,8 +67,9 @@ x_any x_lt(x_any cell1, x_any cell2) {
     if (ival(cell1) < ival(cell2))
       return x_env.x_true;
   }
-  else
+  else if (are_strs(cell1, cell2)) {
     if (strcmp(sval(cell1), sval(cell2)) < 0)
       return x_env.x_true;
+  }
   return x_env.x_nil;
 }
