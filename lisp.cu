@@ -252,7 +252,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
   type(cell) = x_env.x_builtin;
-  set_car(cell, (x_any)fn);
+  set_val(cell, fn);
   switch(num_args) {
   case 0:
     type(cell) = x_env.x_fn0;
