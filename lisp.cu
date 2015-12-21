@@ -4,9 +4,9 @@ __thread x_environ x_env;
 
 x_any c_alloc(x_any type) {
   x_any cell;
-  if (!(cell = x_env.x_cell_pools->free))
+  if (!(cell = x_env.cell_pools->free))
     assert(0);
-  x_env.x_cell_pools->free = car(cell);
+  x_env.cell_pools->free = car(cell);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
@@ -57,7 +57,7 @@ x_frame* new_frame() {
   f->next = NULL;
   f->prev = NULL;
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    f->names[i] = x_env.x_nil;
+    f->names[i] = x_env.nil;
   return f;
 }
 
@@ -65,8 +65,8 @@ template<typename T>
 x_any new_xector(const char* name, size_t size) {
   x_any cell;
   x_any_x xector;
-  cell = new_cell(name, x_env.x_xector);
-  xector = (x_any_x)malloc(sizeof(x_xector_t));
+  cell = new_cell(name, x_env.xector);
+  xector = (x_any_x)malloc(sizeof(x_xector));
   xector->cars = (void**)x_alloc(size * sizeof(T));
   xector->size = size;
   set_val(cell, xector);
@@ -74,15 +74,15 @@ x_any new_xector(const char* name, size_t size) {
 }
 
 int length(x_any cell) {
-  if (cell == x_env.x_nil)
+  if (cell == x_env.nil)
     return 0;
   else
     return 1 + length(cdr(cell));
 }
 
 x_any list_eval(x_any cell) {
-  if (cell == x_env.x_nil)
-    return x_env.x_nil;
+  if (cell == x_env.nil)
+    return x_env.nil;
   if (is_atom(cell))
     return cell;
   else
@@ -102,17 +102,17 @@ x_any read_token(FILE *infile) {
   } while (isspace(c));
   switch (c) {
   case EOF:
-    return x_env.x_eof;
+    return x_env.eof;
   case '(':
-    return x_env.x_lparen;
+    return x_env.lparen;
   case ')':
-    return x_env.x_rparen;
+    return x_env.rparen;
   case '[':
-    return x_env.x_lbrack;
+    return x_env.lbrack;
   case ']':
-    return x_env.x_rbrack;
+    return x_env.rbrack;
   case '.':
-    return x_env.x_dot;
+    return x_env.dot;
   default:
     *ptr++ = c;
     while ((c = getc(infile)) != EOF &&
@@ -124,10 +124,10 @@ x_any read_token(FILE *infile) {
       ungetc(c, infile);
     *ptr = '\0';
     if (strcmp(buf, "symbol") == 0)
-      return x_env.x_symbol;
+      return x_env.symbol;
 
     if (isdigit(buf[0]) || (buf[0] == '-' && isdigit(buf[1]))) {
-      cell = c_alloc(x_env.x_int);
+      cell = c_alloc(x_env.int_);
       set_val(cell, atoll(buf));
       return cell;
     }
@@ -140,11 +140,11 @@ x_any read_cdr(FILE *infile) {
   x_any token;
   cdr = read_sexpr(infile);
   token = read_token(infile);
-  if (token == x_env.x_rparen)
+  if (token == x_env.rparen)
     return cdr;
   else
     assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any read_sexpr_tail(FILE *infile) {
@@ -153,21 +153,21 @@ x_any read_sexpr_tail(FILE *infile) {
   token = read_token(infile);
   if (is_atom(token))
     return x_cons(token, read_sexpr_tail(infile));
-  if (token == x_env.x_lparen) {
+  if (token == x_env.lparen) {
     temp = read_sexpr_head(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  if (token == x_env.x_lbrack) {
+  if (token == x_env.lbrack) {
     temp = read_xector(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  if (token == x_env.x_dot)
+  if (token == x_env.dot)
     return read_cdr(infile);
-  if (token == x_env.x_rparen)
-    return x_env.x_nil;
-  if (token == x_env.x_eof)
+  if (token == x_env.rparen)
+    return x_env.nil;
+  if (token == x_env.eof)
     assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any read_sexpr_head(FILE *infile) {
@@ -176,21 +176,21 @@ x_any read_sexpr_head(FILE *infile) {
   token = read_token(infile);
   if (is_atom(token))
     return x_cons(token, read_sexpr_tail(infile));
-  else if (token == x_env.x_lparen) {
+  else if (token == x_env.lparen) {
     temp = read_sexpr_head(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  else if (token == x_env.x_lbrack) {
+  else if (token == x_env.lbrack) {
     temp = read_xector(infile);
     return x_cons(temp, read_sexpr_tail(infile));
   }
-  else if (token == x_env.x_rparen)
-    return x_env.x_nil;
-  else if (token == x_env.x_dot)
+  else if (token == x_env.rparen)
+    return x_env.nil;
+  else if (token == x_env.dot)
     assert(0);
-  else if (token == x_env.x_eof)
+  else if (token == x_env.eof)
     assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any read_xector(FILE *infile) {
@@ -201,16 +201,16 @@ x_any read_xector(FILE *infile) {
   cell = new_xector<int64_t>("xector", X_XECTOR_BLOCK_SIZE);
   do {
     val = x_eval(read_sexpr(infile));
-    if (val == x_env.x_nil)
+    if (val == x_env.nil)
       break;
     if (typ == NULL)
       typ = type(val);
     else if (type(val) != typ)
       assert(0); // must all be same type
 
-    if (typ == x_env.x_int)
+    if (typ == x_env.int_)
       xector_set_car_ith(cell, size, ival(val));
-    else if (typ == x_env.x_xector)
+    else if (typ == x_env.xector)
       xector_set_car_ith(cell, size, car(val));
     else
       assert(0);
@@ -225,79 +225,79 @@ x_any read_sexpr(FILE *infile) {
   token = read_token(infile);
   if (is_atom(token))
     return token;
-  if (token == x_env.x_lbrack)
+  if (token == x_env.lbrack)
     return read_xector(infile);
-  if (token == x_env.x_lparen)
+  if (token == x_env.lparen)
     return read_sexpr_head(infile);
-  if (token == x_env.x_rparen)
+  if (token == x_env.rparen)
     assert(0);
-  if (token == x_env.x_dot)
+  if (token == x_env.dot)
     assert(0);
-  if (token == x_env.x_eof)
+  if (token == x_env.eof)
     return token;
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any def_token(const char* new_name) {
-  return new_cell(new_name, x_env.x_token);
+  return new_cell(new_name, x_env.token);
 }
 
 x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
-  type(cell) = x_env.x_builtin;
+  type(cell) = x_env.builtin;
   set_val(cell, fn);
   switch(num_args) {
   case 0:
-    type(cell) = x_env.x_fn0;
+    type(cell) = x_env.fn0;
     break;
   case 1:
-    type(cell) = x_env.x_fn1;
+    type(cell) = x_env.fn1;
     break;
   case 2:
-    type(cell) = x_env.x_fn2;
+    type(cell) = x_env.fn2;
     break;
   case 3:
-    type(cell) = x_env.x_fn3;
+    type(cell) = x_env.fn3;
     break;
   }
   return cell;
 }
 
 void init(void) {
-  x_env.x_cell_pools = new_cell_pool(NULL);
+  x_env.cell_pools = new_cell_pool(NULL);
 
-  x_env.x_symbol = new_cell("symbol", NULL);
-  type(x_env.x_symbol) = x_env.x_symbol;
-  x_env.x_pair = new_cell("pair", NULL);
-  x_env.x_nil = new_cell("nil", x_env.x_symbol);
+  x_env.symbol = new_cell("symbol", NULL);
+  type(x_env.symbol) = x_env.symbol;
+  x_env.pair = new_cell("pair", NULL);
+  x_env.nil = new_cell("nil", x_env.symbol);
 
-  x_env.x_frames = new_frame();
+  x_env.frames = new_frame();
 
-  bind("nil", x_env.x_nil, x_env.x_frames);
-  bind("symbol", x_env.x_symbol, x_env.x_frames);
-  bind("pair", x_env.x_pair, x_env.x_frames);
+  bind("nil", x_env.nil, x_env.frames);
+  bind("symbol", x_env.symbol, x_env.frames);
+  bind("pair", x_env.pair, x_env.frames);
 
-  x_env.x_binding = intern("binding");
-  x_env.x_token = intern("token");
-  x_env.x_builtin = intern("builtin");
-  x_env.x_user = intern("user");
-  x_env.x_true = intern("true");
-  x_env.x_xector = intern("xector");
-  x_env.x_int = intern("int");
-  x_env.x_str = intern("str");
+  x_env.binding = intern("binding");
+  x_env.token = intern("token");
+  x_env.builtin = intern("builtin");
+  x_env.user = intern("user");
+  x_env.true_ = intern("true");
+  x_env.xector = intern("xector");
+  x_env.int_ = intern("int");
+  x_env.str = intern("str");
 
-  x_env.x_fn0 = intern("fn0");
-  x_env.x_fn1 = intern("fn1");
-  x_env.x_fn2 = intern("fn2");
-  x_env.x_fn3 = intern("fn3");
+  x_env.fn0 = intern("fn0");
+  x_env.fn1 = intern("fn1");
+  x_env.fn2 = intern("fn2");
+  x_env.fn3 = intern("fn3");
 
-  x_env.x_dot = def_token(".");
-  x_env.x_lparen = def_token("(");
-  x_env.x_rparen = def_token(")");
-  x_env.x_lbrack = def_token("[");
-  x_env.x_rbrack = def_token("]");
-  x_env.x_eof = def_token("EOF");
+  x_env.dot = def_token(".");
+  x_env.lparen = def_token("(");
+  x_env.rparen = def_token(")");
+  x_env.lbrack = def_token("[");
+  x_env.rbrack = def_token("]");
+  x_env.eof = def_token("EOF");
 
   def_builtin("is", (void*)x_is, 2, NULL);
   def_builtin("isinstance", (void*)x_isinstance, 2, NULL);
@@ -351,7 +351,7 @@ int main(int argc, const char* argv[]) {
           assert(0);
         for (;;) {
           expr = read_sexpr(fp);
-          if (expr == x_env.x_eof)
+          if (expr == x_env.eof)
             break;
           value = x_eval(expr);
           x_gc();
@@ -363,7 +363,7 @@ int main(int argc, const char* argv[]) {
     for (;;) {
       printf("? ");
       expr = read_sexpr(stdin);
-      if (expr == x_env.x_eof)
+      if (expr == x_env.eof)
         break;
       value = x_eval(expr);
       printf(": ");

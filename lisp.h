@@ -29,10 +29,10 @@
 #define STRIDE (BDX * GDX)
 
 typedef struct x_cell x_cell, *x_any;
-typedef x_any (*x_fn0_t)();
-typedef x_any (*x_fn1_t)(x_any);
-typedef x_any (*x_fn2_t)(x_any, x_any);
-typedef x_any (*x_fn3_t)(x_any, x_any, x_any);
+typedef x_any (*x_fn0)();
+typedef x_any (*x_fn1)(x_any);
+typedef x_any (*x_fn2)(x_any, x_any);
+typedef x_any (*x_fn3)(x_any, x_any, x_any);
 
 struct __align__(16) x_cell {
   x_any car;
@@ -41,14 +41,14 @@ struct __align__(16) x_cell {
   void *value;
 };
 
-typedef struct __align__(16) x_xector_t {
+typedef struct __align__(16) x_xector {
   void **cars;
   void **cdrs;
   char **names;
   uint64_t **types;
   size_t size;
-  struct x_xector_t *next;
-} x_xector_t, *x_any_x;
+  struct x_xector *next;
+} x_xector, *x_any_x;
 
 typedef struct __align__(16) x_cell_pool {
   x_cell cells[X_YOUNG_CELL_POOL_SIZE];
@@ -65,34 +65,34 @@ typedef struct __align__(16) x_frame {
 } x_frame;
 
 typedef struct __align__(16) x_environ {
-  x_frame* x_frames;
-  x_cell_pool* x_cell_pools;
+  x_frame* frames;
+  x_cell_pool* cell_pools;
 
   cudaStream_t stream;
   cudaError_t result;
   int debugLevel;
 
-  x_any x_symbol;
-  x_any x_binding;
-  x_any x_nil;
-  x_any x_true;
-  x_any x_dot;
-  x_any x_lparen;
-  x_any x_rparen;
-  x_any x_lbrack;
-  x_any x_rbrack;
-  x_any x_eof;
-  x_any x_builtin;
-  x_any x_token;
-  x_any x_user;
-  x_any x_pair;
-  x_any x_xector;
-  x_any x_int;
-  x_any x_str;
-  x_any x_fn0;
-  x_any x_fn1;
-  x_any x_fn2;
-  x_any x_fn3;
+  x_any symbol;
+  x_any binding;
+  x_any nil;
+  x_any true_;
+  x_any dot;
+  x_any lparen;
+  x_any rparen;
+  x_any lbrack;
+  x_any rbrack;
+  x_any eof;
+  x_any builtin;
+  x_any token;
+  x_any user;
+  x_any pair;
+  x_any xector;
+  x_any int_;
+  x_any str;
+  x_any fn0;
+  x_any fn1;
+  x_any fn2;
+  x_any fn3;
 } x_environ;
 
 extern __thread x_environ x_env;
@@ -127,22 +127,22 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 #define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
 #define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
-#define is_symbol(x) ((type(x) == x_env.x_symbol) || is_int(x))
-#define is_token(x) (type(x) == x_env.x_token)
-#define is_user(x) (type(x) == x_env.x_user)
-#define is_pair(x) (type(x) == x_env.x_pair)
+#define is_symbol(x) ((type(x) == x_env.symbol) || is_int(x))
+#define is_token(x) (type(x) == x_env.token)
+#define is_user(x) (type(x) == x_env.user)
+#define is_pair(x) (type(x) == x_env.pair)
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
-#define is_xector(x) (type(x) == x_env.x_xector)
+#define is_xector(x) (type(x) == x_env.xector)
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
-#define is_int(x) (type(x) == x_env.x_int)
+#define is_int(x) (type(x) == x_env.int_)
 #define are_ints(x, y) (is_int(x) && is_int(y))
-#define is_str(x) (type(x) == x_env.x_str)
+#define is_str(x) (type(x) == x_env.str)
 #define are_strs(x, y) (is_str(x) && is_str(y))
 
-#define is_fn0(x) (type(x) == x_env.x_fn0)
-#define is_fn1(x) (type(x) == x_env.x_fn1)
-#define is_fn2(x) (type(x) == x_env.x_fn2)
-#define is_fn3(x) (type(x) == x_env.x_fn3)
+#define is_fn0(x) (type(x) == x_env.fn0)
+#define is_fn1(x) (type(x) == x_env.fn1)
+#define is_fn2(x) (type(x) == x_env.fn2)
+#define is_fn3(x) (type(x) == x_env.fn3)
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
 #define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))

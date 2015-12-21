@@ -43,7 +43,7 @@ void print_cell(x_any cell, FILE *outfile) {
 
 void print_list(x_any cell, FILE *outfile) {
   print_cell(car(cell), outfile);
-  if (cdr(cell) == x_env.x_nil)
+  if (cdr(cell) == x_env.nil)
     putc(')', outfile);
   else if (!is_pair(cdr(cell)) ) {
     fprintf(outfile, " . ");

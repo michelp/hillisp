@@ -33,17 +33,17 @@ __global__ void
 
 x_any x_is(x_any cell1, x_any cell2) {
   if (cell1 == cell2)
-    return x_env.x_true;
-  return x_env.x_nil;
+    return x_env.true_;
+  return x_env.nil;
 }
 
 x_any x_isinstance(x_any cell1, x_any cell2) {
   do {
     cell1 = type(cell1);
     if (cell1 == cell2)
-      return x_env.x_true;
-  } while(cell1 != x_env.x_symbol);
-  return x_env.x_nil;
+      return x_env.true_;
+  } while(cell1 != x_env.symbol);
+  return x_env.nil;
 }
 
 x_any x_type(x_any cell) {
@@ -51,7 +51,7 @@ x_any x_type(x_any cell) {
 }
 
 x_any x_assert(x_any cell) {
-  assert(cell != x_env.x_nil);
+  assert(cell != x_env.nil);
   return cell;
 }
 
@@ -69,7 +69,7 @@ x_any x_cdr(x_any cell) {
 
 x_any x_cons(x_any cell1, x_any cell2) {
   x_any cell;
-  cell = new_cell(NULL, x_env.x_pair);
+  cell = new_cell(NULL, x_env.pair);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   return cell;
@@ -85,13 +85,13 @@ x_any x_apply(x_any cell, x_any args) {
     printf("%*s" "%s\n", debugLevel, " ", sval(cell));
 #endif
     if (is_fn0(cell))
-      return ((x_fn0_t)val(cell))();
+      return ((x_fn0)val(cell))();
     else if (is_fn1(cell))
-      return ((x_fn1_t)val(cell))(car(args));
+      return ((x_fn1)val(cell))(car(args));
     else if (is_fn2(cell))
-      return ((x_fn2_t)val(cell))(car(args), cadr(args));
+      return ((x_fn2)val(cell))(car(args), cadr(args));
     else if (is_fn3(cell))
-      return ((x_fn3_t)val(cell))(car(args), cadr(args), caddr(args));
+      return ((x_fn3)val(cell))(car(args), cadr(args), caddr(args));
     else
       assert(0);
   }
@@ -99,7 +99,7 @@ x_any x_apply(x_any cell, x_any args) {
     return x_apply((x_any)car(cell), args);
   else
     assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_quote(x_any cell) {
@@ -127,21 +127,21 @@ x_any x_eval(x_any cell) {
 }
 
 x_any x_not(x_any cell1) {
-  if (cell1 == x_env.x_true)
-    return x_env.x_nil;
-  return x_env.x_true;
+  if (cell1 == x_env.true_)
+    return x_env.nil;
+  return x_env.true_;
 }
 
 x_any x_and(x_any cell1, x_any cell2) {
-  if (cell1 == x_env.x_true && cell2 == x_env.x_true)
-    return x_env.x_true;
-  return x_env.x_nil;
+  if (cell1 == x_env.true_ && cell2 == x_env.true_)
+    return x_env.true_;
+  return x_env.nil;
 }
 
 x_any x_or(x_any cell1, x_any cell2) {
-  if (cell1 == x_env.x_true || cell2 == x_env.x_true)
-    return x_env.x_true;
-  return x_env.x_nil;
+  if (cell1 == x_env.true_ || cell2 == x_env.true_)
+    return x_env.true_;
+  return x_env.nil;
 }
 
 x_any x_fill(x_any value, x_any size) {
@@ -168,8 +168,8 @@ x_any x_all(x_any cell) {
   SYNCS(x_env.stream);
   CHECK;
   if (*result != xector_size(cell))
-    return x_env.x_nil;
-  return x_env.x_true;
+    return x_env.nil;
+  return x_env.true_;
 }
 
 x_any x_any_(x_any cell) {
@@ -185,13 +185,13 @@ x_any x_any_(x_any cell) {
   SYNCS(x_env.stream);
   CHECK;
   if (*result > 0)
-    return x_env.x_true;
-  return x_env.x_nil;
+    return x_env.true_;
+  return x_env.nil;
 }
 
 x_any x_time() {
   x_any cell;
-  cell = new_cell(NULL, x_env.x_int);
+  cell = new_cell(NULL, x_env.int_);
   struct timeval tv;
   gettimeofday(&tv, NULL);
   set_val(cell, 1);

@@ -8,7 +8,7 @@ int hash(const char *name) {
 }
 
 x_any _lookup(const char *name, x_any binding) {
-  if (binding == x_env.x_nil)
+  if (binding == x_env.nil)
     return NULL;
   else if (strcmp(sval(binding), name) == 0)
     return binding;
@@ -17,7 +17,7 @@ x_any _lookup(const char *name, x_any binding) {
 }
 
 x_any lookup(const char* name) {
-  return _lookup(name, x_env.x_frames->names[hash(name)]);
+  return _lookup(name, x_env.frames->names[hash(name)]);
 }
 
 void bind(const char* name, x_any cell1, x_frame* frame) {
@@ -26,7 +26,7 @@ void bind(const char* name, x_any cell1, x_frame* frame) {
   hash_val = hash(name);
   cell2 = frame->names[hash_val];
 
-  cell = new_cell(name, x_env.x_binding);
+  cell = new_cell(name, x_env.binding);
   set_car(cell, cell1);
   set_cdr(cell, cell2);
   frame->names[hash_val] = cell;
@@ -44,7 +44,7 @@ x_any intern(const char *name) {
   if (cell != NULL)
     return car(cell);
 
-  cell = new_cell(name, x_env.x_symbol);
-  bind(name, cell, x_env.x_frames);
+  cell = new_cell(name, x_env.symbol);
+  bind(name, cell, x_env.frames);
   return cell;
 }

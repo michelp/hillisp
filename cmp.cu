@@ -13,10 +13,10 @@ __global__ void
 x_any x_eq(x_any cell1, x_any cell2) {
   x_any cell;
   if (cell1 == cell2)
-    return x_env.x_true;
+    return x_env.true_;
   if (are_ints(cell1, cell2)) {
     if (ival(cell1) == ival(cell2))
-      return x_env.x_true;
+      return x_env.true_;
   }
   else if (are_xectors(cell1, cell2)) {
     assert_xectors_align(cell1, cell2);
@@ -29,47 +29,47 @@ x_any x_eq(x_any cell1, x_any cell2) {
   }
   else if (are_strs(cell1, cell2)) {
     if (strcmp(sval(cell1), sval(cell2)) == 0)
-      return x_env.x_true;
+      return x_env.true_;
   }
   else if (are_pairs(cell1, cell2)) {
     do {
-      if (x_eq(car(cell1), car(cell2)) == x_env.x_nil)
-        return x_env.x_nil;
+      if (x_eq(car(cell1), car(cell2)) == x_env.nil)
+        return x_env.nil;
       cell1 = cdr(cell1);
       cell2 = cdr(cell2);
     } while (are_pairs(cell1, cell2));
-    if (x_eq(cell1, cell2) != x_env.x_nil)
-      return x_env.x_true;
+    if (x_eq(cell1, cell2) != x_env.nil)
+      return x_env.true_;
   }
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_neq(x_any cell1, x_any cell2) {
-  if (x_eq(cell1, cell2) == x_env.x_true)
-    return x_env.x_nil;
-  return x_env.x_true;
+  if (x_eq(cell1, cell2) == x_env.true_)
+    return x_env.nil;
+  return x_env.true_;
 }
 
 x_any x_gt(x_any cell1, x_any cell2) {
   if (are_ints(cell1, cell2)) {
     if (ival(cell1) > ival(cell2))
-      return x_env.x_true;
+      return x_env.true_;
   }
   else if (are_strs(cell1, cell2)) {
     if (strcmp(sval(cell1), sval(cell2)) > 0)
-      return x_env.x_true;
+      return x_env.true_;
   }
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_lt(x_any cell1, x_any cell2) {
   if (are_ints(cell1, cell2)) {
     if (ival(cell1) < ival(cell2))
-      return x_env.x_true;
+      return x_env.true_;
   }
   else if (are_strs(cell1, cell2)) {
     if (strcmp(sval(cell1), sval(cell2)) < 0)
-      return x_env.x_true;
+      return x_env.true_;
   }
-  return x_env.x_nil;
+  return x_env.nil;
 }

@@ -47,12 +47,12 @@ x_any x_add(x_any a, x_any b) {
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.x_int);
+    c = new_cell(NULL, x_env.int_);
     set_val(c, ival(a) + ival(b));
     return c;
   }
   assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_sub(x_any a, x_any b) {
@@ -67,12 +67,12 @@ x_any x_sub(x_any a, x_any b) {
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.x_int);
+    c = new_cell(NULL, x_env.int_);
     set_val(c, ival(a) - ival(b));
     return c;
   }
   assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_mul(x_any a, x_any b) {
@@ -87,12 +87,12 @@ x_any x_mul(x_any a, x_any b) {
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.x_int);
+    c = new_cell(NULL, x_env.int_);
     set_val(c, ival(a) * ival(b));
     return c;
   }
   assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_div(x_any a, x_any b) {
@@ -107,12 +107,12 @@ x_any x_div(x_any a, x_any b) {
     return c;
   }
   else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.x_int);
+    c = new_cell(NULL, x_env.int_);
     set_val(c, ival(a) / ival(b));
     return c;
   }
   assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
 
 x_any x_fma(x_any a, x_any b, x_any c) {
@@ -128,10 +128,10 @@ x_any x_fma(x_any a, x_any b, x_any c) {
     return d;
   }
   else if (are_ints(a, b)) {
-    d = new_cell(NULL, x_env.x_int);
+    d = new_cell(NULL, x_env.int_);
     set_val(d, ival(a) * ival(b) + ival(c));
     return d;
   }
   assert(0);
-  return x_env.x_nil;
+  return x_env.nil;
 }
