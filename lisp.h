@@ -2,15 +2,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <stdint.h>
-#include <stdarg.h>
 
-#define X_YOUNG_HEAP_SIZE (1024*64)
-#define X_OLD_HEAP_SIZE (1024*512)
+#define X_YOUNG_CELL_POOL_SIZE (1024*64)
+#define X_OLD_CELL_POOL_SIZE (1024*512)
 #define X_XECTOR_BLOCK_SIZE (1024*1024)
 
 #define X_HASH_TABLE_SIZE 269
@@ -50,11 +50,11 @@ typedef struct __align__(16) x_xector_t {
   struct x_xector_t *next;
 } x_xector_t, *x_any_x;
 
-typedef struct __align__(16) x_heap {
-  x_cell cells[X_YOUNG_HEAP_SIZE];
+typedef struct __align__(16) x_cell_pool {
+  x_cell cells[X_YOUNG_CELL_POOL_SIZE];
   x_any free;
-  struct x_heap *next;
-} x_heap;
+  struct x_cell_pool *next;
+} x_cell_pool;
 
 #define free_cell(h, p) (car(p) = h->free, h->free=(p))
 
@@ -66,7 +66,7 @@ typedef struct __align__(16) x_frame {
 
 typedef struct __align__(16) x_environ {
   x_frame* x_frames;
-  x_heap* x_heaps;
+  x_cell_pool* x_cell_pools;
 
   cudaStream_t stream;
   cudaError_t result;

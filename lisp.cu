@@ -1,18 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-#include <inttypes.h>
 #include "lisp.h"
 
 __thread x_environ x_env;
 
 x_any c_alloc(x_any type) {
   x_any cell;
-  if (!(cell = x_env.x_heaps->free))
+  if (!(cell = x_env.x_cell_pools->free))
     assert(0);
-  x_env.x_heaps->free = car(cell);
+  x_env.x_cell_pools->free = car(cell);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
   type(cell) = type;
@@ -45,12 +39,12 @@ x_any new_cell(const char* name, x_any type) {
   return cell;
 }
 
-x_heap* new_heap(x_heap* old) {
-  x_heap* h;
+x_cell_pool* new_cell_pool(x_cell_pool* old) {
+  x_cell_pool* h;
   x_any cell;
-  h = (x_heap*)malloc(sizeof(x_heap));
+  h = (x_cell_pool*)malloc(sizeof(x_cell_pool));
   h->next = old;
-  cell = h->cells + X_YOUNG_HEAP_SIZE - 1;
+  cell = h->cells + X_YOUNG_CELL_POOL_SIZE - 1;
   do
     free_cell(h, cell);
   while (--cell >= h->cells);
@@ -271,7 +265,7 @@ x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
 }
 
 void init(void) {
-  x_env.x_heaps = new_heap(NULL);
+  x_env.x_cell_pools = new_cell_pool(NULL);
 
   x_env.x_symbol = new_cell("symbol", NULL);
   type(x_env.x_symbol) = x_env.x_symbol;

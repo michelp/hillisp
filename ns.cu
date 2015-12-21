@@ -11,7 +11,7 @@ x_any _lookup(const char *name, x_any binding) {
   if (binding == x_env.x_nil)
     return NULL;
   else if (strcmp(sval(binding), name) == 0)
-    return car(binding);
+    return binding;
   else
     return _lookup(name, cdr(binding));
 }
@@ -32,12 +32,17 @@ void bind(const char* name, x_any cell1, x_frame* frame) {
   frame->names[hash_val] = cell;
 }
 
+void rebind(const char* name, x_any value) {
+  x_any binding;
+  binding = lookup(name);
+  assert(binding != NULL);
+}
 
 x_any intern(const char *name) {
   x_any cell;
   cell = lookup(name);
   if (cell != NULL)
-    return cell;
+    return car(cell);
 
   cell = new_cell(name, x_env.x_symbol);
   bind(name, cell, x_env.x_frames);
