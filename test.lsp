@@ -15,15 +15,11 @@
 (assert (< 1 4))
 (assert (> 10 -4))
 (assert (< -1 40))
-;; (assert (== foo foo))
-;; (assert (!= foo bar))
-;; (assert (> foo bar))
-;; (assert (< bar foo))
 
 ; comments?
 
 (println types)
-(assert (is print (quote print))) ; comment ish
+(assert (is print (quote print))) ; commentish
 (assert (is (type print) fn1))
 (assert (is (type 3) int))
 (assert (is (type foo) symbol))
@@ -62,6 +58,22 @@
 (assert (any [1 0 0]))
 (assert (any [1 1 1]))
 (assert (not (any [0 0 0])))
+
+(println vars)
+(set x 1)
+(set y 2)
+(set z (+ x y))
+(assert (== x 1))
+(assert (== y 2))
+(assert (== z 3))
+
+(set a [1 2 3])
+(set b [2 3 4])
+(set c (+ a b))
+
+(assert (all (== a [1 2 3])))
+(assert (all (== b [2 3 4])))
+(assert (all (== c [3 5 7])))
 
 (println passed)
 (gc)
