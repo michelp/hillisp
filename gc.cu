@@ -5,9 +5,6 @@ void mark(x_any cell) {
     if (!((int64_t)(cell->cdr)) & 1)
       return;
     *(int64_t*)&cdr(cell) &= ~1;
-    if (is_xector(cell))
-      *(int64_t*)&val(cell) &= ~1;
-
     mark(car(cell));
     cell = cdr(cell);
   }
@@ -43,13 +40,11 @@ x_any x_gc() {
      do
        if ((int64_t)(cell->cdr) & 1) {
          if (is_xector(cell)) {
-           if (xval(cell)->cars != NULL) {
-             cudaFree(xval(cell)->cars);
-             printf("xfree\n");
+           if (xval(cell) != NULL) {
+             cudaFree(xval(cell));
+             //printf("xfree\n");
              CHECK;
-             xval(cell)->cars = NULL;
            }
-           free(xval(cell));
          }
          cell->type = NULL;
          cell->value = NULL;

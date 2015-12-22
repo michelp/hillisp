@@ -199,7 +199,7 @@ x_any x_time() {
 }
 
 x_any x_set(x_any cell, x_any value) {
-  val(cell) = val(value);
-  type(cell) = type(value);
-  return cell;
+  assert(is_symbol(cell));
+  rebind(sval(cell), value);
+  return value;
 }

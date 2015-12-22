@@ -39,6 +39,13 @@ x_any new_cell(const char* name, x_any type) {
   return cell;
 }
 
+x_any new_int(int64_t value) {
+  x_any cell;
+  cell = new_cell(NULL, x_env.int_);
+  set_val(cell, value);
+  return cell;
+}
+
 x_cell_pool* new_cell_pool(x_cell_pool* old) {
   x_cell_pool* h;
   x_any cell;
@@ -59,18 +66,6 @@ x_frame* new_frame() {
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
     f->names[i] = x_env.nil;
   return f;
-}
-
-template<typename T>
-x_any new_xector(const char* name, size_t size) {
-  x_any cell;
-  x_any_x xector;
-  cell = new_cell(name, x_env.xector);
-  xector = (x_any_x)malloc(sizeof(x_xector));
-  xector->cars = (void**)x_alloc(size * sizeof(T));
-  xector->size = size;
-  set_val(cell, xector);
-  return cell;
 }
 
 int length(x_any cell) {
@@ -127,8 +122,7 @@ x_any read_token(FILE *infile) {
       return x_env.symbol;
 
     if (isdigit(buf[0]) || (buf[0] == '-' && isdigit(buf[1]))) {
-      cell = c_alloc(x_env.int_);
-      set_val(cell, atoll(buf));
+      cell = new_int(atoll(buf));
       return cell;
     }
     return intern(buf);
@@ -198,7 +192,7 @@ x_any read_xector(FILE *infile) {
   x_any cell;
   x_any typ = NULL;
   size_t size = 0;
-  cell = new_xector<int64_t>("xector", X_XECTOR_BLOCK_SIZE);
+  cell = new_xector<int64_t>(NULL, X_XECTOR_BLOCK_SIZE);
   do {
     val = x_eval(read_sexpr(infile));
     if (val == x_env.nil)
@@ -216,7 +210,7 @@ x_any read_xector(FILE *infile) {
       assert(0);
     size++;
   } while (1);
-  xector_size(cell) = size;
+  car(cell) = new_int(size);
   return cell;
 }
 

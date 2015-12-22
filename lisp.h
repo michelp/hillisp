@@ -41,15 +41,6 @@ struct __align__(16) x_cell {
   void *value;
 };
 
-typedef struct __align__(16) x_xector {
-  void **cars;
-  void **cdrs;
-  char **names;
-  uint64_t **types;
-  size_t size;
-  struct x_xector *next;
-} x_xector, *x_any_x;
-
 typedef struct __align__(16) x_cell_pool {
   x_cell cells[X_YOUNG_CELL_POOL_SIZE];
   x_any free;
@@ -97,8 +88,6 @@ typedef struct __align__(16) x_environ {
 
 extern __thread x_environ x_env;
 
-template<typename T> x_any new_xector(const char*, size_t size);
-
 #define car(x) (x->car)
 #define cdr(x) (x->cdr)
 #define cadr(x) (car(cdr(x)))
@@ -109,23 +98,20 @@ template<typename T> x_any new_xector(const char*, size_t size);
 #define val(x) ((x)->value)
 #define ival(x) ((int64_t)val(x))
 #define sval(x) ((char*)val(x))
-#define xval(x) ((x_any_x)val(x))
+#define xval(x) ((x_any)val(x))
 
 #define set_car(x, y) (car(x) = (y))
 #define set_cdr(x, y) (cdr(x) = (y))
 //#define set_val(x, y) val(x) = ((void*)y)
 #define set_val(x, y) ((x->value) = (void*)(y))
 
-template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)->cars); }
-template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
+template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 
-#define xector_size(x) (xval(x)->size)
+#define xector_size(x) (ival(car(x)))
 
 #define xector_car_ith(x, i) (cars<int64_t>((x))[(i)])
-#define xector_cdr_ith(x, i) ((int64_t)(cdrs<int64_t>((x))[(i)]))
 
 #define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
-#define xector_set_cdr_ith(x, i, y) (cdrs((x))[(i)]) = (void*)(y)
 
 #define is_symbol(x) ((type(x) == x_env.symbol) || is_int(x))
 #define is_token(x) (type(x) == x_env.token)
@@ -152,9 +138,10 @@ template <typename T> inline T* cdrs(x_any x) { return (T*)(xval(x)->cdrs); }
 
 // REPL functions
 
-__device__ __host__ void* bi_malloc(size_t);
+void* x_alloc(size_t);
 char* new_name(const char*);
 x_any new_cell(const char*, x_any);
+x_any new_int(int64_t);
 x_any def_token(const char*);
 int hash(const char*);
 x_any _lookup(const char*, x_any);
@@ -164,6 +151,7 @@ void print_list(x_any, FILE*);
 void print_cell(x_any, FILE*);
 void print_list(x_any, FILE*);
 void bind(const char*, x_any, x_frame*);
+void rebind(const char*, x_any);
 x_any intern(const char*);
 int length(x_any);
 x_any list_eval(x_any);
@@ -258,3 +246,17 @@ inline void check_cuda_errors(const char *filename, const int line_number)
     exit(-1);
   }
 }
+
+template<typename T> x_any new_xector(const char*, size_t size);
+
+template<typename T>
+x_any new_xector(const char* name, size_t size) {
+  x_any cell, csize;
+  cell = new_cell(name, x_env.xector);
+  csize = new_int(size);
+  set_car(cell, csize);
+  set_val(cell, x_alloc(size * sizeof(T)));
+  return cell;
+}
+
+template x_any new_xector<int64_t>(char const*, unsigned long);

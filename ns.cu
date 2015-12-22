@@ -36,6 +36,7 @@ void rebind(const char* name, x_any value) {
   x_any binding;
   binding = lookup(name);
   assert(binding != NULL);
+  set_car(binding, value);
 }
 
 x_any intern(const char *name) {
