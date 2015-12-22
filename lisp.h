@@ -221,7 +221,6 @@ x_any x_ones(x_any);
 x_any x_gc();
 x_any x_time();
 
-
 template<typename T> __global__ void xd_add(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
 template<typename T> __global__ void xd_sub(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
 template<typename T> __global__ void xd_mul(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);

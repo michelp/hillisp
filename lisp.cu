@@ -331,6 +331,7 @@ int main(int argc, const char* argv[]) {
   x_any expr;
   x_any value;
   FILE *fp;
+  cudaDeviceReset();
   x_env.result = cudaStreamCreate(&x_env.stream);
 
   init();

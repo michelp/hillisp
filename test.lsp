@@ -74,6 +74,8 @@
 (assert (all (== a [1 2 3])))
 (assert (all (== b [2 3 4])))
 (assert (all (== c [3 5 7])))
-
+(assert (not (any (== c a))))
+(assert (not (all (== a [1 2 4]))))
+(assert (any (== a [1 2 4])))
 (println passed)
 (gc)
