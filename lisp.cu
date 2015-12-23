@@ -9,20 +9,20 @@ x_any def_token(const char* new_name) {
 x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
   x_any cell;
   cell = intern(name);
-  type(cell) = x_env.builtin;
+  set_type(cell, x_env.builtin);
   set_val(cell, fn);
   switch(num_args) {
   case 0:
-    type(cell) = x_env.fn0;
+    set_type(cell, x_env.fn0);
     break;
   case 1:
-    type(cell) = x_env.fn1;
+    set_type(cell, x_env.fn1);
     break;
   case 2:
-    type(cell) = x_env.fn2;
+    set_type(cell, x_env.fn2);
     break;
   case 3:
-    type(cell) = x_env.fn3;
+    set_type(cell, x_env.fn3);
     break;
   }
   return cell;
@@ -32,7 +32,7 @@ void init(void) {
   x_env.cell_pools = new_cell_pool(NULL);
 
   x_env.symbol = new_cell("symbol", NULL);
-  type(x_env.symbol) = x_env.symbol;
+  set_type(x_env.symbol, x_env.symbol);
   x_env.pair = new_cell("pair", NULL);
   x_env.nil = new_cell("nil", x_env.symbol);
 

@@ -65,12 +65,12 @@ x_any c_alloc(x_any type) {
   x_env.cell_pools->free = car(cell);
   set_cdr(cell, NULL);
   set_car(cell, NULL);
-  type(cell) = type;
+  set_type(cell, type);
   return cell;
 }
 
 void* x_alloc(size_t size) {
-void* result;
+  void* result;
   cudaMallocManaged(&result, size);
   cudaStreamAttachMemAsync(x_env.stream, result);
   CHECK;

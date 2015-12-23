@@ -102,6 +102,7 @@ extern __thread x_environ x_env;
 
 #define set_car(x, y) (car(x) = (y))
 #define set_cdr(x, y) (cdr(x) = (y))
+#define set_type(x, y) (type(x) = (y))
 //#define set_val(x, y) val(x) = ((void*)y)
 #define set_val(x, y) ((x->value) = (void*)(y))
 
