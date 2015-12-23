@@ -42,7 +42,6 @@ x_any x_gc() {
          if (is_xector(cell)) {
            if (xval(cell) != NULL) {
              cudaFree(xval(cell));
-             //printf("xfree\n");
              CHECK;
            }
          }

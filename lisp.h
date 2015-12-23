@@ -152,7 +152,7 @@ x_any create_symbol(const char*);
 void print_list(x_any, FILE*);
 void print_cell(x_any, FILE*);
 void print_list(x_any, FILE*);
-void bind(const char*, x_any, x_frame*);
+void bind(const char*, x_any);
 void rebind(const char*, x_any);
 x_any intern(const char*);
 int length(x_any);

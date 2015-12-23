@@ -38,9 +38,9 @@ void init(void) {
 
   x_env.frames = new_frame();
 
-  bind("nil", x_env.nil, x_env.frames);
-  bind("symbol", x_env.symbol, x_env.frames);
-  bind("pair", x_env.pair, x_env.frames);
+  bind("nil", x_env.nil);
+  bind("symbol", x_env.symbol);
+  bind("pair", x_env.pair);
 
   x_env.binding = intern("binding");
   x_env.token = intern("token");
