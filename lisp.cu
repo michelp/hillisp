@@ -6,7 +6,7 @@ x_any def_token(const char* new_name) {
   return new_cell(new_name, x_env.token);
 }
 
-x_any def_builtin(char const *name, void *fn, size_t num_args, void *dfn) {
+x_any def_builtin(char const *name, void *fn, size_t num_args) {
   x_any cell;
   cell = intern(name);
   set_type(cell, x_env.builtin);
@@ -63,38 +63,38 @@ void init(void) {
   x_env.rbrack = def_token("]");
   x_env.eof = def_token("EOF");
 
-  def_builtin("is", (void*)x_is, 2, NULL);
-  def_builtin("isinstance", (void*)x_isinstance, 2, NULL);
-  def_builtin("type", (void*)x_type, 1, NULL);
-  def_builtin("car", (void*)x_car, 1, NULL);
-  def_builtin("cdr", (void*)x_cdr, 1, NULL);
-  def_builtin("cons", (void*)x_cons, 2, NULL);
-  def_builtin("quote", (void*)x_quote, 1, NULL);
-  def_builtin("if", (void*)x_if, 1, NULL);
-  def_builtin("while", (void*)x_while, 1, NULL);
-  def_builtin("eval", (void*)x_eval, 1, NULL);
-  def_builtin("apply", (void*)x_apply, 2, NULL);
-  def_builtin("assert", (void*)x_assert, 1, NULL);
-  def_builtin("print", (void*)x_print, 1, NULL);
-  def_builtin("println", (void*)x_println, 1, NULL);
-  def_builtin("+", (void*)x_add, 2, NULL);
-  def_builtin("-", (void*)x_sub, 2, NULL);
-  def_builtin("*", (void*)x_mul, 2, NULL);
-  def_builtin("/", (void*)x_div, 2, NULL);
-  def_builtin("fma", (void*)x_fma, 3, NULL);
-  def_builtin("==", (void*)x_eq, 2, NULL);
-  def_builtin("!=", (void*)x_neq, 2, NULL);
-  def_builtin(">", (void*)x_gt, 2, NULL);
-  def_builtin("<", (void*)x_lt, 2, NULL);
-  def_builtin("not", (void*)x_not, 1, NULL);
-  def_builtin("and", (void*)x_and, 2, NULL);
-  def_builtin("all", (void*)x_all, 1, NULL);
-  def_builtin("any", (void*)x_any_, 1, NULL);
-  def_builtin("or", (void*)x_or, 2, NULL);
-  def_builtin("fill", (void*)x_fill, 2, NULL);
-  def_builtin("time", (void*)x_time, 0, NULL);
-  def_builtin("gc", (void*)x_gc, 0, NULL);
-  def_builtin("set", (void*)x_set, 2, NULL);
+  def_builtin("is", (void*)x_is, 2);
+  def_builtin("isinstance", (void*)x_isinstance, 2);
+  def_builtin("type", (void*)x_type, 1);
+  def_builtin("car", (void*)x_car, 1);
+  def_builtin("cdr", (void*)x_cdr, 1);
+  def_builtin("cons", (void*)x_cons, 2);
+  def_builtin("quote", (void*)x_quote, 1);
+  def_builtin("if", (void*)x_if, 1);
+  def_builtin("while", (void*)x_while, 1);
+  def_builtin("eval", (void*)x_eval, 1);
+  def_builtin("apply", (void*)x_apply, 2);
+  def_builtin("assert", (void*)x_assert, 1);
+  def_builtin("print", (void*)x_print, 1);
+  def_builtin("println", (void*)x_println, 1);
+  def_builtin("+", (void*)x_add, 2);
+  def_builtin("-", (void*)x_sub, 2);
+  def_builtin("*", (void*)x_mul, 2);
+  def_builtin("/", (void*)x_div, 2);
+  def_builtin("fma", (void*)x_fma, 3);
+  def_builtin("==", (void*)x_eq, 2);
+  def_builtin("!=", (void*)x_neq, 2);
+  def_builtin(">", (void*)x_gt, 2);
+  def_builtin("<", (void*)x_lt, 2);
+  def_builtin("not", (void*)x_not, 1);
+  def_builtin("and", (void*)x_and, 2);
+  def_builtin("all", (void*)x_all, 1);
+  def_builtin("any", (void*)x_any_, 1);
+  def_builtin("or", (void*)x_or, 2);
+  def_builtin("fill", (void*)x_fill, 2);
+  def_builtin("time", (void*)x_time, 0);
+  def_builtin("gc", (void*)x_gc, 0);
+  def_builtin("set", (void*)x_set, 2);
 }
 
 int main(int argc, const char* argv[]) {

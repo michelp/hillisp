@@ -159,7 +159,7 @@ x_any intern(const char*);
 int length(x_any);
 x_any list_eval(x_any);
 x_any intern(const char*);
-x_any def_builtin(const char*, void*, size_t, void*);
+x_any def_builtin(const char*, void*, size_t);
 x_any read_token(FILE*);
 x_any read_xector(FILE*);
 x_any read_sexpr(FILE*);
