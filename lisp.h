@@ -115,7 +115,7 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 
 #define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
 
-#define is_symbol(x) ((type(x) == x_env.symbol) || is_int(x))
+#define is_symbol(x) (type(x) == x_env.symbol)
 #define is_token(x) (type(x) == x_env.token)
 #define is_user(x) (type(x) == x_env.user)
 #define is_pair(x) (type(x) == x_env.pair)
@@ -132,7 +132,7 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_fn2(x) (type(x) == x_env.fn2)
 #define is_fn3(x) (type(x) == x_env.fn3)
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
-#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_xector(x))
+#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_int(x) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)))
 

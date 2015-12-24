@@ -76,27 +76,27 @@ x_any x_cons(x_any cell1, x_any cell2) {
 }
 
 x_any x_apply(x_any cell, x_any args) {
-  if (is_symbol(cell) && !(is_func(cell)))
-    return x_cons(cell, args);
-  if (is_pair(cell))
-    return x_cons(x_eval(cell), args);
   if (is_builtin(cell)) {
 #ifdef DEBUG
     printf("%*s" "%s\n", debugLevel, " ", sval(cell));
 #endif
-    if (is_fn0(cell))
-      return ((x_fn0)val(cell))();
-    else if (is_fn1(cell))
+    if (is_fn1(cell))
       return ((x_fn1)val(cell))(car(args));
     else if (is_fn2(cell))
       return ((x_fn2)val(cell))(car(args), cadr(args));
     else if (is_fn3(cell))
       return ((x_fn3)val(cell))(car(args), cadr(args), caddr(args));
+    else if (is_fn0(cell))
+      return ((x_fn0)val(cell))();
     else
       assert(0);
   }
   else if (is_user(cell))
     return x_apply((x_any)car(cell), args);
+  else if (is_symbol(cell) || is_int(cell))
+    return x_cons(cell, args);
+  else if (is_pair(cell))
+    return x_cons(x_eval(cell), args);
   else
     assert(0);
   return x_env.nil;
