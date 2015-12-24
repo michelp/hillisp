@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <exception>
 
 #define X_YOUNG_CELL_POOL_SIZE (1024*64)
 #define X_OLD_CELL_POOL_SIZE (1024*512)
@@ -262,3 +263,4 @@ x_any new_xector(const char* name, size_t size) {
 }
 
 template x_any new_xector<int64_t>(char const*, unsigned long);
+

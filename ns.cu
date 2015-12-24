@@ -25,21 +25,19 @@ x_any inline lookup(const char *name) {
 
 void bind(const char* name, x_any cell1) {
   int hash_val;
-  x_any cell, cell2;
+  x_any binding, bucket;
   hash_val = hash(name);
-  cell2 = x_env.frames->names[hash_val];
-
-  cell = new_cell(name, x_env.binding);
-  set_car(cell, cell1);
-  set_cdr(cell, cell2);
-  x_env.frames->names[hash_val] = cell;
-}
-
-void rebind(const char* name, x_any value) {
-  x_any binding;
   binding = lookup(name);
-  assert(binding != NULL);
-  set_car(binding, value);
+  if (binding != NULL) {
+    set_car(binding, cell1);
+    return;
+  }
+
+  bucket = x_env.frames->names[hash_val];
+  binding = new_cell(name, x_env.binding);
+  set_car(binding, cell1);
+  set_cdr(binding, bucket);
+  x_env.frames->names[hash_val] = binding;
 }
 
 x_any intern(const char *name) {

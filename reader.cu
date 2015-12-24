@@ -7,15 +7,6 @@ int length(x_any cell) {
     return 1 + length(cdr(cell));
 }
 
-x_any list_eval(x_any cell) {
-  if (cell == x_env.nil)
-    return x_env.nil;
-  if (is_atom(cell))
-    return cell;
-  else
-    return x_cons(x_eval(car(cell)), list_eval(cdr(cell)));
-}
-
 x_any read_token(FILE *infile) {
   int c;
   static char buf[X_MAX_NAME_LEN];
@@ -57,7 +48,10 @@ x_any read_token(FILE *infile) {
       cell = new_int(atoll(buf));
       return cell;
     }
-    return intern(buf);
+    cell = lookup(buf);
+    if (cell != NULL)
+      return car(cell);
+    return new_cell(buf, x_env.symbol);
   }
 }
 

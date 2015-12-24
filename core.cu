@@ -106,6 +106,15 @@ x_any x_quote(x_any cell) {
   return cell;
 }
 
+x_any list_eval(x_any cell) {
+  if (cell == x_env.nil)
+    return x_env.nil;
+  if (is_atom(cell))
+    return cell;
+  else
+    return x_cons(x_eval(car(cell)), list_eval(cdr(cell)));
+}
+
 x_any x_eval(x_any cell) {
   x_any temp;
   if (is_atom(cell))
@@ -200,6 +209,6 @@ x_any x_time() {
 
 x_any x_set(x_any cell, x_any value) {
   assert(is_symbol(cell));
-  rebind(sval(cell), value);
+  bind(sval(cell), value);
   return value;
 }
