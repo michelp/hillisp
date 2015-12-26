@@ -1,12 +1,5 @@
 #include "lisp.h"
 
-int length(x_any cell) {
-  if (cell == x_env.nil)
-    return 0;
-  else
-    return 1 + length(cdr(cell));
-}
-
 x_any read_token(FILE *infile) {
   int c;
   static char buf[X_MAX_NAME_LEN];

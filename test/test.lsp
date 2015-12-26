@@ -36,6 +36,12 @@
 (assert (== (apply cons (3 4)) (3 . 4)))
 (assert (== (eval (cons 3 4)) (3 . 4)))
 (assert (isinstance (time) int))
+(assert (== (len (1 2 3)) 3))
+(assert (== (len ()) 0))
+(assert (== (len nil) 0))
+(assert (== (len true) 0))
+(assert (== (len len) 0))
+(assert (== (len [1 2 3]) 3))
 
 (println flow)
 (assert (is (if ()) nil))

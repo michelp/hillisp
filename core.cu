@@ -208,3 +208,24 @@ x_any x_set(x_any cell, x_any value) {
   bind(sval(cell), value);
   return value;
 }
+
+int64_t inline length(x_any cell) {
+  int64_t length = 0;
+  if (is_xector(cell))
+    return xector_size(cell);
+  else if (cell == x_env.nil || cdr(cell) == NULL)
+    return 0;
+  else
+    do {
+      length += 1;
+      cell = cdr(cell);
+    } while(cell != x_env.nil);
+  return length;
+}
+
+x_any x_len(x_any cell) {
+  x_any result;
+  result = new_cell(NULL, x_env.int_);
+  set_val(result, length(cell));
+  return result;
+}

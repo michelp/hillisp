@@ -98,6 +98,7 @@ void init(void) {
   def_builtin("gc", (void*)x_gc, 0);
   def_builtin("set", (void*)x_set, 2);
   def_builtin("dir", (void*)x_dir, 0);
+  def_builtin("len", (void*)x_len, 1);
 }
 
 int main(int argc, const char* argv[]) {
