@@ -33,16 +33,18 @@ void init(void) {
 
   x_env.symbol = new_cell("symbol", NULL);
   set_type(x_env.symbol, x_env.symbol);
-  x_env.pair = new_cell("pair", NULL);
+
+  x_env.binding = new_cell("binding", x_env.symbol);
+  x_env.pair = new_cell("pair", x_env.symbol);
   x_env.nil = new_cell("nil", x_env.symbol);
 
   x_env.frames = new_frame();
 
-  bind("nil", x_env.nil);
   bind("symbol", x_env.symbol);
+  bind("binding", x_env.binding);
   bind("pair", x_env.pair);
+  bind("nil", x_env.nil);
 
-  x_env.binding = intern("binding");
   x_env.token = intern("token");
   x_env.builtin = intern("builtin");
   x_env.user = intern("user");
@@ -95,6 +97,7 @@ void init(void) {
   def_builtin("time", (void*)x_time, 0);
   def_builtin("gc", (void*)x_gc, 0);
   def_builtin("set", (void*)x_set, 2);
+  def_builtin("dir", (void*)x_dir, 0);
 }
 
 int main(int argc, const char* argv[]) {

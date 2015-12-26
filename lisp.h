@@ -119,12 +119,14 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_token(x) (type(x) == x_env.token)
 #define is_user(x) (type(x) == x_env.user)
 #define is_pair(x) (type(x) == x_env.pair)
-#define are_pairs(x, y) (is_pair(x) && is_pair(y))
+#define is_binding(x) (type(x) == x_env.binding)
 #define is_xector(x) (type(x) == x_env.xector)
-#define are_xectors(x, y) (is_xector(x) && is_xector(y))
 #define is_int(x) (type(x) == x_env.int_)
-#define are_ints(x, y) (is_int(x) && is_int(y))
 #define is_str(x) (type(x) == x_env.str)
+
+#define are_pairs(x, y) (is_pair(x) && is_pair(y))
+#define are_xectors(x, y) (is_xector(x) && is_xector(y))
+#define are_ints(x, y) (is_int(x) && is_int(y))
 #define are_strs(x, y) (is_str(x) && is_str(y))
 
 #define is_fn0(x) (type(x) == x_env.fn0)
@@ -185,6 +187,7 @@ x_any x_assert(x_any);
 x_any x_type(x_any);
 x_any x_set(x_any, x_any);
 x_any x_fill(x_any, x_any);
+x_any x_dir();
 
 // flow
 

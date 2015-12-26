@@ -28,17 +28,21 @@ void print_xector(x_any cell, FILE *outfile) {
 }
 
 void print_cell(x_any cell, FILE *outfile) {
-  if (is_int(cell))
+  if (is_binding(cell))
+    fprintf(outfile, "%s", sval(cell));
+  else if (is_int(cell))
     fprintf(outfile, "%" PRIi64, ival(cell));
   else if (is_xector(cell)) {
     print_xector(cell, outfile);
   }
   else if (is_atom(cell))
     fprintf(outfile, "%s", sval(cell));
-  else {
+  else if (is_pair(cell)) {
     putc('(', outfile);
     print_list(cell, outfile);
   }
+  else
+    assert(0);
 }
 
 void print_list(x_any cell, FILE *outfile) {

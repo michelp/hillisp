@@ -56,18 +56,14 @@ x_any x_assert(x_any cell) {
 }
 
 x_any x_car(x_any cell) {
-  if (!is_pair(cell))
-    assert(0);
   return car(cell);
 }
 
 x_any x_cdr(x_any cell) {
-  if (!is_pair(cell))
-    assert(0);
   return cdr(cell);
 }
 
-x_any x_cons(x_any cell1, x_any cell2) {
+x_any inline x_cons(x_any cell1, x_any cell2) {
   x_any cell;
   cell = new_cell(NULL, x_env.pair);
   set_car(cell, cell1);
