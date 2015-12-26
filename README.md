@@ -45,10 +45,10 @@ the GPU.  For example, the '+' function can add two integers together
     ? 
 
 The 'fill' function takes a value and a size and creates a xector of
-the specified size filled with that value.  The second expression
-above creates two xectors of one million integers each, fills them
-with the values 3 and 7, respectively, then adds them together,
-yielding a xector containing one million "10" values.  
+the specified size filled with that value.  Thus, The second
+expression above creates two xectors of one million integers each,
+fills them with the values 3 and 7, respectively, then adds them
+together, yielding a xector containing one million "10" values.
 
 Internally, '+' and 'fill' cause CUDA kernels to be launched
 asynchronously into a CUDA stream.  First two 'fill' kernels then a
