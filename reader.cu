@@ -136,7 +136,7 @@ x_any read_xector(FILE *infile) {
       assert(0);
     size++;
   } while (1);
-  car(cell) = new_int(size);
+  set_car(cell, new_int(size));
   return cell;
 }
 
