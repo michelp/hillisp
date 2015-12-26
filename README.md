@@ -34,7 +34,7 @@ time" as possible.
 A xector is constructed using bracket syntax.  Currently only integer
 xectors are supported.  Lisp functions operate on traditional
 arguments like numbers, but can also operate on xectors entirely in
-the GPU.  For example, the '+' operator can add two integers together
+the GPU.  For example, the '+' function can add two integers together
 (this is done on the CUDA "host") or it can add two xectors together
 (this is done on the CUDA "device"):
 
@@ -45,4 +45,35 @@ the GPU.  For example, the '+' operator can add two integers together
     ? 
 
 The 'fill' function takes a value and a size and creates a xector of
-the specified size filled with that value.  
+the specified size filled with that value.  The second expression
+above creates two xectors of one million integers each, fills them
+with the values 3 and 7, respectively, then adds them together,
+yielding a xector containing one million "10" values.  
+
+Internally, '+' and 'fill' cause CUDA kernels to be launched
+asynchronously into a CUDA stream.  First two 'fill' kernels then a
+'+' kernel.  While the kernels are running asynchronously the
+interpreter advances forward to run evaluate the next expression.
+
+## TODO
+
+  - Currently only 64 bit integer xectors are supported, but code is
+    in place to support all the main CUDA numeric types.
+
+  - Data-loading functions to fill xectors from data in files.
+
+  - Implement loadable modules and wrap libraries like cub, cublas,
+    cufft, etc.  Make CUDA library reuse as trivial as possible.
+
+  - "Xappings": cuda distributed hash tables that can be indexed by a
+    key as well as position.
+
+## Alpha, Dot, and Beta
+
+The book and paper cited above expressed parallelism using a Lisp
+macro-like parallel expression syntax with three operators, alpha,
+dot, and beta.  Implementing these operators in hillisp is a goal, but
+I'm not certain it can be done efficiently yet without a new feature
+in CUDA called dynamic parallelism, which requires a greater compute
+capability than any devices I have available to me at the moment.
+Feel free to send me a dual-maxwell system and I'll get it done. :)
