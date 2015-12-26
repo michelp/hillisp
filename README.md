@@ -52,8 +52,7 @@ together, yielding a xector containing one million "10" values.
 
 Internally, '+' and 'fill' cause CUDA kernels to be launched
 asynchronously into a CUDA stream.  First two 'fill' kernels then a
-'+' kernel.  While the kernels are running asynchronously the
-interpreter advances forward to run evaluate the next expression.
+'+' kernel.
 
 ## TODO
 
