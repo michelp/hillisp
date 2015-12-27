@@ -18,7 +18,7 @@ processing](http://dl.acm.org/citation.cfm?id=319870) by Hillis and
 ## lisp
 
 hillisp is an extremely tiny Lisp implementation written in CUDA C++.
-It's primary purpose is to drive the GPU as efficiently as possible.
+Its primary purpose is to drive the GPU as efficiently as possible.
 The language itself is not designed to be especially performant or
 featureful, as any computational density your program needs should be
 done in-kernel on the CUDA device and should be appropriate for CUDA
