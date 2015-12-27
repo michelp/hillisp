@@ -25,7 +25,7 @@ done in-kernel on the CUDA device and should be appropriate for CUDA
 workloads.
 
 To that end, the interpreter is very simple, has few "general purpose"
-programming features, and is designed to undertake it's interpretation
+programming features, and is designed to undertake its interpretation
 duties (ie, scheduling, garbage collection) asynchronously while the
 GPU is running CUDA kernels.  In this way it attempts to be as "zero
 time" as possible.
