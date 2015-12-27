@@ -1,6 +1,7 @@
 # hillisp
 
-CUDA parallel lisp inspired by [Connection
+[CUDA](https://en.wikipedia.org/wiki/CUDA) parallel lisp inspired by
+[Connection
 Machines](https://en.wikipedia.org/wiki/Connection_Machine).
 
 hillisp CUDA arrays are called "xectors" and can be operated on in
