@@ -29,6 +29,11 @@ duties (ie, scheduling, garbage collection) asynchronously while the
 GPU is running CUDA kernels.  In this way it attempts to be as "zero
 time" as possible.
 
+hillisp is not a general purpose programming language, but a language
+for exploring parallel algorithms using extremely powerful, modern GPU
+hardware.  It would be inappropraite, for example, to write deployment
+scripts with it.
+
 ## xectors
 
 A xector is constructed using bracket syntax.  Currently only integer
@@ -84,22 +89,29 @@ amount of copying to and from the device to the host is required.
   - Multi-device support.
 
   - Currently only 64 bit integer xectors are supported, but code is
-    in place to support all the main CUDA numeric types.
+    in place to support all the main CUDA numeric types and nested
+    xectors.
 
   - Data-loading functions to fill xectors from data in files.
 
   - Implement loadable modules and wrap libraries like cub, cublas,
-    cufft, etc.  Make CUDA library reuse as trivial as possible.
+    cufft, cusparse, etc.  Make CUDA library reuse as trivial as
+    possible.
+
+  - Inlining CUDA C kernels for hand-tuning performance.
 
   - "Xappings": cuda distributed hash tables that can be indexed by a
     key as well as position.
+
+  - Native graph types.
 
 ## Alpha, Dot, and Beta
 
 The book and paper cited above expressed parallelism using a Lisp
 macro-like parallel expression syntax with three operators, alpha,
-dot, and beta.  Implementing these operators in hillisp is a goal, but
-I'm not certain it can be done efficiently yet without a new feature
-in CUDA called dynamic parallelism, which requires a greater compute
-capability than any devices I have available to me at the moment.
-Feel free to send me a dual-maxwell system and I'll get it done. :)
+dot, and beta.  Implementing these operators in hillisp is certainly a
+goal, but I'm not positive it can be done efficiently yet without a
+new feature in CUDA called dynamic parallelism, which requires a
+greater compute capability than any devices I have available to me at
+the moment.  Feel free to send me a dual-maxwell system and I'll get
+it done. :)
