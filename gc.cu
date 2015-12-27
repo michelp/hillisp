@@ -53,9 +53,7 @@ x_any x_gc() {
        }
      while (--cell >= cell_pool->cells);
    } while (cell_pool = cell_pool->next);
-   cell = new_cell(NULL, x_env.int_);
-   set_val(cell, freed);
-   return cell;
+   return new_int(freed);
 }
 
 x_any c_alloc(x_any type) {

@@ -195,12 +195,9 @@ x_any x_any_(x_any cell) {
 }
 
 x_any x_time() {
-  x_any cell;
-  cell = new_cell(NULL, x_env.int_);
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  set_val(cell, 1);
-  return cell;
+  return new_int((tv.tv_sec * 1000) + tv.tv_usec);
 }
 
 x_any x_set(x_any cell, x_any value) {
@@ -224,8 +221,5 @@ int64_t inline length(x_any cell) {
 }
 
 x_any x_len(x_any cell) {
-  x_any result;
-  result = new_cell(NULL, x_env.int_);
-  set_val(result, length(cell));
-  return result;
+  return new_int(length(cell));
 }

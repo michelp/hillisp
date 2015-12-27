@@ -46,11 +46,8 @@ x_any x_add(x_any a, x_any b) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.int_);
-    set_val(c, ival(a) + ival(b));
-    return c;
-  }
+  else if (are_ints(a, b))
+    return new_int(ival(a) + ival(b));
   assert(0);
   return x_env.nil;
 }
@@ -66,11 +63,8 @@ x_any x_sub(x_any a, x_any b) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.int_);
-    set_val(c, ival(a) - ival(b));
-    return c;
-  }
+  else if (are_ints(a, b))
+    return new_int(ival(a) - ival(b));
   assert(0);
   return x_env.nil;
 }
@@ -86,11 +80,8 @@ x_any x_mul(x_any a, x_any b) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.int_);
-    set_val(c, ival(a) * ival(b));
-    return c;
-  }
+  else if (are_ints(a, b))
+    return new_int(ival(a) * ival(b));
   assert(0);
   return x_env.nil;
 }
@@ -106,11 +97,8 @@ x_any x_div(x_any a, x_any b) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b)) {
-    c = new_cell(NULL, x_env.int_);
-    set_val(c, ival(a) / ival(b));
-    return c;
-  }
+  else if (are_ints(a, b))
+    return new_int(ival(a) / ival(b));
   assert(0);
   return x_env.nil;
 }
@@ -127,11 +115,8 @@ x_any x_fma(x_any a, x_any b, x_any c) {
     CHECK;
     return d;
   }
-  else if (are_ints(a, b)) {
-    d = new_cell(NULL, x_env.int_);
-    set_val(d, ival(a) * ival(b) + ival(c));
-    return d;
-  }
+  else if (are_ints(a, b))
+    return new_int(ival(a) * ival(b) + ival(c));
   assert(0);
   return x_env.nil;
 }
