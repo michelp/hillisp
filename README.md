@@ -21,7 +21,7 @@ hillisp is an extremely tiny Lisp implementation written in CUDA C++.
 It's primary purpose is to drive the GPU as efficiently as possible.
 The language itself is not designed to be especially performant or
 featureful, as any computational density your program needs should be
-done on the CUDA device and should be appropriate for CUDA workloads.  
+done on the CUDA device and should be appropriate for CUDA workloads.
 
 To that end, the interpreter is very simple, has few "general purpose"
 programming features and is designed to undertake it's interpretation
@@ -42,7 +42,20 @@ the GPU.  For example, the '+' function can add two integers together
     : 7
     ? (+ (fill 3 1000000) (fill 4 1000000))  # this happens on the device
     : [7 7 7 7 7 7 7 7 7 7 7 7 7 7 7  ... 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
-    ? 
+    ?
+
+This is conceptually very similar to the following numpy code:
+
+    >>> 3 + 4
+    7
+    >>> a = np.empty(1000000)
+    >>> b = np.empty(1000000)
+    >>> a.fill(3)
+    >>> b.fill(4)
+    >>> a + b
+    array([ 7.,  7.,  7., ...,  7.,  7.,  7.])
+    >>>
+
 
 The 'fill' function takes a value and a size and creates a xector of
 the specified size filled with that value.  Thus, The second
