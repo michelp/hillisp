@@ -28,7 +28,9 @@ void print_xector(x_any cell, FILE *outfile) {
 }
 
 void print_cell(x_any cell, FILE *outfile) {
-  if (is_binding(cell))
+  if (is_builtin(cell))
+    fprintf(outfile, "<%s at %p>", sval(type(cell)), (void*)val(cell));
+  else if (is_binding(cell))
     fprintf(outfile, "%s", sval(cell));
   else if (is_int(cell))
     fprintf(outfile, "%" PRIi64, ival(cell));

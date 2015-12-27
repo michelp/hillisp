@@ -43,6 +43,22 @@
 (assert (== (len len) 0))
 (assert (== (len [1 2 3]) 3))
 
+(assert (== (and true true) true))
+(assert (== (and 1 true) true))
+(assert (== (and true 1) true))
+(assert (== (and true nil) nil))
+(assert (== (and nil true) nil))
+(assert (== (and nil 1) nil))
+(assert (== (and nil nil) nil))
+
+(assert (== (or true true) true))
+(assert (== (or 1 true) true))
+(assert (== (or true 1) true))
+(assert (== (or true nil) true))
+(assert (== (or nil true) true))
+(assert (== (or nil 1) true))
+(assert (== (or nil nil) nil))
+
 (println flow)
 (assert (is (if ()) nil))
 (assert (== (if (true 1 2)) 1))

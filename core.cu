@@ -131,20 +131,20 @@ x_any x_eval(x_any cell) {
   }
 }
 
-x_any x_not(x_any cell1) {
-  if (cell1 == x_env.true_)
-    return x_env.nil;
-  return x_env.true_;
+x_any x_not(x_any cell) {
+  if (cell == x_env.nil)
+    return x_env.true_;
+  return x_env.nil;
 }
 
 x_any x_and(x_any cell1, x_any cell2) {
-  if (cell1 == x_env.true_ && cell2 == x_env.true_)
+  if (cell1 != x_env.nil && cell2 != x_env.nil)
     return x_env.true_;
   return x_env.nil;
 }
 
 x_any x_or(x_any cell1, x_any cell2) {
-  if (cell1 == x_env.true_ || cell2 == x_env.true_)
+  if (cell1 != x_env.nil || cell2 != x_env.nil)
     return x_env.true_;
   return x_env.nil;
 }
