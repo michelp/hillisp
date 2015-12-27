@@ -1,13 +1,13 @@
 ; test comment
 
-(gc)
-(println basic)
+(println core)
 (assert (== 3 3))
 (assert (!= 3 4))
 (assert (== (3 (+ 3 3) (- 3 3)) (3 6 0)))
 (assert (== -3 -3))
 (assert (== (1 2) (1 2)))
 (assert (== (1 . 2) (1 . 2)))
+(assert (== (1 . 2) (cons 1 2)))
 (assert (not (== (1 . 2) (1 . 3))))
 (assert (!= (1 . 2) (1 . 3)))
 (assert (!= (1 1) (1 2)))
@@ -15,27 +15,6 @@
 (assert (< 1 4))
 (assert (> 10 -4))
 (assert (< -1 40))
-
-; comments?
-
-(println types)
-(assert (is print (quote print))) ; commentish
-(assert (is (type print) fn1))
-(assert (is (type 3) int))
-(assert (is (type foo) symbol))
-(assert (not (is (1 2) (1 2))))
-(assert (isinstance 3 int))
-(assert (isinstance 3 symbol))
-(assert (isinstance foo symbol))
-(assert (== (3 . (4 . (5 . nil))) (3 4 5)))
-(assert (== (1 2 3) (1 2 3)))
-(assert (not (== (1 2 3) (1 3 5))))
-(assert (not (!= (1 2) (1 2))))
-(assert (!= (1 2) (3 4)))
-(assert (!= (1 2) (1 2 3)))
-(assert (== (apply cons (3 4)) (3 . 4)))
-(assert (== (eval (cons 3 4)) (3 . 4)))
-(assert (isinstance (time) int))
 (assert (== (len (1 2 3)) 3))
 (assert (== (len ()) 0))
 (assert (== (len nil) 0))
@@ -58,6 +37,27 @@
 (assert (== (or nil true) true))
 (assert (== (or nil 1) true))
 (assert (== (or nil nil) nil))
+
+; comments?
+
+(println types)
+(assert (is print (quote print))) ; commentish
+(assert (is (type print) fn1))
+(assert (is (type 3) int))
+(assert (is (type foo) symbol))
+(assert (not (is (1 2) (1 2))))
+(assert (isinstance 3 int))
+(assert (isinstance 3 symbol))
+(assert (isinstance foo symbol))
+(assert (== (3 . (4 . (5 . nil))) (3 4 5)))
+(assert (== (1 2 3) (1 2 3)))
+(assert (not (== (1 2 3) (1 3 5))))
+(assert (not (!= (1 2) (1 2))))
+(assert (!= (1 2) (3 4)))
+(assert (!= (1 2) (1 2 3)))
+(assert (== (apply cons (3 4)) (3 . 4)))
+(assert (== (eval (cons 3 4)) (3 . 4)))
+(assert (isinstance (time) int))
 
 (println flow)
 (assert (is (if ()) nil))
@@ -92,7 +92,6 @@
 (set a [1 2 3])
 (set b [2 3 4])
 (set c (+ a b))
-
 (assert (all (== a [1 2 3])))
 (assert (all (== b [2 3 4])))
 (assert (all (== c [3 5 7])))
@@ -100,4 +99,6 @@
 (assert (not (all (== a [1 2 4]))))
 (assert (any (== a [1 2 4])))
 (println passed)
+
+(println vars)
 (gc)

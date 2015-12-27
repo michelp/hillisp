@@ -21,7 +21,8 @@ hillisp is an extremely tiny Lisp implementation written in CUDA C++.
 It's primary purpose is to drive the GPU as efficiently as possible.
 The language itself is not designed to be especially performant or
 featureful, as any computational density your program needs should be
-done on the CUDA device and should be appropriate for CUDA workloads.
+done in-kernel on the CUDA device and should be appropriate for CUDA
+workloads.
 
 To that end, the interpreter is very simple, has few "general purpose"
 programming features, and is designed to undertake it's interpretation
@@ -30,30 +31,37 @@ GPU is running CUDA kernels.  In this way it attempts to be as "zero
 time" as possible.
 
 hillisp is not a general purpose programming language, but a language
-for exploring parallel algorithms using extremely powerful, modern GPU
-hardware.  It would be inappropraite, for example, to write deployment
-scripts with it.
+for exploring parallel algorithms using the high-level language
+developed for Connection Machines on extremely powerful, modern GPU
+hardware.
 
 ## xectors
 
 A xector is constructed using bracket syntax.  Currently only integer
 xectors are supported.  Lisp functions operate on traditional
 arguments like numbers, but can also operate on xectors entirely in
-the GPU.  For example, the '+' function can add two integers together
-(this is done on the CUDA "host") or it can add two xectors together
-(this is done on the CUDA "device"):
+the GPU.  For example, the '*' function can multiply two integers
+together (this is done on the CUDA "host") or it can multiply two
+xectors together (this is done on the CUDA "device"):
 
-    ? (+ 3 4)  # this happens on the host
-    : 7
-    ? (+ (fill 3 1000000) (fill 4 1000000))  # this happens on the device
+    ? (* 3 4)  # mulitply on host
+    : 12
+
+    ? (* [1 2 3] [4 5 6]) # parallel mulitply on device
+    : [4 10 18]
+
+Large arrays can be created and intialized entirely on-device:
+
+    ? (+ (fill 3 1000000) (fill 4 1000000))
     : [7 7 7 7 7 7 7 7 7 7 7 7 7 7 7  ... 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
     ?
 
 The 'fill' function takes a value and a size and creates a xector of
-the specified size filled with that value.  Thus, The second
-expression above creates two xectors of one million integers each,
-fills them with the values 3 and 7, respectively, then adds them
-together, yielding a xector containing one million "10" values.
+the specified size and fills it, in parallel, with that value.  Thus,
+the second expression above creates two xectors of one million
+integers each, fills them with the values 3 and 7, respectively, then
+adds them together, yielding a xector containing one million "10"
+values.
 
 This is conceptually very similar to the following numpy code:
 
@@ -75,8 +83,8 @@ asynchronously into a CUDA stream.  First two 'fill' kernels, then a
 can be dispatched in parallel.  While the first two kernels complete
 the interpreter does garbage collection, and queues up the next kernel
 to run, the '+' kernel which waits until the 'fill' kernels complete
-before adding the two xectors together, yielding a third xector
-containing the result.
+before adding the two xectors together. This finally yields a third
+xector containing the result of one million integers set to value '7'.
 
 Xectors are allocated using CUDA [Unified
 Memory](http://devblogs.nvidia.com/parallelforall/unified-memory-in-cuda-6/).
@@ -85,6 +93,8 @@ device.  CUDA manages the unified memory so that only the minimal
 amount of copying to and from the device to the host is required.
 
 ## TODO
+
+  - Unicode strings.
 
   - Multi-device support.
 

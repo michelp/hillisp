@@ -210,7 +210,7 @@ int64_t inline length(x_any cell) {
   int64_t length = 0;
   if (is_xector(cell))
     return xector_size(cell);
-  else if (cell == x_env.nil || cdr(cell) == NULL)
+  else if (cdr(cell) == NULL)
     return 0;
   else
     do {
