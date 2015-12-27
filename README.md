@@ -44,6 +44,12 @@ the GPU.  For example, the '+' function can add two integers together
     : [7 7 7 7 7 7 7 7 7 7 7 7 7 7 7  ... 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
     ?
 
+The 'fill' function takes a value and a size and creates a xector of
+the specified size filled with that value.  Thus, The second
+expression above creates two xectors of one million integers each,
+fills them with the values 3 and 7, respectively, then adds them
+together, yielding a xector containing one million "10" values.
+
 This is conceptually very similar to the following numpy code:
 
     >>> 3 + 4
@@ -56,19 +62,22 @@ This is conceptually very similar to the following numpy code:
     array([ 7.,  7.,  7., ...,  7.,  7.,  7.])
     >>>
 
-The 'fill' function takes a value and a size and creates a xector of
-the specified size filled with that value.  Thus, The second
-expression above creates two xectors of one million integers each,
-fills them with the values 3 and 7, respectively, then adds them
-together, yielding a xector containing one million "10" values.
+## CUDA kernels
 
-Internally, '+' and 'fill' cause CUDA kernels to be launched
-asynchronously into a CUDA stream.  First two 'fill' kernels then a
+Internally, '+' and 'fill' cause CUDA kernels to be queued for launch
+asynchronously into a CUDA stream.  First two 'fill' kernels, then a
 '+' kernel.  Since the 'fill' kernels don't depend on each other, they
 can be dispatched in parallel.  While the first two kernels complete
 the interpreter does garbage collection, and queues up the next kernel
 to run, the '+' kernel which waits until the 'fill' kernels complete
-before adding the two xectors.
+before adding the two xectors together, yielding a third xector
+containing the result.
+
+Xectors are allocated using CUDA [Unified
+Memory](http://devblogs.nvidia.com/parallelforall/unified-memory-in-cuda-6/).
+Pointers to xector data can be accessed by both the host and the
+device.  CUDA manages the unified memory so that only the minimal
+amount of copying to and from the device to the host is required.
 
 ## TODO
 
