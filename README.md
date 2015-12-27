@@ -14,7 +14,6 @@ paper [Connection Machine Lisp: fine-grained parallel symbolic
 processing](http://dl.acm.org/citation.cfm?id=319870) by Hillis and
 [Guy L. Steele, Jr.](https://en.wikipedia.org/wiki/Guy_L._Steele,_Jr.)
 
-
 ## lisp
 
 hillisp is an extremely tiny Lisp implementation written in CUDA C++.
@@ -24,7 +23,7 @@ featureful, as any computational density your program needs should be
 done on the CUDA device and should be appropriate for CUDA workloads.
 
 To that end, the interpreter is very simple, has few "general purpose"
-programming features and is designed to undertake it's interpretation
+programming features, and is designed to undertake it's interpretation
 duties (ie, scheduling, garbage collection) asynchronously while the
 GPU is running CUDA kernels.  In this way it attempts to be as "zero
 time" as possible.
@@ -64,9 +63,15 @@ together, yielding a xector containing one million "10" values.
 
 Internally, '+' and 'fill' cause CUDA kernels to be launched
 asynchronously into a CUDA stream.  First two 'fill' kernels then a
-'+' kernel.
+'+' kernel.  Since the 'fill' kernels don't depend on each other, they
+can be dispatched in parallel.  While the first two kernels complete
+the interpreter does garbage collection, and queues up the next kernel
+to run, the '+' kernel which waits until the 'fill' kernels complete
+before adding the two xectors.
 
 ## TODO
+
+  - Multi-device support.
 
   - Currently only 64 bit integer xectors are supported, but code is
     in place to support all the main CUDA numeric types.

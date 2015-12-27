@@ -144,3 +144,4 @@ int main(int argc, const char* argv[]) {
   x_env.result = cudaStreamDestroy(x_env.stream);
   cudaDeviceReset();
 }
+
