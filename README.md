@@ -7,8 +7,8 @@ Machines](https://en.wikipedia.org/wiki/Connection_Machine).
 hillisp CUDA arrays are called "xectors" and can be operated on in
 [CUDA
 SIMT](https://en.wikipedia.org/wiki/Single_instruction,_multiple_threads)
-fashion using a parallel lisp syntax.  Variants of this syntax were
-described in [The Connection Machine (link to book on
+fashion using a parallel lisp syntax.  Inspirations for this syntax
+were described in [The Connection Machine (link to book on
 Amazon)](http://www.amazon.com/The-Connection-Machine-Artificial-Intelligence/dp/0262580977)
 by [Daniel Hillis](https://en.wikipedia.org/wiki/Danny_Hillis) and the
 paper [Connection Machine Lisp: fine-grained parallel symbolic
