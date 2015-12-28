@@ -70,3 +70,11 @@ x_any x_dir() {
   }
   return result;
 }
+
+x_any x_def(x_any name, x_any args, x_any body) {
+  assert(is_symbol(name));
+  type(name) = x_env.user;
+  bind(sval(name), name);
+  set_car(name, x_cons(args, body));
+  return x_env.nil;
+}

@@ -30,9 +30,11 @@ x_any x_gc() {
   mark(x_env.rbrack);
   mark(x_env.eof);
 
-  for (int i = 0; i < X_NUM_FRAMES; i++)
+  for (int i = 0; i < x_env.max_frame_count; i++)
     for (int j = 0; j < X_HASH_TABLE_SIZE; j++)
       mark(x_env.frames[i][j]);
+
+  x_env.max_frame_count = x_env.frame_count;
 
    cell_pool = x_env.cell_pools;
    SYNCS(x_env.stream);
@@ -111,4 +113,13 @@ x_cell_pool* new_cell_pool(x_cell_pool* old) {
     free_cell(h, cell);
   while (--cell >= h->cells);
   return h;
+}
+
+void init_frames() {
+  for (int i = 0; i < X_NUM_FRAMES; i++)
+    for (int j = 0; j < X_HASH_TABLE_SIZE; j++)
+      x_env.frames[i][j] = x_env.nil;
+
+  x_env.frame_count = 0;
+  x_env.max_frame_count = 0;
 }

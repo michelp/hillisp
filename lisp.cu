@@ -39,11 +39,7 @@ void init(void) {
   x_env.binding = new_cell("binding", x_env.symbol);
   x_env.ns = new_cell("ns", x_env.symbol);
 
-  for (int i = 0; i < X_NUM_FRAMES; i++)
-    for (int j = 0; j < X_HASH_TABLE_SIZE; j++)
-      x_env.frames[i][j] = x_env.nil;
-
-  x_env.frame_count = 0;
+  init_frames();
   push_frame();
 
   bind("symbol", x_env.symbol);
@@ -106,6 +102,7 @@ void init(void) {
   def_builtin("set", (void*)x_set, 2);
   def_builtin("dir", (void*)x_dir, 0);
   def_builtin("len", (void*)x_len, 1);
+  def_builtin("def", (void*)x_def, 3);
 }
 
 int main(int argc, const char* argv[]) {

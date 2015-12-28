@@ -53,7 +53,7 @@ two xectors together (this is done on the CUDA "device", the GPU):
 Large arrays can be created and intialized entirely on-device:
 
     ? (+ (fill 3 1000000) (fill 4 1000000))
-    : [7 7 7 7 7 7 7 7 7 7 7 7 7 7 7  ... 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
+    : [7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 ... 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
     ?
 
 The 'fill' function takes a value and a size and creates a xector of

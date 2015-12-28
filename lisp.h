@@ -84,6 +84,7 @@ typedef struct __align__(16) x_environ {
 
   x_any nss;
   int frame_count;
+  int max_frame_count;
   x_any frames[X_NUM_FRAMES][X_HASH_TABLE_SIZE];
 } x_environ;
 
@@ -170,6 +171,7 @@ x_any read_cdr(FILE*);
 x_any read_sexpr_head(FILE*);
 x_any read_sexpr_tail(FILE*);
 void init(void);
+void init_frames();
 
 // core functions
 
@@ -189,6 +191,7 @@ x_any x_len(x_any);
 x_any x_set(x_any, x_any);
 x_any x_fill(x_any, x_any);
 x_any x_dir();
+x_any x_def(x_any, x_any, x_any);
 
 // flow
 
@@ -274,6 +277,7 @@ x_any inline push_frame() {
   frame = new_cell(NULL, x_env.ns);
 
   x_env.frame_count += 1;
+  x_env.max_frame_count += 1;
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
     current_frame[i] = x_env.nil;
 

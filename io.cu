@@ -17,7 +17,7 @@ void print_xector(x_any cell, FILE *outfile) {
       if (i != (xector_size(cell) - 1))
         putc(' ', outfile);
     }
-    fprintf(outfile, " ... ");
+    fprintf(outfile, "... ");
     for (i = xector_size(cell) - 15; i < xector_size(cell); i++) {
       fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
       if (i != (xector_size(cell) - 1))

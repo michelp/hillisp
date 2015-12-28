@@ -88,7 +88,7 @@ x_any x_apply(x_any cell, x_any args) {
       assert(0);
   }
   else if (is_user(cell))
-    return x_apply((x_any)car(cell), args);
+    return x_apply(car(cell), args);
   else if (is_symbol(cell) || is_int(cell))
     return x_cons(cell, args);
   else if (is_pair(cell))
@@ -223,3 +223,4 @@ int64_t inline length(x_any cell) {
 x_any x_len(x_any cell) {
   return new_int(length(cell));
 }
+
