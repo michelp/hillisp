@@ -14,6 +14,7 @@
 #define X_OLD_CELL_POOL_SIZE (1024*512)
 #define X_XECTOR_BLOCK_SIZE (1024*1024)
 
+#define X_NUM_FRAMES 128
 #define X_HASH_TABLE_SIZE 269
 #define X_HASH_MULTIPLIER 131
 #define X_MAX_NAME_LEN 128
@@ -49,23 +50,16 @@ typedef struct __align__(16) x_cell_pool {
 } x_cell_pool;
 
 #define free_cell(h, p) (car(p) = h->free, h->free=(p))
-
-typedef struct __align__(16) x_frame {
-  x_frame *next;
-  x_frame *prev;
-  x_any names[X_HASH_TABLE_SIZE];
-} x_frame;
+#define current_frame (x_env.frames[x_env.frame_count - 1])
 
 typedef struct __align__(16) x_environ {
-  x_frame* frames;
-  x_cell_pool* cell_pools;
-
   cudaStream_t stream;
   cudaError_t result;
   int debugLevel;
 
   x_any symbol;
   x_any binding;
+  x_any ns;
   x_any nil;
   x_any true_;
   x_any dot;
@@ -85,6 +79,12 @@ typedef struct __align__(16) x_environ {
   x_any fn1;
   x_any fn2;
   x_any fn3;
+
+  x_cell_pool* cell_pools;
+
+  x_any nss;
+  int frame_count;
+  x_any frames[X_NUM_FRAMES][X_HASH_TABLE_SIZE];
 } x_environ;
 
 extern __thread x_environ x_env;
@@ -120,6 +120,7 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_user(x) (type(x) == x_env.user)
 #define is_pair(x) (type(x) == x_env.pair)
 #define is_binding(x) (type(x) == x_env.binding)
+#define is_ns(x) (type(x) == x_env.ns)
 #define is_xector(x) (type(x) == x_env.xector)
 #define is_int(x) (type(x) == x_env.int_)
 #define is_str(x) (type(x) == x_env.str)
@@ -146,7 +147,6 @@ void* x_alloc(size_t);
 char* new_name(const char*);
 x_any new_cell(const char*, x_any);
 x_any new_int(int64_t);
-x_frame* new_frame();
 x_cell_pool* new_cell_pool(x_cell_pool*);
 x_any def_token(const char*);
 int hash(const char*);
@@ -267,4 +267,24 @@ x_any new_xector(const char* name, size_t size) {
 }
 
 template x_any new_xector<int64_t>(char const*, unsigned long);
+
+
+x_any inline push_frame() {
+  x_any frame;
+  frame = new_cell(NULL, x_env.ns);
+
+  x_env.frame_count += 1;
+  for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
+    current_frame[i] = x_env.nil;
+
+  set_val(frame, &current_frame);
+  set_cdr(frame, x_env.nss);
+  x_env.nss = frame;
+  return frame;
+}
+
+void inline pop_frame() {
+  x_env.frame_count -= 1;
+  x_env.nss = cdr(x_env.nss);
+}
 

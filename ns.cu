@@ -7,37 +7,39 @@ int inline hash(const char *name) {
   return value;
 }
 
-x_any inline lookup(const char *name) {
+x_any lookup(const char *name) {
   x_any binding;
   int hashval;
-
   hashval = hash(name);
-  binding = x_env.frames->names[hashval];
-  if (binding == x_env.nil)
-    return NULL;
-  do {
-    if (strcmp(name, sval(binding)) == 0)
-      return binding;
-    binding = cdr(binding);
-  } while (binding != NULL);
+
+  for (int i = x_env.frame_count; i > 0; i--) {
+    binding = x_env.frames[i - 1][hashval];
+    if (binding == x_env.nil)
+      continue;
+    do {
+      if (strcmp(name, sval(binding)) == 0)
+        return binding;
+      binding = cdr(binding);
+    } while (binding != x_env.nil);
+  }
   return NULL;
 }
 
 void bind(const char* name, x_any value) {
   int hash_val;
   x_any binding, bucket;
-  hash_val = hash(name);
   binding = lookup(name);
   if (binding != NULL) {
     set_car(binding, value);
     return;
   }
 
-  bucket = x_env.frames->names[hash_val];
+  hash_val = hash(name);
+  bucket = current_frame[hash_val];
   binding = new_cell(name, x_env.binding);
   set_car(binding, value);
   set_cdr(binding, bucket);
-  x_env.frames->names[hash_val] = binding;
+  current_frame[hash_val] = binding;
 }
 
 x_any intern(const char *name) {
@@ -55,13 +57,15 @@ x_any x_dir() {
   x_any binding, result;
   result = x_env.nil;
 
-  for (int i = 0; i < X_HASH_TABLE_SIZE; i++) {
-    binding = x_env.frames->names[i];
-    if (binding != x_env.nil) {
-      do {
-        result = x_cons(binding, result);
-        binding = cdr(binding);
-      } while (binding != x_env.nil);
+  for (int i = 0; i < x_env.frame_count; i++) {
+    for (int j = 0; j < X_HASH_TABLE_SIZE; j++) {
+      binding = x_env.frames[i][j];
+      if (binding != x_env.nil) {
+        do {
+          result = x_cons(binding, result);
+          binding = cdr(binding);
+        } while (binding != x_env.nil);
+      }
     }
   }
   return result;

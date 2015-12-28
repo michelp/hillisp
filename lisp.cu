@@ -34,14 +34,21 @@ void init(void) {
   x_env.symbol = new_cell("symbol", NULL);
   set_type(x_env.symbol, x_env.symbol);
 
-  x_env.binding = new_cell("binding", x_env.symbol);
   x_env.pair = new_cell("pair", x_env.symbol);
   x_env.nil = new_cell("nil", x_env.symbol);
+  x_env.binding = new_cell("binding", x_env.symbol);
+  x_env.ns = new_cell("ns", x_env.symbol);
 
-  x_env.frames = new_frame();
+  for (int i = 0; i < X_NUM_FRAMES; i++)
+    for (int j = 0; j < X_HASH_TABLE_SIZE; j++)
+      x_env.frames[i][j] = x_env.nil;
+
+  x_env.frame_count = 0;
+  push_frame();
 
   bind("symbol", x_env.symbol);
   bind("binding", x_env.binding);
+  bind("ns", x_env.ns);
   bind("pair", x_env.pair);
   bind("nil", x_env.nil);
 
@@ -141,6 +148,10 @@ int main(int argc, const char* argv[]) {
       x_gc();
     }
   }
+  pop_frame();
+  x_gc();
   x_env.result = cudaStreamDestroy(x_env.stream);
+  CHECK;
   cudaDeviceReset();
+  CHECK;
 }
