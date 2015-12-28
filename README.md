@@ -41,8 +41,8 @@ A xector is constructed using bracket syntax.  Currently only integer
 xectors are supported.  Lisp functions operate on traditional
 arguments like numbers, but can also operate on xectors entirely in
 the GPU.  For example, the '*' function can multiply two integers
-together (this is done on the CUDA "host") or it can multiply two
-xectors together (this is done on the CUDA "device"):
+together (this is done on the CUDA "host", the CPU) or it can multiply
+two xectors together (this is done on the CUDA "device", the GPU):
 
     ? (* 3 4)  # mulitply on host
     : 12
