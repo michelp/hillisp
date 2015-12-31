@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdint.h>
-#include <exception>
 
 #define X_YOUNG_CELL_POOL_SIZE (1024*64)
 #define X_OLD_CELL_POOL_SIZE (1024*512)
@@ -77,6 +76,7 @@ typedef struct __align__(16) x_environ {
   x_any pair;
   x_any xector;
   x_any int_;
+  x_any float_;
   x_any str;
   x_any fn0;
   x_any fn1;
@@ -103,6 +103,7 @@ extern __thread x_environ x_env;
 #define type(x) ((x)->type)
 #define val(x) ((x)->value)
 #define ival(x) ((int64_t)val(x))
+#define fval(x) (*((float*)val(x)))
 #define sval(x) ((char*)val(x))
 #define xval(x) ((x_any)val(x))
 
@@ -110,6 +111,7 @@ extern __thread x_environ x_env;
 #define set_cdr(x, y) (cdr(x) = (y))
 #define set_type(x, y) (type(x) = (y))
 //#define set_val(x, y) val(x) = ((void*)y)
+#define set_val(x, y) ((x->value) = (void*)(y))
 #define set_val(x, y) ((x->value) = (void*)(y))
 
 template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
@@ -127,12 +129,14 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_binding(x) (type(x) == x_env.binding)
 #define is_xector(x) (type(x) == x_env.xector)
 #define is_int(x) (type(x) == x_env.int_)
+#define is_float(x) (type(x) == x_env.float_)
 #define is_str(x) (type(x) == x_env.str)
 
 #define are_symbols(x, y) (is_symbol(x) && is_symbol(y))
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
 #define are_ints(x, y) (is_int(x) && is_int(y))
+#define are_floats(x, y) (is_float(x) && is_float(y))
 #define are_strs(x, y) (is_str(x) && is_str(y))
 
 #define is_fn0(x) (type(x) == x_env.fn0)
@@ -154,6 +158,7 @@ void* x_alloc(size_t);
 char* new_name(const char*);
 x_any new_cell(const char*, x_any);
 x_any new_int(int64_t);
+x_any new_float(double);
 x_cell_pool* new_cell_pool(x_cell_pool*);
 x_any def_token(const char*);
 int hash(const char*);

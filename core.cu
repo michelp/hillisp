@@ -133,7 +133,10 @@ x_any eval_symbol(x_any sym) {
   name = sval(sym);
   assert(name != NULL);
   if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
-    return new_int(atoll(name));
+    if (strchr(name, '.') == NULL)
+      return new_int(strtoll(name, NULL, 0));
+    else
+      return new_float(strtod(name, NULL));
   }
   cell = lookup(name, -1);
   if (cell == NULL)

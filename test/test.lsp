@@ -4,6 +4,7 @@
 (assert (== 3 3))
 (assert (!= 3 4))
 (assert (== (3 (+ 3 3) (- 3 3)) (3 6 0)))
+
 (assert (== -3 -3))
 (assert (== (1 2) (1 2)))
 (assert (== (1 . 2) (1 . 2)))
@@ -16,6 +17,13 @@
 (assert (< 1 4))
 (assert (> 10 -4))
 (assert (< -1 40))
+
+(assert (== (+ 21.234 234.5345) 255.768494))
+(assert (> 10.1 7.2))
+(assert (< 1.5 4.77))
+(assert (> 10.0 -4.99))
+(assert (< -1.56 40.732))
+
 (assert (== (len (1 2 3)) 3))
 (assert (== (len ()) 0))
 (assert (== (len nil) 0))

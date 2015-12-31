@@ -64,6 +64,7 @@ void init(void) {
   x_env.true_ = intern("true");
   x_env.xector = intern("xector");
   x_env.int_ = intern("int");
+  x_env.float_ = intern("float");
   x_env.str = intern("str");
 
   x_env.fn0 = intern("fn0");
@@ -148,7 +149,7 @@ int main(int argc, const char* argv[]) {
   }
   else {
     for (;;) {
-      printf("[%i]? ", x_env.frame_count);
+      printf("? ");
       expr = read_sexpr(stdin);
       if (expr == x_env.eof)
         break;

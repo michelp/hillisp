@@ -48,6 +48,8 @@ x_any x_add(x_any a, x_any b) {
   }
   else if (are_ints(a, b))
     return new_int(ival(a) + ival(b));
+  else if (are_floats(a, b))
+    return new_float(fval(a) + fval(b));
   assert(0);
   return x_env.nil;
 }
@@ -65,6 +67,8 @@ x_any x_sub(x_any a, x_any b) {
   }
   else if (are_ints(a, b))
     return new_int(ival(a) - ival(b));
+  else if (are_floats(a, b))
+    return new_float(fval(a) - fval(b));
   assert(0);
   return x_env.nil;
 }
@@ -82,7 +86,9 @@ x_any x_mul(x_any a, x_any b) {
   }
   else if (are_ints(a, b))
     return new_int(ival(a) * ival(b));
-  assert(0);
+ else if (are_floats(a, b))
+    return new_float(fval(a) * fval(b));
+   assert(0);
   return x_env.nil;
 }
 
@@ -99,7 +105,9 @@ x_any x_div(x_any a, x_any b) {
   }
   else if (are_ints(a, b))
     return new_int(ival(a) / ival(b));
-  assert(0);
+ else if (are_floats(a, b))
+    return new_float(fval(a) / fval(b));
+   assert(0);
   return x_env.nil;
 }
 
@@ -117,6 +125,8 @@ x_any x_fma(x_any a, x_any b, x_any c) {
   }
   else if (are_ints(a, b))
     return new_int(ival(a) * ival(b) + ival(c));
+  else if (are_floats(a, b))
+    return new_float(fval(a) * fval(b) + fval(c));
   assert(0);
   return x_env.nil;
 }

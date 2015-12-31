@@ -103,6 +103,17 @@ x_any new_int(int64_t value) {
   return cell;
 }
 
+x_any new_float(double value) {
+  x_any cell;
+  float *v;
+  cell = new_cell(NULL, x_env.float_);
+  v = (float*)malloc(sizeof(float));
+  assert(v != NULL);
+  *v = value;
+  set_val(cell, v);
+  return cell;
+}
+
 x_cell_pool* new_cell_pool(x_cell_pool* old) {
   x_cell_pool* h;
   x_any cell;
