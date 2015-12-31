@@ -44,10 +44,10 @@ the GPU.  For example, the '*' function can multiply two integers
 together (this is done on the CUDA "host", the CPU) or it can multiply
 two xectors together (this is done on the CUDA "device", the GPU):
 
-    ? (* 3 4)  # mulitply on host
+    ? (* 3 4)  ; mulitply on host
     : 12
 
-    ? (* [1 2 3] [4 5 6]) # parallel mulitply on device
+    ? (* [1 2 3] [4 5 6]) ; parallel mulitply on device
     : [4 10 18]
 
 Large arrays can be created and intialized entirely on-device:
@@ -114,6 +114,8 @@ amount of copying to and from the device to the host is required.
     key as well as position.
 
   - Native graph types.
+
+  - JIT to PTX?
 
 ## Alpha, Dot, and Beta
 

@@ -50,7 +50,9 @@ typedef struct __align__(16) x_cell_pool {
 } x_cell_pool;
 
 #define free_cell(h, p) (car(p) = h->free, h->free=(p))
-#define current_frame (x_env.frames[x_env.frame_count - 1])
+
+#define current_frame_bucket(h) (x_env.frames[x_env.frame_count][h])
+#define get_frame_bucket(i, h) (x_env.frames[i][h])
 
 typedef struct __align__(16) x_environ {
   cudaStream_t stream;
@@ -79,10 +81,10 @@ typedef struct __align__(16) x_environ {
   x_any fn1;
   x_any fn2;
   x_any fn3;
+  x_any special;
 
   x_cell_pool* cell_pools;
 
-  x_any nss;
   int frame_count;
   int max_frame_count;
   x_any frames[X_NUM_FRAMES][X_HASH_TABLE_SIZE];
@@ -121,11 +123,11 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_user(x) (type(x) == x_env.user)
 #define is_pair(x) (type(x) == x_env.pair)
 #define is_binding(x) (type(x) == x_env.binding)
-#define is_ns(x) (type(x) == x_env.ns)
 #define is_xector(x) (type(x) == x_env.xector)
 #define is_int(x) (type(x) == x_env.int_)
 #define is_str(x) (type(x) == x_env.str)
 
+#define are_symbols(x, y) (is_symbol(x) && is_symbol(y))
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
 #define are_ints(x, y) (is_int(x) && is_int(y))
@@ -135,10 +137,11 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_fn1(x) (type(x) == x_env.fn1)
 #define is_fn2(x) (type(x) == x_env.fn2)
 #define is_fn3(x) (type(x) == x_env.fn3)
+#define is_special(x) (type(x) == x_env.special)
 #define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
-#define is_atom(x) (is_symbol((x)) || is_builtin((x)) || is_int(x) || is_xector(x))
+#define is_atom(x) (is_builtin((x)) || is_special(x) || is_user(x) || is_int(x) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
-#define is_func(x) (is_builtin((x)) || is_user((x)))
+#define is_func(x) (is_builtin((x)) || is_user((x)) || is_special(x))
 
 #define assert_xectors_align(x, y) assert(xector_size(x) == xector_size(y))
 
@@ -151,8 +154,7 @@ x_any new_int(int64_t);
 x_cell_pool* new_cell_pool(x_cell_pool*);
 x_any def_token(const char*);
 int hash(const char*);
-x_any _lookup(const char*, x_any);
-x_any lookup(const char*);
+x_any lookup(const char*, int);
 x_any create_symbol(const char*);
 void print_list(x_any, FILE*);
 void print_cell(x_any, FILE*);
@@ -161,7 +163,8 @@ void bind(const char*, x_any);
 void rebind(const char*, x_any);
 x_any intern(const char*);
 int64_t length(x_any);
-x_any list_eval(x_any);
+x_any eval_symbol(x_any);
+x_any eval_list(x_any);
 x_any intern(const char*);
 x_any def_builtin(const char*, void*, size_t);
 x_any read_token(FILE*);
@@ -182,7 +185,6 @@ x_any x_print(x_any);
 x_any x_println(x_any);
 x_any x_eval(x_any);
 x_any x_apply(x_any, x_any);
-x_any x_quote(x_any);
 x_any x_is(x_any, x_any);
 x_any x_isinstance(x_any, x_any);
 x_any x_assert(x_any);
@@ -191,7 +193,11 @@ x_any x_len(x_any);
 x_any x_set(x_any, x_any);
 x_any x_fill(x_any, x_any);
 x_any x_dir();
-x_any x_def(x_any, x_any, x_any);
+
+// special
+
+x_any x_quote(x_any);
+x_any x_def(x_any);
 
 // flow
 
@@ -272,23 +278,14 @@ x_any new_xector(const char* name, size_t size) {
 template x_any new_xector<int64_t>(char const*, unsigned long);
 
 
-x_any inline push_frame() {
-  x_any frame;
-  frame = new_cell(NULL, x_env.ns);
-
+void inline push_frame() {
   x_env.frame_count += 1;
   x_env.max_frame_count += 1;
   for (int i = 0; i < X_HASH_TABLE_SIZE; i++)
-    current_frame[i] = x_env.nil;
-
-  set_val(frame, &current_frame);
-  set_cdr(frame, x_env.nss);
-  x_env.nss = frame;
-  return frame;
+    current_frame_bucket(i) = x_env.nil;
 }
 
 void inline pop_frame() {
   x_env.frame_count -= 1;
-  x_env.nss = cdr(x_env.nss);
 }
 

@@ -72,10 +72,12 @@ x_any inline x_cons(x_any cell1, x_any cell2) {
 }
 
 x_any x_apply(x_any cell, x_any args) {
+  x_any expr, result;
+  if (is_special(cell))
+    return ((x_fn1)val(cell))(args);
+
+  args = eval_list(args);
   if (is_builtin(cell)) {
-#ifdef DEBUG
-    printf("%*s" "%s\n", debugLevel, " ", sval(cell));
-#endif
     if (is_fn1(cell))
       return ((x_fn1)val(cell))(car(args));
     else if (is_fn2(cell))
@@ -87,8 +89,25 @@ x_any x_apply(x_any cell, x_any args) {
     else
       assert(0);
   }
-  else if (is_user(cell))
-    return x_apply(car(cell), args);
+  else if (is_user(cell)) {
+    expr = car(cell);
+    assert(length(args) == length(expr));
+    push_frame();
+
+    do {
+      bind(sval(car(expr)), car(args));
+      expr = cdr(expr);
+      args = cdr(args);
+    } while(expr != x_env.nil);
+
+    expr = cdr(cell);
+    do {
+      result = x_eval(car(expr));
+      expr = cdr(expr);
+    } while (expr != x_env.nil);
+    pop_frame();
+    return result;
+  }
   else if (is_symbol(cell) || is_int(cell))
     return x_cons(cell, args);
   else if (is_pair(cell))
@@ -98,37 +117,50 @@ x_any x_apply(x_any cell, x_any args) {
   return x_env.nil;
 }
 
-x_any x_quote(x_any cell) {
-  return cell;
+x_any x_quote(x_any args) {
+  return car(args);
 }
 
-x_any list_eval(x_any cell) {
+x_any eval_symbol(x_any sym) {
+  char* name;
+  x_any cell;
+  name = sval(sym);
+  assert(name != NULL);
+  if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
+    return new_int(atoll(name));
+  }
+  cell = lookup(name, -1);
+  if (cell == NULL)
+    return sym;
+  return car(cell);
+}
+
+x_any eval_list(x_any cell) {
   if (cell == x_env.nil)
     return x_env.nil;
-  if (is_atom(cell))
+  if (is_symbol(cell))
+    return eval_symbol(cell);
+  else if (is_atom(cell))
     return cell;
   else
-    return x_cons(x_eval(car(cell)), list_eval(cdr(cell)));
+    return x_cons(x_eval(car(cell)), eval_list(cdr(cell)));
 }
 
 x_any x_eval(x_any cell) {
   x_any temp;
-  if (is_atom(cell))
+  if (is_symbol(cell))
+      return eval_symbol(cell);
+  else if (is_atom(cell))
     return cell;
-  else if (is_pair(cell) && (is_func(car(cell)))) {
-#ifdef DEBUG
-    debugLevel += 2;
-#endif
-    temp = x_apply(car(cell), list_eval(cdr(cell)));
-#ifdef DEBUG
-    debugLevel -= 2;
-#endif
-    return temp;
-  }
-  else {
+  else if (is_pair(cell)) {
     temp = x_eval(car(cell));
-    return x_cons(temp, list_eval(cdr(cell)));
+    if (is_func(temp))
+      return x_apply(temp, cdr(cell));
+    else
+      return x_cons(temp, eval_list(cdr(cell)));
   }
+  assert(0);
+  return x_env.nil;
 }
 
 x_any x_not(x_any cell) {
@@ -223,4 +255,3 @@ int64_t inline length(x_any cell) {
 x_any x_len(x_any cell) {
   return new_int(length(cell));
 }
-

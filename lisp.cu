@@ -28,6 +28,14 @@ x_any def_builtin(char const *name, void *fn, size_t num_args) {
   return cell;
 }
 
+x_any def_special(char const *name, void *fn) {
+  x_any cell;
+  cell = intern(name);
+  set_type(cell, x_env.special);
+  set_val(cell, fn);
+  return cell;
+}
+
 void init(void) {
   x_env.cell_pools = new_cell_pool(NULL);
 
@@ -40,7 +48,6 @@ void init(void) {
   x_env.ns = new_cell("ns", x_env.symbol);
 
   init_frames();
-  push_frame();
 
   bind("symbol", x_env.symbol);
   bind("binding", x_env.binding);
@@ -60,6 +67,7 @@ void init(void) {
   x_env.fn1 = intern("fn1");
   x_env.fn2 = intern("fn2");
   x_env.fn3 = intern("fn3");
+  x_env.special = intern("special");
 
   x_env.dot = def_token(".");
   x_env.lparen = def_token("(");
@@ -74,7 +82,6 @@ void init(void) {
   def_builtin("car", (void*)x_car, 1);
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
-  def_builtin("quote", (void*)x_quote, 1);
   def_builtin("if", (void*)x_if, 1);
   def_builtin("while", (void*)x_while, 1);
   def_builtin("eval", (void*)x_eval, 1);
@@ -102,7 +109,9 @@ void init(void) {
   def_builtin("set", (void*)x_set, 2);
   def_builtin("dir", (void*)x_dir, 0);
   def_builtin("len", (void*)x_len, 1);
-  def_builtin("def", (void*)x_def, 3);
+
+  def_special("quote", (void*)x_quote);
+  def_special("def", (void*)x_def);
 }
 
 int main(int argc, const char* argv[]) {
@@ -134,7 +143,7 @@ int main(int argc, const char* argv[]) {
   }
   else {
     for (;;) {
-      printf("? ");
+      printf("[%i]? ", x_env.frame_count);
       expr = read_sexpr(stdin);
       if (expr == x_env.eof)
         break;

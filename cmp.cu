@@ -14,7 +14,11 @@ x_any x_eq(x_any cell1, x_any cell2) {
   x_any cell;
   if (cell1 == cell2)
     return x_env.true_;
-  if (are_ints(cell1, cell2)) {
+  else if (are_symbols(cell1, cell2)) {
+    if (strcmp(sval(cell1), sval(cell2)) == 0)
+      return x_env.true_;
+  }
+  else if (are_ints(cell1, cell2)) {
     if (ival(cell1) == ival(cell2))
       return x_env.true_;
   }

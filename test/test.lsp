@@ -41,7 +41,8 @@
 ; comments?
 
 (println types)
-(assert (is print (quote print))) ; commentish
+; (assert (== (print) (quote (print)))) ; commentish
+(assert (== (eval (quote (+ 3 4))) 7))
 (assert (is (type print) fn1))
 (assert (is (type 3) int))
 (assert (is (type foo) symbol))
@@ -98,7 +99,23 @@
 (assert (not (any (== c a))))
 (assert (not (all (== a [1 2 4]))))
 (assert (any (== a [1 2 4])))
-(println passed)
 
-(println vars)
-(gc)
+(println funcs)
+
+(def foo (a b) (+ a b))
+
+(assert (== (foo 3 4) 7))
+
+(assert (is (type foo) user))
+(assert (== (car foo) (quote (a b))))
+(assert (== (car (cdr foo)) (quote (+ a b))))
+
+(set e 3)
+(set f 4)
+
+(def x (e f) (* e f))
+(assert (== (x 5 6) 30))
+(assert (== e 3))
+(assert (== f 4))
+
+(println passed)

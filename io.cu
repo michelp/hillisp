@@ -28,16 +28,19 @@ void print_xector(x_any cell, FILE *outfile) {
 }
 
 void print_cell(x_any cell, FILE *outfile) {
-  if (is_builtin(cell))
+  if (is_builtin(cell) || is_special(cell))
     fprintf(outfile, "<%s at %p>", sval(type(cell)), (void*)val(cell));
   else if (is_binding(cell))
     fprintf(outfile, "%s", sval(cell));
+  else if (is_user(cell)) {
+    putc('(', outfile);
+    print_list(cell, outfile);
+  }
   else if (is_int(cell))
     fprintf(outfile, "%" PRIi64, ival(cell));
-  else if (is_xector(cell)) {
+  else if (is_xector(cell))
     print_xector(cell, outfile);
-  }
-  else if (is_atom(cell))
+  else if (is_symbol(cell))
     fprintf(outfile, "%s", sval(cell));
   else if (is_pair(cell)) {
     putc('(', outfile);

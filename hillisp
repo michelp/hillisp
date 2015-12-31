@@ -1,1 +1,2 @@
-rlwrap ./lisp $@
+rlwrap -pYellow ./lisp $@
+

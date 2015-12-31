@@ -30,7 +30,7 @@ x_any x_gc() {
   mark(x_env.rbrack);
   mark(x_env.eof);
 
-  for (int i = 0; i < x_env.max_frame_count; i++)
+  for (int i = x_env.max_frame_count; i >= 0; i--)
     for (int j = 0; j < X_HASH_TABLE_SIZE; j++)
       mark(x_env.frames[i][j]);
 

@@ -7,13 +7,17 @@ int inline hash(const char *name) {
   return value;
 }
 
-x_any lookup(const char *name) {
+x_any lookup(const char *name, int depth) {
   x_any binding;
   int hashval;
   hashval = hash(name);
+  if (depth == -1)
+    depth = 0;
+  else
+    depth = x_env.frame_count - depth;
 
-  for (int i = x_env.frame_count; i > 0; i--) {
-    binding = x_env.frames[i - 1][hashval];
+  for (int i = x_env.frame_count; i >= depth; i--) {
+    binding = get_frame_bucket(i, hashval);
     if (binding == x_env.nil)
       continue;
     do {
@@ -28,23 +32,23 @@ x_any lookup(const char *name) {
 void bind(const char* name, x_any value) {
   int hash_val;
   x_any binding, bucket;
-  binding = lookup(name);
+  binding = lookup(name, 0);
   if (binding != NULL) {
     set_car(binding, value);
     return;
   }
 
   hash_val = hash(name);
-  bucket = current_frame[hash_val];
+  bucket = current_frame_bucket(hash_val);
   binding = new_cell(name, x_env.binding);
   set_car(binding, value);
   set_cdr(binding, bucket);
-  current_frame[hash_val] = binding;
+  current_frame_bucket(hash_val) = binding;
 }
 
 x_any intern(const char *name) {
   x_any cell;
-  cell = lookup(name);
+  cell = lookup(name, -1);
   if (cell != NULL)
     return car(cell);
 
@@ -71,10 +75,13 @@ x_any x_dir() {
   return result;
 }
 
-x_any x_def(x_any name, x_any args, x_any body) {
+x_any x_def(x_any args) {
+  x_any name;
+  name = car(args);
   assert(is_symbol(name));
-  type(name) = x_env.user;
+  set_type(name, x_env.user);
+  set_car(name, car(cdr(args)));
+  set_cdr(name, cdr(cdr(args)));
   bind(sval(name), name);
-  set_car(name, x_cons(args, body));
-  return x_env.nil;
+  return name;
 }
