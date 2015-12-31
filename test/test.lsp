@@ -9,6 +9,7 @@
 (assert (== (1 . 2) (1 . 2)))
 (assert (== (1 . 2) (cons 1 2)))
 (assert (not (== (1 . 2) (1 . 3))))
+(assert (== (list a b c) (a b c)))
 (assert (!= (1 . 2) (1 . 3)))
 (assert (!= (1 1) (1 2)))
 (assert (> 10 7))
@@ -41,7 +42,6 @@
 ; comments?
 
 (println types)
-; (assert (== (print) (quote (print)))) ; commentish
 (assert (== (eval (quote (+ 3 4))) 7))
 (assert (is (type print) fn1))
 (assert (is (type 3) int))

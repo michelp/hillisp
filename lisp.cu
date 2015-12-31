@@ -6,12 +6,15 @@ x_any def_token(const char* new_name) {
   return new_cell(new_name, x_env.token);
 }
 
-x_any def_builtin(char const *name, void *fn, size_t num_args) {
+x_any def_builtin(char const *name, void *fn, int num_args) {
   x_any cell;
   cell = intern(name);
   set_type(cell, x_env.builtin);
   set_val(cell, fn);
   switch(num_args) {
+  case -1:
+    set_type(cell, x_env.fnv);
+    break;
   case 0:
     set_type(cell, x_env.fn0);
     break;
@@ -67,6 +70,7 @@ void init(void) {
   x_env.fn1 = intern("fn1");
   x_env.fn2 = intern("fn2");
   x_env.fn3 = intern("fn3");
+  x_env.fnv = intern("fnv");
   x_env.special = intern("special");
 
   x_env.dot = def_token(".");
@@ -82,6 +86,7 @@ void init(void) {
   def_builtin("car", (void*)x_car, 1);
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
+  def_builtin("list", (void*)x_list, -1);
   def_builtin("if", (void*)x_if, 1);
   def_builtin("while", (void*)x_while, 1);
   def_builtin("eval", (void*)x_eval, 1);

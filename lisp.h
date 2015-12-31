@@ -35,6 +35,7 @@ typedef x_any (*x_fn0)();
 typedef x_any (*x_fn1)(x_any);
 typedef x_any (*x_fn2)(x_any, x_any);
 typedef x_any (*x_fn3)(x_any, x_any, x_any);
+typedef x_any (*x_fnv)(x_any);
 
 struct __align__(16) x_cell {
   x_any car;
@@ -81,6 +82,7 @@ typedef struct __align__(16) x_environ {
   x_any fn1;
   x_any fn2;
   x_any fn3;
+  x_any fnv;
   x_any special;
 
   x_cell_pool* cell_pools;
@@ -137,8 +139,9 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_fn1(x) (type(x) == x_env.fn1)
 #define is_fn2(x) (type(x) == x_env.fn2)
 #define is_fn3(x) (type(x) == x_env.fn3)
+#define is_fnv(x) (type(x) == x_env.fnv)
 #define is_special(x) (type(x) == x_env.special)
-#define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x))
+#define is_builtin(x) (is_fn0(x) || is_fn1(x) || is_fn2(x) || is_fn3(x) || is_fnv(x))
 #define is_atom(x) (is_builtin((x)) || is_special(x) || is_user(x) || is_int(x) || is_xector(x))
 #define are_atoms(x, y) (is_atom(x) && is_atom(y))
 #define is_func(x) (is_builtin((x)) || is_user((x)) || is_special(x))
@@ -166,7 +169,7 @@ int64_t length(x_any);
 x_any eval_symbol(x_any);
 x_any eval_list(x_any);
 x_any intern(const char*);
-x_any def_builtin(const char*, void*, size_t);
+x_any def_builtin(const char*, void*, int);
 x_any read_token(FILE*);
 x_any read_xector(FILE*);
 x_any read_sexpr(FILE*);
@@ -181,6 +184,7 @@ void init_frames();
 x_any x_car(x_any);
 x_any x_cdr(x_any);
 x_any x_cons(x_any, x_any);
+x_any x_list(x_any);
 x_any x_print(x_any);
 x_any x_println(x_any);
 x_any x_eval(x_any);

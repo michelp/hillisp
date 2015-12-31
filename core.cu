@@ -71,6 +71,10 @@ x_any inline x_cons(x_any cell1, x_any cell2) {
   return cell;
 }
 
+x_any x_list(x_any args) {
+  return args;
+}
+
 x_any x_apply(x_any cell, x_any args) {
   x_any expr, result;
   if (is_special(cell))
@@ -86,6 +90,8 @@ x_any x_apply(x_any cell, x_any args) {
       return ((x_fn3)val(cell))(car(args), cadr(args), caddr(args));
     else if (is_fn0(cell))
       return ((x_fn0)val(cell))();
+    else if (is_fnv(cell))
+      return ((x_fnv)val(cell))(args);
     else
       assert(0);
   }
