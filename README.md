@@ -37,12 +37,13 @@ hardware.
 
 ## xectors
 
-A xector is constructed using bracket syntax.  Currently only integer
-xectors are supported.  Lisp functions operate on traditional
-arguments like numbers, but can also operate on xectors entirely in
-the GPU.  For example, the '*' function can multiply two integers
-together (this is done on the CUDA "host", the CPU) or it can multiply
-two xectors together (this is done on the CUDA "device", the GPU):
+A xector is constructed using bracket syntax.  Currently only int64_t
+and double xectors are supported.  Lisp functions operate on
+traditional arguments like numbers, but can also operate on xectors
+entirely in the GPU.  For example, the '*' function can multiply two
+integers together (this is done on the CUDA "host", the CPU) or it can
+multiply two xectors together (this is done on the CUDA "device", the
+GPU):
 
     ? (* 3 4)  ; mulitply on host
     : 12
@@ -98,9 +99,9 @@ amount of copying to and from the device to the host is required.
 
   - Multi-device support.
 
-  - Currently only 64 bit integer xectors are supported, but code is
-    in place to support all the main CUDA numeric types and nested
-    xectors.
+  - Currently only 64 bit integer and double xectors are supported,
+    but code is in place to support all the main CUDA numeric types
+    and nested xectors.
 
   - Data-loading functions to fill xectors from data in files.
 
