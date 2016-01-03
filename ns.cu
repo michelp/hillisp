@@ -29,10 +29,10 @@ x_any lookup(const char *name, int depth) {
   return NULL;
 }
 
-x_any bind(const char* name, x_any value) {
+x_any _bind(const char* name, x_any value, int depth) {
   int hash_val;
   x_any binding, bucket;
-  binding = lookup(name, 0);
+  binding = lookup(name, depth);
   if (binding != NULL) {
     set_car(binding, value);
   } else {
@@ -44,6 +44,14 @@ x_any bind(const char* name, x_any value) {
     current_frame_bucket(hash_val) = binding;
   }
   return value;
+}
+
+x_any bind(const char* name, x_any value) {
+  return _bind(name, value, -1);
+}
+
+x_any local(const char* name, x_any value) {
+  return _bind(name, value, 0);
 }
 
 x_any intern(const char *name) {
@@ -82,6 +90,6 @@ x_any x_def(x_any args) {
   set_type(name, x_env.user);
   set_car(name, car(cdr(args)));
   set_cdr(name, cdr(cdr(args)));
-  bind(sval(name), name);
+  local(sval(name), name);
   return name;
 }

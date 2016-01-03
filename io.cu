@@ -1,5 +1,15 @@
 #include "lisp.h"
 
+char* x_str(x_any cell) {
+  char *bp;
+  size_t size;
+  FILE *stream;
+  stream = open_memstream (&bp, &size);
+  print_cell(cell, stream);
+  fclose(stream);
+  return bp;
+}
+
 void print_el(FILE* outfile, x_any cell, int i) {
   assert(is_ixector(cell) || is_dxector(cell));
   if (is_ixector(cell))

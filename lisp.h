@@ -99,7 +99,9 @@ extern __thread x_environ x_env;
 #define cdr(x) (x->cdr)
 #define cadr(x) (car(cdr(x)))
 #define caddr(x) (car(cdr(cdr(x))))
+#define cadddr(x) (car(cdr(cdr(cdr(x)))))
 #define cddr(x) (cdr(cdr(x)))
+#define cdddr(x) (cdr(cdr(cdr(x))))
 
 #define type(x) ((x)->type)
 #define val(x) ((x)->value)
@@ -174,11 +176,14 @@ x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, int);
 x_any create_symbol(const char*);
+char* x_str(x_any);
 void inline print_el(FILE*, x_any, int);
 void print_list(x_any, FILE*);
 void print_cell(x_any, FILE*);
 void print_list(x_any, FILE*);
+x_any _bind(const char*, x_any, int);
 x_any bind(const char*, x_any);
+x_any local(const char*, x_any);
 x_any intern(const char*);
 int64_t length(x_any);
 x_any eval_symbol(x_any);

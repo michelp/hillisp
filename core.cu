@@ -101,7 +101,7 @@ x_any x_apply(x_any cell, x_any args) {
     push_frame();
 
     do {
-      bind(sval(car(expr)), car(args));
+      local(sval(car(expr)), car(args));
       expr = cdr(expr);
       args = cdr(args);
     } while(expr != x_env.nil);

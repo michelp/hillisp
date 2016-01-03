@@ -29,6 +29,7 @@ x_any x_do(x_any args) {
 
   count = x_eval(car(args));
   assert(is_int(count));
+  result = x_env.nil;
 
   for (int i = 0; i < ival(count); i++) {
     body = cdr(args);
@@ -41,5 +42,26 @@ x_any x_do(x_any args) {
 }
 
 x_any x_for(x_any args) {
-  return x_env.nil;
+  char* index;
+  x_any sym, start, end, body, result;
+
+  sym = car(args);
+  index = sval(sym);
+  start = x_eval(cadr(args));
+  end = x_eval(caddr(args));
+  result = x_env.nil;
+
+  push_frame();
+  sym = local(index, start);
+
+  while (ival(sym) < ival(end)) {
+    body = cdddr(args);
+    do {
+      result = x_eval(car(body));
+      body = cdr(body);
+    } while (body != x_env.nil);
+    sym = local(index, new_int(ival(sym) + 1));
+  }
+  pop_frame();
+  return result;
 }

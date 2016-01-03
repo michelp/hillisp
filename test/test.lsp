@@ -88,6 +88,12 @@
 (assert (== k (3 3 3 3)))
 (assert (== l (4 4 4 4)))
 
+(set m nil)
+(set n nil)
+(assert (== (for o 0 4 (set m (cons o m)) (set n (cons 8 n))) (8 8 8 8)))
+(assert (== m (3 2 1 0)))
+(assert (== n (8 8 8 8)))
+
 (println xectors)
 (assert (all (== [1 2 3] [1 2 3])))
 (assert (!= [1 2 3] [4 5 6]))
