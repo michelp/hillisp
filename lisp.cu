@@ -62,10 +62,13 @@ void init(void) {
   x_env.builtin = intern("builtin");
   x_env.user = intern("user");
   x_env.true_ = intern("true");
-  x_env.xector = intern("xector");
+
   x_env.int_ = intern("int");
-  x_env.float_ = intern("float");
+  x_env.double_ = intern("double");
   x_env.str = intern("str");
+
+  x_env.ixector = intern("ixector");
+  x_env.dxector = intern("dxector");
 
   x_env.fn0 = intern("fn0");
   x_env.fn1 = intern("fn1");
@@ -88,8 +91,6 @@ void init(void) {
   def_builtin("cdr", (void*)x_cdr, 1);
   def_builtin("cons", (void*)x_cons, 2);
   def_builtin("list", (void*)x_list, -1);
-  def_builtin("if", (void*)x_if, 1);
-  def_builtin("while", (void*)x_while, 1);
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("assert", (void*)x_assert, 1);
@@ -118,6 +119,11 @@ void init(void) {
 
   def_special("quote", (void*)x_quote);
   def_special("def", (void*)x_def);
+  def_special("if", (void*)x_if);
+  def_special("while", (void*)x_while);
+  def_special("do", (void*)x_do);
+  def_special("for", (void*)x_for);
+  def_special("set", (void*)x_set);
 }
 
 int main(int argc, const char* argv[]) {

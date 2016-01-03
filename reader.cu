@@ -99,7 +99,7 @@ x_any read_xector(FILE *infile) {
   x_any cell;
   x_any typ = NULL;
   size_t size = 0;
-  cell = new_xector<int64_t>(NULL, X_XECTOR_BLOCK_SIZE);
+  cell = new_ixector(X_XECTOR_BLOCK_SIZE);
   do {
     val = x_eval(read_sexpr(infile));
     if (val == x_env.nil)
@@ -111,8 +111,6 @@ x_any read_xector(FILE *infile) {
 
     if (typ == x_env.int_)
       xector_set_car_ith(cell, size, ival(val));
-    else if (typ == x_env.xector)
-      xector_set_car_ith(cell, size, car(val));
     else
       assert(0);
     size++;

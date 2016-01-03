@@ -136,7 +136,7 @@ x_any eval_symbol(x_any sym) {
     if (strchr(name, '.') == NULL)
       return new_int(strtoll(name, NULL, 0));
     else
-      return new_float(strtod(name, NULL));
+      return new_double(strtod(name, NULL));
   }
   cell = lookup(name, -1);
   if (cell == NULL)
@@ -192,11 +192,18 @@ x_any x_or(x_any cell1, x_any cell2) {
 
 x_any x_fill(x_any value, x_any size) {
   x_any cell;
-  if (!are_ints(value, size))
+  if (!is_int(size))
     assert(0);
-  cell = new_xector<int64_t>(NULL, ival(size));
-  xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-    (cars<int64_t>(cell), ival(value), xector_size(cell));
+  if (is_int(value)) {
+    cell = new_ixector(ival(size));
+    xd_fill<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<int64_t>(cell), ival(value), xector_size(cell));
+  }
+  else if (is_double(value)) {
+    cell = new_dxector(ival(size));
+    xd_fill<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<double>(cell), fval(value), xector_size(cell));
+  }
   CHECK;
   return cell;
 }
@@ -241,10 +248,8 @@ x_any x_time() {
   return new_int((tv.tv_sec * 1000) + tv.tv_usec);
 }
 
-x_any x_set(x_any cell, x_any value) {
-  assert(is_symbol(cell));
-  bind(sval(cell), value);
-  return value;
+x_any x_set(x_any args) {
+  return bind(sval(car(args)), x_eval(cadr(args)));
 }
 
 int64_t inline length(x_any cell) {

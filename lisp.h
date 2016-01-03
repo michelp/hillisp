@@ -74,10 +74,11 @@ typedef struct __align__(16) x_environ {
   x_any token;
   x_any user;
   x_any pair;
-  x_any xector;
   x_any int_;
-  x_any float_;
+  x_any double_;
   x_any str;
+  x_any ixector;
+  x_any dxector;
   x_any fn0;
   x_any fn1;
   x_any fn2;
@@ -103,7 +104,7 @@ extern __thread x_environ x_env;
 #define type(x) ((x)->type)
 #define val(x) ((x)->value)
 #define ival(x) ((int64_t)val(x))
-#define fval(x) (*((float*)val(x)))
+#define fval(x) (*((double*)val(x)))
 #define sval(x) ((char*)val(x))
 #define xval(x) ((x_any)val(x))
 
@@ -120,6 +121,8 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 
 #define xector_car_ith(x, i) (cars<int64_t>((x))[(i)])
 
+#define xector_car_dth(x, i) (cars<double>((x))[(i)])
+
 #define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
 
 #define is_symbol(x) (type(x) == x_env.symbol)
@@ -127,16 +130,20 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_user(x) (type(x) == x_env.user)
 #define is_pair(x) (type(x) == x_env.pair)
 #define is_binding(x) (type(x) == x_env.binding)
-#define is_xector(x) (type(x) == x_env.xector)
+#define is_ixector(x) (type(x) == x_env.ixector)
+#define is_dxector(x) (type(x) == x_env.dxector)
+#define is_xector(x) (is_ixector(x) || is_dxector(x))
 #define is_int(x) (type(x) == x_env.int_)
-#define is_float(x) (type(x) == x_env.float_)
+#define is_double(x) (type(x) == x_env.double_)
 #define is_str(x) (type(x) == x_env.str)
 
 #define are_symbols(x, y) (is_symbol(x) && is_symbol(y))
 #define are_pairs(x, y) (is_pair(x) && is_pair(y))
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
+#define are_ixectors(x, y) (is_ixector(x) && is_ixector(y))
+#define are_dxectors(x, y) (is_dxector(x) && is_dxector(y))
 #define are_ints(x, y) (is_int(x) && is_int(y))
-#define are_floats(x, y) (is_float(x) && is_float(y))
+#define are_doubles(x, y) (is_double(x) && is_double(y))
 #define are_strs(x, y) (is_str(x) && is_str(y))
 
 #define is_fn0(x) (type(x) == x_env.fn0)
@@ -158,17 +165,20 @@ void* x_alloc(size_t);
 char* new_name(const char*);
 x_any new_cell(const char*, x_any);
 x_any new_int(int64_t);
-x_any new_float(double);
+x_any new_double(double);
+x_any new_ixector(size_t);
+x_any new_dxector(size_t);
+
 x_cell_pool* new_cell_pool(x_cell_pool*);
 x_any def_token(const char*);
 int hash(const char*);
 x_any lookup(const char*, int);
 x_any create_symbol(const char*);
+void inline print_el(FILE*, x_any, int);
 void print_list(x_any, FILE*);
 void print_cell(x_any, FILE*);
 void print_list(x_any, FILE*);
-void bind(const char*, x_any);
-void rebind(const char*, x_any);
+x_any bind(const char*, x_any);
 x_any intern(const char*);
 int64_t length(x_any);
 x_any eval_symbol(x_any);
@@ -199,7 +209,7 @@ x_any x_isinstance(x_any, x_any);
 x_any x_assert(x_any);
 x_any x_type(x_any);
 x_any x_len(x_any);
-x_any x_set(x_any, x_any);
+x_any x_set(x_any);
 x_any x_fill(x_any, x_any);
 x_any x_dir();
 
@@ -211,7 +221,9 @@ x_any x_def(x_any);
 // flow
 
 x_any x_if(x_any);
-x_any x_while(x_any, x_any);
+x_any x_while(x_any);
+x_any x_do(x_any);
+x_any x_for(x_any);
 
 // math
 
@@ -254,7 +266,7 @@ template<typename T> __global__ void xd_div(const T* __restrict__, const T* __re
 template<typename T> __global__ void xd_fma(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
 template<typename T> __global__ void xd_saxpy(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
 
-template<typename T> __global__ void xd_eq(const T* __restrict__, const T* __restrict__, T* __restrict__, const size_t);
+template<typename T> __global__ void xd_eq(const T* __restrict__, const T* __restrict__, int64_t* __restrict__, const size_t);
 template<typename T> __global__ void xd_all(const T* __restrict__, int* __restrict__, const size_t);
 template<typename T> __global__ void xd_any(const T* __restrict__, int* __restrict__, const size_t);
 template<typename T> __global__ void xd_fill(T* __restrict__, const T, const size_t);
@@ -271,21 +283,6 @@ inline void check_cuda_errors(const char *filename, const int line_number)
     exit(-1);
   }
 }
-
-template<typename T> x_any new_xector(const char*, size_t size);
-
-template<typename T>
-x_any new_xector(const char* name, size_t size) {
-  x_any cell, csize;
-  cell = new_cell(name, x_env.xector);
-  csize = new_int(size);
-  set_car(cell, csize);
-  set_val(cell, x_alloc(size * sizeof(T)));
-  return cell;
-}
-
-template x_any new_xector<int64_t>(char const*, unsigned long);
-
 
 void inline push_frame() {
   x_env.frame_count += 1;

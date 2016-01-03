@@ -1,25 +1,33 @@
 #include "lisp.h"
 
+void print_el(FILE* outfile, x_any cell, int i) {
+  assert(is_ixector(cell) || is_dxector(cell));
+  if (is_ixector(cell))
+    fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+  else if (is_dxector(cell))
+    fprintf(outfile, "%9.16f", xector_car_dth(cell, i));
+}
+
 void print_xector(x_any cell, FILE *outfile) {
   int i;
   putc('[', outfile);
   SYNCS(x_env.stream);
   if (xector_size(cell) < 1024) {
     for (int i = 0; i < xector_size(cell); i++) {
-      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      print_el(outfile, cell, i);
       if (i != (xector_size(cell) - 1))
         putc(' ', outfile);
     }
   }
   else {
     for (i = 0; i < 15; i++) {
-      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      print_el(outfile, cell, i);
       if (i != (xector_size(cell) - 1))
         putc(' ', outfile);
     }
     fprintf(outfile, "... ");
     for (i = xector_size(cell) - 15; i < xector_size(cell); i++) {
-      fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
+      print_el(outfile, cell, i);
       if (i != (xector_size(cell) - 1))
         putc(' ', outfile);
     }
@@ -38,7 +46,7 @@ void print_cell(x_any cell, FILE *outfile) {
   }
   else if (is_int(cell))
     fprintf(outfile, "%" PRIi64, ival(cell));
-  else if (is_float(cell))
+  else if (is_double(cell))
     fprintf(outfile, "%f", fval(cell));
   else if (is_xector(cell))
     print_xector(cell, outfile);

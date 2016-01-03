@@ -29,21 +29,21 @@ x_any lookup(const char *name, int depth) {
   return NULL;
 }
 
-void bind(const char* name, x_any value) {
+x_any bind(const char* name, x_any value) {
   int hash_val;
   x_any binding, bucket;
   binding = lookup(name, 0);
   if (binding != NULL) {
     set_car(binding, value);
-    return;
+  } else {
+    hash_val = hash(name);
+    bucket = current_frame_bucket(hash_val);
+    binding = new_cell(name, x_env.binding);
+    set_car(binding, value);
+    set_cdr(binding, bucket);
+    current_frame_bucket(hash_val) = binding;
   }
-
-  hash_val = hash(name);
-  bucket = current_frame_bucket(hash_val);
-  binding = new_cell(name, x_env.binding);
-  set_car(binding, value);
-  set_cdr(binding, bucket);
-  current_frame_bucket(hash_val) = binding;
+  return value;
 }
 
 x_any intern(const char *name) {
@@ -61,7 +61,7 @@ x_any x_dir() {
   x_any binding, result;
   result = x_env.nil;
 
-  for (int i = 0; i < x_env.frame_count; i++) {
+  for (int i = x_env.frame_count; i <= 0; i--) {
     for (int j = 0; j < X_HASH_TABLE_SIZE; j++) {
       binding = x_env.frames[i][j];
       if (binding != x_env.nil) {

@@ -103,14 +103,32 @@ x_any new_int(int64_t value) {
   return cell;
 }
 
-x_any new_float(double value) {
+x_any new_double(double value) {
   x_any cell;
-  float *v;
-  cell = new_cell(NULL, x_env.float_);
-  v = (float*)malloc(sizeof(float));
+  double *v;
+  cell = new_cell(NULL, x_env.double_);
+  v = (double*)malloc(sizeof(double));
   assert(v != NULL);
   *v = value;
   set_val(cell, v);
+  return cell;
+}
+
+x_any new_ixector(size_t size) {
+  x_any cell, csize;
+  cell = new_cell(NULL, x_env.ixector);
+  csize = new_int(size);
+  set_car(cell, csize);
+  set_val(cell, x_alloc(size * sizeof(int64_t)));
+  return cell;
+}
+
+x_any new_dxector(size_t size) {
+  x_any cell, csize;
+  cell = new_cell(NULL, x_env.dxector);
+  csize = new_int(size);
+  set_car(cell, csize);
+  set_val(cell, x_alloc(size * sizeof(double)));
   return cell;
 }
 
