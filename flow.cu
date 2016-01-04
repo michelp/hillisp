@@ -48,19 +48,37 @@ x_any x_for(x_any args) {
   sym = car(args);
   index = sval(sym);
   start = x_eval(cadr(args));
-  end = x_eval(caddr(args));
-  result = x_env.nil;
+  if (start == x_env.nil)
+    return start;
 
-  push_frame();
-  sym = local(index, start);
+  if (is_int(start)) {
 
-  while (ival(sym) < ival(end)) {
-    body = cdddr(args);
+    end = x_eval(caddr(args));
+    result = x_env.nil;
+
+    push_frame();
+    sym = local(index, start);
+
+    while (ival(sym) < ival(end)) {
+      body = cdddr(args);
+      do {
+        result = x_eval(car(body));
+        body = cdr(body);
+      } while (body != x_env.nil);
+      sym = local(index, new_int(ival(sym) + 1));
+    }
+  }  else if (is_pair(start)) {
+    push_frame();
+    sym = local(index, car(start));
     do {
-      result = x_eval(car(body));
-      body = cdr(body);
-    } while (body != x_env.nil);
-    sym = local(index, new_int(ival(sym) + 1));
+      body = cddr(args);
+      do {
+        result = x_eval(car(body));
+        body = cdr(body);
+      } while (body != x_env.nil);
+      start = cdr(start);
+      sym = local(index, car(start));
+    } while (start != x_env.nil);
   }
   pop_frame();
   return result;

@@ -94,6 +94,10 @@
 (assert (== m (3 2 1 0)))
 (assert (== n (8 8 8 8)))
 
+(set p nil)
+(assert (== (for i (1 2 3) (set p (cons i p))) (3 2 1)))
+(assert (== p (3 2 1)))
+
 (println xectors)
 (assert (all (== [1 2 3] [1 2 3])))
 (assert (!= [1 2 3] [4 5 6]))
