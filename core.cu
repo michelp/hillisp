@@ -82,16 +82,25 @@ x_any x_apply(x_any cell, x_any args) {
 
   args = eval_list(args);
   if (is_builtin(cell)) {
-    if (is_fn1(cell))
+    if (is_fn1(cell)) {
+      assert(length(args) == 1);
       return ((x_fn1)val(cell))(car(args));
-    else if (is_fn2(cell))
+    }
+    else if (is_fn2(cell)) {
+      assert(length(args) == 2);
       return ((x_fn2)val(cell))(car(args), cadr(args));
-    else if (is_fn3(cell))
+    }
+    else if (is_fn3(cell)) {
+      assert(length(args) == 3);
       return ((x_fn3)val(cell))(car(args), cadr(args), caddr(args));
-    else if (is_fn0(cell))
+    }
+    else if (is_fn0(cell)) {
+      assert(length(args) == 0);
       return ((x_fn0)val(cell))();
-    else if (is_fnv(cell))
+    }
+    else if (is_fnv(cell)) {
       return ((x_fnv)val(cell))(args);
+    }
     else
       assert(0);
   }
