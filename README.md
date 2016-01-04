@@ -95,6 +95,8 @@ amount of copying to and from the device to the host is required.
 
 ## TODO
 
+  - N-dimensional xectors.
+
   - Unicode strings.
 
   - Multi-device support.
@@ -116,7 +118,7 @@ amount of copying to and from the device to the host is required.
 
   - Native graph types.
 
-  - JIT to PTX?
+  - Compile S-expressions directly to CUDA PTX assembly.
 
 ## Alpha, Dot, and Beta
 

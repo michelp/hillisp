@@ -65,6 +65,8 @@
 (assert (!= (1 2) (3 4)))
 (assert (!= (1 2) (1 2 3)))
 (assert (== (apply cons (3 4)) (3 . 4)))
+(assert (== (apply ((a b) (cons a b)) (3 4)) (3 . 4)))
+
 (assert (== (eval (cons 3 4)) (3 . 4)))
 (assert (isinstance (time) int))
 

@@ -116,8 +116,12 @@ x_any x_apply(x_any cell, x_any args) {
   }
   else if (is_symbol(cell) || is_int(cell))
     return x_cons(cell, args);
-  else if (is_pair(cell))
-    return x_cons(x_eval(cell), args);
+  else if (is_pair(cell)) {
+    result = new_cell(NULL, x_env.user);
+    set_car(result, car(cell));
+    set_cdr(result, cdr(cell));
+    return x_apply(result, args);
+  }
   else
     assert(0);
   return x_env.nil;
