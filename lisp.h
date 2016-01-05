@@ -214,6 +214,7 @@ x_any x_isinstance(x_any, x_any);
 x_any x_assert(x_any);
 x_any x_type(x_any);
 x_any x_len(x_any);
+x_any x_range(x_any, x_any, x_any);
 x_any x_set(x_any);
 x_any x_fill(x_any, x_any);
 x_any x_dir();
@@ -229,6 +230,7 @@ x_any x_if(x_any);
 x_any x_while(x_any);
 x_any x_do(x_any);
 x_any x_for(x_any);
+x_any x_collect(x_any);
 
 // math
 

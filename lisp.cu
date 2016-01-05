@@ -117,6 +117,7 @@ void init(void) {
   def_builtin("set", (void*)x_set, 2);
   def_builtin("dir", (void*)x_dir, 0);
   def_builtin("len", (void*)x_len, 1);
+  def_builtin("range", (void*)x_range, 3);
 
   def_special("quote", (void*)x_quote);
   def_special("def", (void*)x_def);
@@ -125,6 +126,8 @@ void init(void) {
   def_special("do", (void*)x_do);
   def_special("for", (void*)x_for);
   def_special("set", (void*)x_set);
+
+  def_builtin("collect", (void*)x_collect, 1);
 }
 
 int main(int argc, const char* argv[]) {

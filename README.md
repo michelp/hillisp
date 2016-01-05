@@ -130,3 +130,8 @@ new feature in CUDA called dynamic parallelism, which requires a
 greater compute capability than any devices I have available to me at
 the moment.  Feel free to send me a dual-maxwell system and I'll get
 it done. :)
+
+
+## Reference
+
+Check out [core tests](test/test.lsp) and [xector tests](test/xector.lsp).

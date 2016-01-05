@@ -72,13 +72,13 @@
 
 (println flow)
 
-(assert (== (if true 1 2) 1))
-(assert (== (if nil 1 2) 2))
-(assert (== (if (== 3 4) (cons 1 2)) nil))
-(assert (== (if (== 4 4) (cons 1 2)) (1 . 2)))
-(assert (== (if (== 4 4) (cons 1 2) (cons 3 4)) (1 . 2)))
-(assert (== (if (== 4 5) (cons 1 2) (cons 3 4)) (3 . 4)))
-(assert (== (if (!= 4 4) (cons 1 2) (cons 3 4)) (3 . 4)))
+(assert (== (if true (1) (2)) 1))
+(assert (== (if nil (1) (2)) 2))
+(assert (== (if (== 3 4) ((cons 1 2))) nil))
+(assert (== (if (== 4 4) ((cons 1 2))) (1 . 2)))
+(assert (== (if (== 4 4) ((cons 1 2)) ((cons 3 4))) (1 . 2)))
+(assert (== (if (== 4 5) ((cons 1 2)) ((cons 3 4))) (3 . 4)))
+(assert (== (if (!= 4 4) ((cons 1 2)) ((cons 3 4))) (3 . 4)))
 
 (set j nil)
 (assert (== (do 4 (set j (cons 3 j))) (3 3 3 3)))
@@ -99,6 +99,8 @@
 (set p nil)
 (assert (== (for i (1 2 3) (set p (cons i p))) (3 2 1)))
 (assert (== p (3 2 1)))
+
+(assert (== (for q 0 10 (collect q)) (9 8 7 6 5 4 3 2 1 0)))
 
 (println xectors)
 (assert (all (== [1 2 3] [1 2 3])))
@@ -143,16 +145,17 @@
 (println funcs)
 
 (def foo (a b) (+ a b))
-
 (assert (== (foo 3 4) 7))
 
 (assert (is (type foo) user))
 (assert (== (car foo) (quote (a b))))
 (assert (== (car (cdr foo)) (quote (+ a b))))
 
+(def ff (x) (if x ((+ (car x) (ff (cdr x)))) (0)))
+(assert (== (ff (range 0 100 1)) 4950))
+
 (set e 3)
 (set f 4)
-
 (def x (e f) (* e f))
 (assert (== (x 5 6) 30))
 (assert (== e 3))

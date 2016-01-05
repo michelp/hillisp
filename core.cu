@@ -14,9 +14,9 @@ __global__ void
 template<typename T>
 __global__ void
  xd_all(const T* __restrict__ cell, int* __restrict__ result, const size_t size) {
-  if (*result == size)
-    if (TID < size)
-      if (!cell[TID])
+  for (int i = TID; i < size; i += STRIDE)
+    if (*result == size)
+      if (!cell[i])
         atomicSub(result, 1);
   __syncthreads();
 }
@@ -24,9 +24,9 @@ __global__ void
 template<typename T>
 __global__ void
  xd_any(const T* __restrict__ cell, int* __restrict__ result, const size_t size) {
-  if (*result == 0)
-    if (TID < size)
-      if (cell[TID])
+  for (int i = TID; i < size; i += STRIDE)
+    if (*result == 0)
+      if (cell[i])
         atomicAdd(result, 1);
   __syncthreads();
 }
@@ -281,4 +281,15 @@ int64_t inline length(x_any cell) {
 
 x_any x_len(x_any cell) {
   return new_int(length(cell));
+}
+
+x_any x_range(x_any start, x_any stop, x_any step) {
+  x_any result;
+  assert(are_ints(start, stop) && is_int(step));
+  assert(ival(step) != 0);
+  result = x_env.nil;
+  for (int i = ival(stop) - 1; i >= ival(start); i -= ival(step)) {
+    result = x_cons(new_int(i), result);
+  }
+  return result;
 }

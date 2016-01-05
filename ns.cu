@@ -7,14 +7,14 @@ int inline hash(const char *name) {
   return value;
 }
 
+
 x_any lookup(const char *name, int depth) {
   x_any binding;
   int hashval;
   hashval = hash(name);
   if (depth == -1)
-    depth = 0;
-  else
-    depth = x_env.frame_count - depth;
+    depth = x_env.frame_count;
+  depth = x_env.frame_count - depth;
 
   for (int i = x_env.frame_count; i >= depth; i--) {
     binding = get_frame_bucket(i, hashval);

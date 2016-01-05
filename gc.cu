@@ -73,9 +73,9 @@ x_any c_alloc(x_any type) {
 void* x_alloc(size_t size) {
   void* result;
   cudaMallocManaged(&result, size);
+  assert(result != NULL);
   cudaStreamAttachMemAsync(x_env.stream, result);
   CHECK;
-  assert(result != NULL);
   return result;
 }
 
