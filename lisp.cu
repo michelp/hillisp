@@ -95,6 +95,7 @@ void init(void) {
   def_builtin("eval", (void*)x_eval, 1);
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("assert", (void*)x_assert, 1);
+  def_builtin("asserteq", (void*)x_asserteq, 2);
   def_builtin("print", (void*)x_print, 1);
   def_builtin("println", (void*)x_println, 1);
   def_builtin("+", (void*)x_add, 2);

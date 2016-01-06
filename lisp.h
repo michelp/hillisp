@@ -212,6 +212,7 @@ x_any x_apply(x_any, x_any);
 x_any x_is(x_any, x_any);
 x_any x_isinstance(x_any, x_any);
 x_any x_assert(x_any);
+x_any x_asserteq(x_any, x_any);
 x_any x_type(x_any);
 x_any x_len(x_any);
 x_any x_range(x_any, x_any, x_any);

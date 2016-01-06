@@ -55,6 +55,11 @@ x_any x_assert(x_any cell) {
   return cell;
 }
 
+x_any x_asserteq(x_any cell1, x_any cell2) {
+  assert(x_eq(cell1, cell2) != x_env.nil);
+  return x_env.true_;
+}
+
 x_any x_car(x_any cell) {
   return car(cell);
 }
