@@ -142,6 +142,30 @@
 (assert (not (all (== a [1 2 4]))))
 (assert (any (== a [1 2 4])))
 
+(set a [1 2 3])
+(set b [2 3 4])
+(assert (all (== (+= a b) [3 5 7])))
+(assert (all (== a [3 5 7])))
+(assert (all (== b [2 3 4])))
+
+(set a [1 2 3])
+(set b [2 3 4])
+(assert (all (== (-= a b) [-1 -1 -1])))
+(assert (all (== a [-1 -1 -1])))
+(assert (all (== b [2 3 4])))
+
+(set a [1 2 3])
+(set b [2 3 4])
+(assert (all (== (*= a b) [2 6 12])))
+(assert (all (== a [2 6 12])))
+(assert (all (== b [2 3 4])))
+
+(set a [20 33 28])
+(set b [2 3 4])
+(assert (all (== (/= a b) [10 11 7])))
+(assert (all (== a [10 11 7])))
+(assert (all (== b [2 3 4])))
+
 (println funcs)
 
 (def foo (a b) (+ a b))

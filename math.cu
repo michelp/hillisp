@@ -35,11 +35,15 @@ xd_fma(const T* __restrict__ a, const T* __restrict__ b, const T* __restrict__ c
     d[i] = a[i] * b[i] + c[i];
 }
 
-x_any x_add(x_any a, x_any b) {
+x_any _x_add(x_any a, x_any b, bool assign) {
   x_any c;
   if (are_ixectors(a, b)) {
     assert_xectors_align(a, b);
-    c = new_ixector(xector_size(a));
+    if (assign)
+      c = a;
+    else
+      c = new_ixector(xector_size(a));
+
     SYNCS(x_env.stream);
     xd_add<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
@@ -48,7 +52,10 @@ x_any x_add(x_any a, x_any b) {
   }
   else if (are_dxectors(a, b)) {
     assert_xectors_align(a, b);
-    c = new_dxector(xector_size(a));
+    if (assign)
+      c = a;
+    else
+      c = new_dxector(xector_size(a));
     SYNCS(x_env.stream);
     xd_add<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
@@ -63,11 +70,23 @@ x_any x_add(x_any a, x_any b) {
   return x_env.nil;
 }
 
-x_any x_sub(x_any a, x_any b) {
+x_any x_add(x_any a, x_any b) {
+  return _x_add(a, b, false);
+}
+
+x_any x_addass(x_any a, x_any b) {
+  return _x_add(a, b, true);
+}
+
+x_any _x_sub(x_any a, x_any b, bool assign) {
   x_any c;
   if (are_ixectors(a, b)) {
     assert_xectors_align(a, b);
-    c = new_ixector(xector_size(a));
+    if (assign)
+      c = a;
+    else
+      c = new_ixector(xector_size(a));
+
     SYNCS(x_env.stream);
     xd_sub<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
@@ -76,9 +95,12 @@ x_any x_sub(x_any a, x_any b) {
   }
   else if (are_dxectors(a, b)) {
     assert_xectors_align(a, b);
-    c = new_dxector(xector_size(a));
+    if (assign)
+      c = a;
+    else
+      c = new_dxector(xector_size(a));
     SYNCS(x_env.stream);
-    xd_add<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+    xd_sub<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
     CHECK;
     return c;
@@ -91,14 +113,38 @@ x_any x_sub(x_any a, x_any b) {
   return x_env.nil;
 }
 
-x_any x_mul(x_any a, x_any b) {
+
+x_any x_sub(x_any a, x_any b) {
+  return _x_sub(a, b, false);
+}
+
+x_any x_subass(x_any a, x_any b) {
+  return _x_sub(a, b, true);
+}
+
+x_any _x_mul(x_any a, x_any b, bool assign) {
   x_any c;
-  if (are_xectors(a, b)) {
+  if (are_ixectors(a, b)) {
     assert_xectors_align(a, b);
-    c = new_ixector(xector_size(a));
+    if (assign)
+      c = a;
+    else
+      c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_mul<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    if (assign)
+      c = a;
+    else
+      c = new_dxector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_mul<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
     CHECK;
     return c;
   }
@@ -110,14 +156,37 @@ x_any x_mul(x_any a, x_any b) {
   return x_env.nil;
 }
 
-x_any x_div(x_any a, x_any b) {
+x_any x_mul(x_any a, x_any b) {
+  return _x_mul(a, b, false);
+}
+
+x_any x_mulass(x_any a, x_any b) {
+  return _x_mul(a, b, true);
+}
+
+x_any _x_div(x_any a, x_any b, bool assign) {
   x_any c;
-  if (are_xectors(a, b)) {
+  if (are_ixectors(a, b)) {
     assert_xectors_align(a, b);
-    c = new_ixector(xector_size(a));
+    if (assign)
+      c = a;
+    else
+      c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_div<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    if (assign)
+      c = a;
+    else
+      c = new_dxector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_mul<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
     CHECK;
     return c;
   }
@@ -127,6 +196,14 @@ x_any x_div(x_any a, x_any b) {
     return new_double(fval(a) / fval(b));
    assert(0);
   return x_env.nil;
+}
+
+x_any x_div(x_any a, x_any b) {
+  return _x_div(a, b, false);
+}
+
+x_any x_divass(x_any a, x_any b) {
+  return _x_div(a, b, true);
 }
 
 x_any x_fma(x_any a, x_any b, x_any c) {

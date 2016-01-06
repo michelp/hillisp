@@ -99,9 +99,13 @@ void init(void) {
   def_builtin("print", (void*)x_print, 1);
   def_builtin("println", (void*)x_println, 1);
   def_builtin("+", (void*)x_add, 2);
+  def_builtin("+=", (void*)x_addass, 2);
   def_builtin("-", (void*)x_sub, 2);
+  def_builtin("-=", (void*)x_subass, 2);
   def_builtin("*", (void*)x_mul, 2);
+  def_builtin("*=", (void*)x_mulass, 2);
   def_builtin("/", (void*)x_div, 2);
+  def_builtin("/=", (void*)x_divass, 2);
   def_builtin("fma", (void*)x_fma, 3);
   def_builtin("==", (void*)x_eq, 2);
   def_builtin("!=", (void*)x_neq, 2);

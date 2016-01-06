@@ -235,10 +235,21 @@ x_any x_collect(x_any);
 
 // math
 
+x_any _x_add(x_any, x_any, bool);
 x_any x_add(x_any, x_any);
+x_any x_addass(x_any, x_any);
+
+x_any _x_sub(x_any, x_any, bool);
 x_any x_sub(x_any, x_any);
+x_any x_subass(x_any, x_any);
+
+x_any _x_mul(x_any, x_any, bool);
 x_any x_mul(x_any, x_any);
+x_any x_mulass(x_any, x_any);
+
+x_any _x_div(x_any, x_any, bool);
 x_any x_div(x_any, x_any);
+x_any x_divass(x_any, x_any);
 
 x_any x_fma(x_any, x_any, x_any);
 
