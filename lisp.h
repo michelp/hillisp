@@ -106,7 +106,7 @@ extern __thread x_environ x_env;
 #define type(x) ((x)->type)
 #define val(x) ((x)->value)
 #define ival(x) ((int64_t)val(x))
-#define fval(x) (*((double*)val(x)))
+#define dval(x) (*((double*)val(x)))
 #define sval(x) ((char*)val(x))
 #define xval(x) ((x_any)val(x))
 
@@ -125,7 +125,8 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 
 #define xector_car_dth(x, i) (cars<double>((x))[(i)])
 
-#define xector_set_car_ith(x, i, y) (cars<void*>((x))[(i)]) = (void*)(y)
+#define xector_set_car_ith(x, i, y) (cars<int64_t>((x))[(i)]) = (int64_t)(y)
+#define xector_set_car_dth(x, i, y) (cars<double>((x))[(i)]) = (double)(y)
 
 #define is_symbol(x) (type(x) == x_env.symbol)
 #define is_token(x) (type(x) == x_env.token)

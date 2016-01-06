@@ -23,7 +23,7 @@ x_any x_eq(x_any cell1, x_any cell2) {
       return x_env.true_;
   }
   else if (are_doubles(cell1, cell2)) {
-    if (fval(cell1) == fval(cell2))
+    if (dval(cell1) == dval(cell2))
       return x_env.true_;
   }
   else if (are_ixectors(cell1, cell2)) {
@@ -73,7 +73,7 @@ x_any x_gt(x_any cell1, x_any cell2) {
       return x_env.true_;
   }
   else if (are_doubles(cell1, cell2)) {
-    if (fval(cell1) > fval(cell2))
+    if (dval(cell1) > dval(cell2))
       return x_env.true_;
   }
   else if (are_strs(cell1, cell2)) {
@@ -89,7 +89,7 @@ x_any x_lt(x_any cell1, x_any cell2) {
       return x_env.true_;
   }
   else if (are_doubles(cell1, cell2)) {
-    if (fval(cell1) < fval(cell2))
+    if (dval(cell1) < dval(cell2))
       return x_env.true_;
   }
   else if (are_strs(cell1, cell2)) {

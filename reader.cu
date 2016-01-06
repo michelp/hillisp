@@ -99,22 +99,33 @@ x_any read_xector(FILE *infile) {
   x_any cell;
   x_any typ = NULL;
   size_t size = 0;
-  cell = new_ixector(X_XECTOR_BLOCK_SIZE);
-  do {
-    val = x_eval(read_sexpr(infile));
-    if (val == x_env.nil)
-      break;
-    if (typ == NULL)
-      typ = type(val);
-    else if (type(val) != typ)
-      assert(0); // must all be same type
 
+  cell = x_env.nil;
+  val = x_eval(read_sexpr(infile));
+  if (val == x_env.nil)
+    return cell;
+  typ = type(val);
+  if (typ == x_env.int_)
+      cell = new_ixector(X_XECTOR_BLOCK_SIZE);
+  else if (typ == x_env.double_)
+      cell = new_dxector(X_XECTOR_BLOCK_SIZE);
+  else
+    assert(0);
+  do {
     if (typ == x_env.int_)
       xector_set_car_ith(cell, size, ival(val));
+    else if (typ = x_env.double_)
+      xector_set_car_dth(cell, size, dval(val));
     else
       assert(0);
     size++;
+    val = x_eval(read_sexpr(infile));
+    if (val == x_env.nil)
+      break;
+    if (type(val) != typ)
+      assert(0); // must all be same type
   } while (1);
+
   set_car(cell, new_int(size));
   return cell;
 }

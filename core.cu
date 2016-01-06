@@ -220,7 +220,7 @@ x_any x_fill(x_any value, x_any size) {
   else if (is_double(value)) {
     cell = new_dxector(ival(size));
     xd_fill<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<double>(cell), fval(value), xector_size(cell));
+      (cars<double>(cell), dval(value), xector_size(cell));
   }
   CHECK;
   return cell;

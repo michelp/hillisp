@@ -65,7 +65,7 @@ x_any _x_add(x_any a, x_any b, bool assign) {
   else if (are_ints(a, b))
     return new_int(ival(a) + ival(b));
   else if (are_doubles(a, b))
-    return new_double(fval(a) + fval(b));
+    return new_double(dval(a) + dval(b));
   assert(0);
   return x_env.nil;
 }
@@ -108,7 +108,7 @@ x_any _x_sub(x_any a, x_any b, bool assign) {
   else if (are_ints(a, b))
     return new_int(ival(a) - ival(b));
   else if (are_doubles(a, b))
-    return new_double(fval(a) - fval(b));
+    return new_double(dval(a) - dval(b));
   assert(0);
   return x_env.nil;
 }
@@ -151,7 +151,7 @@ x_any _x_mul(x_any a, x_any b, bool assign) {
   else if (are_ints(a, b))
     return new_int(ival(a) * ival(b));
  else if (are_doubles(a, b))
-    return new_double(fval(a) * fval(b));
+    return new_double(dval(a) * dval(b));
    assert(0);
   return x_env.nil;
 }
@@ -193,7 +193,7 @@ x_any _x_div(x_any a, x_any b, bool assign) {
   else if (are_ints(a, b))
     return new_int(ival(a) / ival(b));
  else if (are_doubles(a, b))
-    return new_double(fval(a) / fval(b));
+    return new_double(dval(a) / dval(b));
    assert(0);
   return x_env.nil;
 }
@@ -224,7 +224,7 @@ x_any _x_fma(x_any a, x_any b, x_any c, bool assign) {
   else if (are_ints(a, b))
     return new_int(ival(a) * ival(b) + ival(c));
   else if (are_doubles(a, b))
-    return new_double(fval(a) * fval(b) + fval(c));
+    return new_double(dval(a) * dval(b) + dval(c));
   assert(0);
   return x_env.nil;
 }
