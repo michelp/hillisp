@@ -107,6 +107,7 @@ void init(void) {
   def_builtin("/", (void*)x_div, 2);
   def_builtin("/=", (void*)x_divass, 2);
   def_builtin("fma", (void*)x_fma, 3);
+  def_builtin("fma=", (void*)x_fmaass, 3);
   def_builtin("==", (void*)x_eq, 2);
   def_builtin("!=", (void*)x_neq, 2);
   def_builtin(">", (void*)x_gt, 2);

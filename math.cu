@@ -185,7 +185,7 @@ x_any _x_div(x_any a, x_any b, bool assign) {
     else
       c = new_dxector(xector_size(a));
     SYNCS(x_env.stream);
-    xd_mul<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+    xd_div<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
     CHECK;
     return c;
@@ -206,12 +206,15 @@ x_any x_divass(x_any a, x_any b) {
   return _x_div(a, b, true);
 }
 
-x_any x_fma(x_any a, x_any b, x_any c) {
+x_any _x_fma(x_any a, x_any b, x_any c, bool assign) {
   x_any d;
-  if (are_xectors(a, b)) {
+  if (are_ixectors(a, b)) {
     assert_xectors_align(a, b);
     assert_xectors_align(a, c);
-    d = new_ixector(xector_size(a));
+    if (assign)
+      d = a;
+    else
+      d = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_fma<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), cars<int64_t>(d), xector_size(a));
@@ -224,4 +227,12 @@ x_any x_fma(x_any a, x_any b, x_any c) {
     return new_double(fval(a) * fval(b) + fval(c));
   assert(0);
   return x_env.nil;
+}
+
+x_any x_fma(x_any a, x_any b, x_any c) {
+  return _x_fma(a, b, c, false);
+}
+
+x_any x_fmaass(x_any a, x_any b, x_any c) {
+  return _x_fma(a, b, c, true);
 }

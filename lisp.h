@@ -251,7 +251,9 @@ x_any _x_div(x_any, x_any, bool);
 x_any x_div(x_any, x_any);
 x_any x_divass(x_any, x_any);
 
+x_any _x_fma(x_any, x_any, x_any, bool);
 x_any x_fma(x_any, x_any, x_any);
+x_any x_fmaass(x_any, x_any, x_any);
 
 // cmp
 
