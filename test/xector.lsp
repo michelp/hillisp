@@ -1,59 +1,52 @@
+(set cnt 2000000)
 
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (+ (fill 1 8500000) (fill 1 8500000)) (+ (fill 1 8500000) (fill 1 8500000)))))
+(for i 0 10
+     (assert (all (== (+= (fill 1 cnt) (fill 1 cnt)) (+= (fill 1 cnt) (fill 1 cnt)))))
+)
 
-(assert
- (all
-  (==
-   (+ (fill 1 8500000)
-      (+ (fill 1 8500000)
-         (+ (fill 1 8500000)
-            (+ (fill 1 8500000)
-               (+ (fill 1 8500000)
-                  (+ (fill 1 8500000)
-                     (+ (fill 1 8500000)
-                        (+ (fill 1 8500000)
-                           (+ (fill 1 8500000)
-                              (fill 1 8500000))))))))))
-   (fill 10 8500000)
-   )
+(for i 0 10
+     (assert (any (== (+= (fill 1 cnt) (fill 1 cnt)) (+= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (all (== (-= (fill 1 cnt) (fill 1 cnt)) (-= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (any (== (-= (fill 1 cnt) (fill 1 cnt)) (-= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (all (== (*= (fill 1 cnt) (fill 1 cnt)) (*= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (any (== (*= (fill 1 cnt) (fill 1 cnt)) (*= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (all (== (/= (fill 1 cnt) (fill 1 cnt)) (/= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (any (== (/= (fill 1 cnt) (fill 1 cnt)) (/= (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (all (== (fma= (fill 1 cnt) (fill 1 cnt) (fill 1 cnt)) (fma= (fill 1 cnt) (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(for i 0 10
+     (assert (any (== (fma= (fill 1 cnt) (fill 1 cnt) (fill 1 cnt)) (fma= (fill 1 cnt) (fill 1 cnt) (fill 1 cnt)))))
+)
+
+(def ff (x) 
+  (if x 
+    (
+     (+= (fill (car x) cnt) (ff (cdr x)))
+     )
+    ((fill 0 cnt))
   )
- )
+)
 
-
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (all (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-(assert (any (== (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)) (fma (fill 1 8500000) (fill 1 8500000) (fill 1 8500000)))))
-
-(println passed)
+(assert (all (== (ff (range 0 10 1)) (fill 45 cnt))))
