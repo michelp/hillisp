@@ -65,6 +65,7 @@ typedef struct __align__(16) x_environ {
   x_any nil;
   x_any true_;
   x_any dot;
+  x_any quote;
   x_any lparen;
   x_any rparen;
   x_any lbrack;

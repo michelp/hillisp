@@ -68,9 +68,7 @@ x_any x_for(x_any args) {
     return start;
 
   if (is_int(start)) {
-
     end = x_eval(caddr(args));
-
     push_frame();
     sym = local(index, start);
     args = local("@", args);
@@ -86,7 +84,7 @@ x_any x_for(x_any args) {
       } while (body != x_env.nil);
       sym = local(index, new_int(ival(sym) + 1));
     }
-  }  else if (is_pair(start)) {
+  } else if (is_pair(start)) {
     push_frame();
     sym = local(index, car(start));
     sym = local("@", args);
@@ -99,7 +97,9 @@ x_any x_for(x_any args) {
       start = cdr(start);
       sym = local(index, car(start));
     } while (start != x_env.nil);
-  }
+  } 
+  else
+    assert(0);
   pop_frame();
   return result;
 }

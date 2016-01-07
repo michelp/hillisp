@@ -79,6 +79,7 @@ void init(void) {
   x_env.special = intern("special");
 
   x_env.dot = def_token(".");
+  x_env.dot = def_token("'");
   x_env.lparen = def_token("(");
   x_env.rparen = def_token(")");
   x_env.lbrack = def_token("[");

@@ -7,7 +7,6 @@ int inline hash(const char *name) {
   return value;
 }
 
-
 x_any lookup(const char *name, int depth) {
   x_any binding;
   int hashval;

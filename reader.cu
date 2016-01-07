@@ -22,6 +22,8 @@ x_any read_token(FILE *infile) {
     return x_env.rbrack;
   case '.':
     return x_env.dot;
+  case '\'':
+    return x_env.quote;
   default:
     *ptr++ = c;
     while ((c = getc(infile)) != EOF &&
