@@ -142,3 +142,226 @@ it done. :)
 ## Reference
 
 Check out [core tests](test/test.lsp) and [xector tests](test/xector.lsp).
+
+# Functions
+
+
+## Core
+
+### (is x y)
+
+Are 'x' and 'y' the same symbol?
+
+### (isinstance x y)
+
+Is 'x' an instance of type 'y'?
+
+### (type x)
+
+Return the type of 'x'.
+
+### (quote x)
+
+Return 'x' without evaluating it.
+
+### (eval x)
+
+Eval list the list 'x'.
+
+### (apply x args)
+
+Apply 'args' to the lambda expression 'x-.
+
+### (assert x)
+
+Assert 'x' is true.
+
+### (asserteq x y)
+
+Assert 'x' equals 'y' by comparison ('==').
+
+
+##List
+
+### (car x)
+
+Return the first element of the list 'x'.
+
+### (cdr x)
+
+Return the rest of the elements in 'x'.
+
+### (cons x y)
+
+Return a pair of 'x' and 'y'.
+
+### (list ...)
+
+Cons all arguments into a list.
+
+
+## IO
+
+### (print x)
+
+Print 'x'.
+
+### (println x)
+
+Print 'x' on its own line.
+
+
+## Math
+
+### (+ x y)
+
+Add 'x' and 'y', may be integers or xectors.
+
+### (+= x y)
+
+In-place add 'x' and 'y' storing the result in 'x', may be integers or
+xectors.
+
+### (- x y)
+
+Subtract 'y' from 'x', may be integers or xectors.
+
+### (-= x y)
+
+In-place subtract 'y' from 'x' storing the result in 'x', may be
+integers or xectors.
+
+### (* x y)
+
+Multiply 'x' and 'y', may be integers or xectors.
+
+### (*= x y)
+
+In-place multiple 'y' and 'x' storing the result in 'x', may be
+integers or xectors.
+
+### (/ x y)
+
+Divide 'x' by 'y', may be integers or xectors.
+
+### (/= x y)
+
+In-place divide 'x' by 'y' storing the result in 'x', may be
+integers or xectors.
+
+### (fma x y z)
+
+Fused-multiply add 'x * y + z', may be integers or xectors.
+
+### (fma= x y z)
+
+Fused-multiply add 'x * y + z' storing result in 'x', may be integers
+or xectors.
+
+
+## Comparison
+
+### (== x y)
+
+Compare 'x' and 'y' for equality.
+
+### !=
+
+### >
+
+### <
+
+### min
+
+### max
+
+### sum
+
+
+## Logic
+
+### not
+
+### and
+
+### all
+
+### any
+
+### or
+
+
+# Names
+
+### (set name value)
+
+Binds 'value' to 'name' in the current scope.
+
+### (len l)
+
+Returns the length of the list or xector, otherwise nil.
+
+### (range start stop step)
+
+Cons a list of integers in the given range.
+
+### (def name (args) (body ...))
+
+Bind the function taking 'args', defined by 'body', to 'name'.
+
+
+## Flow Control
+
+### (if cond (exp ...) [(exp ...)])
+
+### (while cond (exp ...))
+
+### (do start end (exp ...))
+
+### (for i start end (exp ...))
+
+### (collect value)
+
+
+## Xectors
+
+### (fill value size)
+
+Create a new xector of 'type' with size 'size' and fill each element
+with 'value'.  The type of 'value' determines the type of the
+xector. 'size' can be an integer (one-dimensional xector) or list of
+dimensions, ie '(3 3)' creates a 3x3 two-dimensional xector.
+
+### (empty type size)
+
+Like 'fill', but no value is provided or filled into the new xector.
+'type' determines the type of the xector.
+
+### (copy x y)
+
+Copy the contents of xector 'x' into xector 'y'.  The two xectors must
+have the same shape.
+
+### (slice x shape)
+
+Slice the xector 'x' to the specific 'shape'.  'shape' must match the
+leading dimensions of 'x'.
+
+### (swap x y)
+
+Swap the contents of 'x' and 'y'.
+
+## Misc
+
+### dir
+
+Show all the bound names.
+
+### time
+
+Return the time in microseconds since the epoch.
+
+### gc
+
+Trigger garbage collection.
+
