@@ -24,10 +24,14 @@ x_any x_if(x_any args) {
 }
 
 x_any x_while(x_any args) {
-  x_any cond, body, result;
+  x_any cond, body, collection, result;
   cond = x_eval(car(args));
   body = cadr(args);
+  collection = x_env.nil;
   result = x_env.nil;
+
+  push_frame();
+  collection = local("@@", collection);
 
   while (cond != x_env.nil) {
     do {
@@ -35,15 +39,19 @@ x_any x_while(x_any args) {
       body = cdr(body);
     } while (body != x_env.nil);
   }
+  pop_frame();
   return result;
 }
  
 x_any x_do(x_any args) {
-  x_any result, count, body;
-
+  x_any count, body, collection, result;
   count = x_eval(car(args));
   assert(is_int(count));
+  collection = x_env.nil;
   result = x_env.nil;
+
+  push_frame();
+  collection = local("@@", collection);
 
   for (int i = 0; i < ival(count); i++) {
     body = cdr(args);
@@ -52,6 +60,7 @@ x_any x_do(x_any args) {
       body = cdr(body);
     } while (body != x_env.nil);
   }
+  pop_frame();
   return result;
 }
 
@@ -88,6 +97,7 @@ x_any x_for(x_any args) {
     push_frame();
     sym = local(index, car(start));
     sym = local("@", args);
+    collection = local("@@", collection);
     do {
       body = cddr(args);
       do {

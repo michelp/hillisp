@@ -61,12 +61,12 @@ x_any x_asserteq(x_any cell1, x_any cell2) {
 }
 
 x_any x_car(x_any cell) {
-  assert(type(cell) == x_env.pair);
+  assert(is_pair(cell) || is_user(cell));
   return car(cell);
 }
 
 x_any x_cdr(x_any cell) {
-  assert(type(cell) == x_env.pair);
+  assert(is_pair(cell) || is_user(cell));
   return cdr(cell);
 }
 

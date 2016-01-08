@@ -1,12 +1,17 @@
-CUDA_ARCH_FLAGS := -arch=sm_30 -g -G
-CC_FLAGS += $(CUDA_ARCH_FLAGS)
+CC_FLAGS := -arch=sm_30 -g -G
 
-EXE = lisp
+SRC = $(shell find . -name *.cu)
 
-all: $(EXE)
+OBJ = $(SRC:%.cu=%.o)
 
-% : %.cu
-	nvcc --relocatable-device-code=true ns.cu core.cu reader.cu gc.cu flow.cu io.cu cmp.cu math.cu lisp.cu $(CC_FLAGS) $(LIB_FLAGS) -o $@
+BIN = lisp
 
-clean: 
-	rm -f $(EXE)
+all: $(BIN)
+
+$(BIN): $(OBJ)
+	nvcc $(CC_FLAGS) $(OBJ) -o lisp
+%.o: %.cu
+	nvcc -x cu $(CC_FLAGS) -Iinclude -dc $< -o $@
+
+clean:
+	rm -f src/*.o lisp

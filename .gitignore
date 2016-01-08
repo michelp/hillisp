@@ -1,1 +1,3 @@
 lisp
+src/*.o
+

@@ -14,16 +14,37 @@
 
 (set a (fill 1 cnt))
 (for i 0 10
-     (assert (any (== (+= (fill 1 cnt) a) (+= (fill 1 cnt) a))))
-)
+     (assert
+      (any
+       (==
+        (+= (fill 1 cnt) a)
+        (+= (fill 1 cnt) a)
+        )
+       )
+      )
+     )
 
 (for i 0 10
-     (assert (all (== (-= (fill 1 cnt) a) (-= (fill 1 cnt) a))))
-)
+     (assert
+      (all
+       (==
+        (-= (fill 1 cnt) a)
+        (-= (fill 1 cnt) a)
+        )
+       )
+      )
+     )
 
 (for i 0 10
-     (assert (any (== (-= (fill 1 cnt) a) (-= (fill 1 cnt) a))))
-)
+     (assert
+      (any
+       (==
+        (-= (fill 1 cnt) a)
+        (-= (fill 1 cnt) a)
+        )
+       )
+      )
+     )
 
 (for i 0 10
      (assert (all (== (*= (fill 1 cnt) a) (*= (fill 1 cnt) a))))
@@ -38,8 +59,15 @@
 )
 
 (for i 0 10
-     (assert (any (== (/= (fill 1 cnt) a) (/= (fill 1 cnt) a))))
-)
+     (assert
+      (any
+       (==
+        (/= (fill 1 cnt) a)
+        (/= (fill 1 cnt) a)
+        )
+       )
+      )
+     )
 
 (for i 0 10
      (assert
