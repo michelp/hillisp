@@ -228,6 +228,20 @@ x_any x_fill(x_any value, x_any size) {
   return cell;
 }
 
+x_any x_empty(x_any type, x_any size) {
+  x_any cell;
+  if (!is_int(size))
+    assert(0);
+  if (type == x_env.int_) {
+    cell = new_ixector(ival(size));
+  }
+  else if (type == x_env.double_) {
+    cell = new_dxector(ival(size));
+  }
+  CHECK;
+  return cell;
+}
+
 x_any x_all(x_any cell) {
   int* result;
   if (!is_xector(cell))

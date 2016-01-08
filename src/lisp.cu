@@ -118,6 +118,7 @@ void init(void) {
   def_builtin("any", (void*)x_any_, 1);
   def_builtin("or", (void*)x_or, 2);
   def_builtin("fill", (void*)x_fill, 2);
+  def_builtin("empty", (void*)x_empty, 2);
   def_builtin("time", (void*)x_time, 0);
   def_builtin("gc", (void*)x_gc, 0);
   def_builtin("set", (void*)x_set, 2);

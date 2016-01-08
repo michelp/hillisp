@@ -123,6 +123,8 @@
 (assert (any [1 0 0]))
 (assert (any [1 1 1]))
 (assert (not (any [0 0 0])))
+(assert (== (len (empty int 10)) 10))
+(assert (== (len (empty double 10)) 10))
 
 (println vars)
 (set x 1)

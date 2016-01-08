@@ -219,6 +219,7 @@ x_any x_len(x_any);
 x_any x_range(x_any, x_any, x_any);
 x_any x_set(x_any);
 x_any x_fill(x_any, x_any);
+x_any x_empty(x_any, x_any);
 x_any x_dir();
 
 // special

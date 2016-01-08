@@ -15,6 +15,13 @@ paper [Connection Machine Lisp: fine-grained parallel symbolic
 processing](http://dl.acm.org/citation.cfm?id=319870) by Hillis and
 [Guy L. Steele, Jr.](https://en.wikipedia.org/wiki/Guy_L._Steele,_Jr.)
 
+## install
+
+Just type 'make'.  You will need a GPU with compute capability of 3.0
+or better and CUDA 7.0+ installed.  The interpreter is the 'lisp'
+binary.  Install the 'rlwrap' program to get readline support with the
+'hillisp' script.
+
 ## lisp
 
 hillisp is an extremely tiny Lisp implementation written in CUDA C++.
