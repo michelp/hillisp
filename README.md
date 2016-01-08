@@ -143,9 +143,6 @@ it done. :)
 
 Check out [core tests](test/test.lsp) and [xector tests](test/xector.lsp).
 
-# Functions
-
-
 ## Core
 
 ### (is x y)
@@ -209,6 +206,10 @@ Print 'x'.
 ### (println x)
 
 Print 'x' on its own line.
+
+### (printsp x)
+
+Print 'x' then a space.
 
 
 ## Math
@@ -334,8 +335,9 @@ dimensions, ie '(3 3)' creates a 3x3 two-dimensional xector.
 
 ### (empty type size)
 
-Like 'fill', but no value is provided or filled into the new xector.
-'type' determines the type of the xector.
+Like 'fill', but returns an uninitialized xector where no value is
+provided or filled into the new xector. 'type' determines the type of
+the xector.
 
 ### (copy x y)
 
@@ -353,15 +355,15 @@ Swap the contents of 'x' and 'y'.
 
 ## Misc
 
-### dir
+### (dir)
 
 Show all the bound names.
 
-### time
+### (time)
 
 Return the time in microseconds since the epoch.
 
-### gc
+### (gc)
 
 Trigger garbage collection.
 

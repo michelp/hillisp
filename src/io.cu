@@ -95,3 +95,9 @@ x_any x_println(x_any cell) {
   putchar('\n');
   return cell;
 }
+
+x_any x_printsp(x_any cell) {
+  print_cell(cell, stdout);
+  putchar(' ');
+  return cell;
+}

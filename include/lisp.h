@@ -208,6 +208,7 @@ x_any x_cons(x_any, x_any);
 x_any x_list(x_any);
 x_any x_print(x_any);
 x_any x_println(x_any);
+x_any x_printsp(x_any);
 x_any x_eval(x_any);
 x_any x_apply(x_any, x_any);
 x_any x_is(x_any, x_any);

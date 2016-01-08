@@ -98,6 +98,7 @@ void init(void) {
   def_builtin("asserteq", (void*)x_asserteq, 2);
   def_builtin("print", (void*)x_print, 1);
   def_builtin("println", (void*)x_println, 1);
+  def_builtin("printsp", (void*)x_printsp, 1);
   def_builtin("+", (void*)x_add, 2);
   def_builtin("+=", (void*)x_addass, 2);
   def_builtin("-", (void*)x_sub, 2);
