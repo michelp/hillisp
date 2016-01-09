@@ -108,9 +108,9 @@ amount of copying to and from the device to the host is required.
 
   - Multi-device support.
 
-  - Currently only 64 bit integer and double xectors are supported,
-    but code is in place to support all the main CUDA numeric types
-    and nested xectors.
+  - Currently only 64 bit integer, double, and double complex xectors
+    are supported, but code is in place to support all the main CUDA
+    numeric types and nested xectors.
 
   - Data-loading functions to fill xectors from data in files.
 
@@ -224,16 +224,16 @@ Print 'x' then a space.
 
 ### (+ x y)
 
-Add 'x' and 'y', may be integers or xectors.
+Add 'x' and 'y', may be numbers or xectors.
 
 ### (+= x y)
 
-In-place add 'x' and 'y' storing the result in 'x', may be integers or
+In-place add 'x' and 'y' storing the result in 'x', may be numbers or
 xectors.
 
 ### (- x y)
 
-Subtract 'y' from 'x', may be integers or xectors.
+Subtract 'y' from 'x', may be numbers or xectors.
 
 ### (-= x y)
 
@@ -242,7 +242,7 @@ integers or xectors.
 
 ### (* x y)
 
-Multiply 'x' and 'y', may be integers or xectors.
+Multiply 'x' and 'y', may be numbers or xectors.
 
 ### (*= x y)
 
@@ -251,20 +251,20 @@ integers or xectors.
 
 ### (/ x y)
 
-Divide 'x' by 'y', may be integers or xectors.
+Divide 'x' by 'y', may be numbers or xectors.
 
 ### (/= x y)
 
 In-place divide 'x' by 'y' storing the result in 'x', may be
-integers or xectors.
+numbers or xectors.
 
 ### (fma x y z)
 
-Fused-multiply add 'x * y + z', may be integers or xectors.
+Fused-multiply add 'x * y + z', may be numbers or xectors.
 
 ### (fma= x y z)
 
-Fused-multiply add 'x * y + z' storing result in 'x', may be integers
+Fused-multiply add 'x * y + z' storing result in 'x', may be numbers
 or xectors.
 
 
