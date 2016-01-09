@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <cuComplex.h>
 
 #define X_YOUNG_CELL_POOL_SIZE (1024*64)
 #define X_OLD_CELL_POOL_SIZE (1024*512)
@@ -77,6 +78,7 @@ typedef struct __align__(16) x_environ {
   x_any pair;
   x_any int_;
   x_any double_;
+  x_any dcomplex;
   x_any str;
   x_any ixector;
   x_any dxector;
@@ -108,6 +110,9 @@ extern __thread x_environ x_env;
 #define val(x) ((x)->value)
 #define ival(x) ((int64_t)val(x))
 #define dval(x) (*((double*)val(x)))
+#define cval(c) (*((cuDoubleComplex*)val(c)))
+#define crval(c) (cval(c).x)
+#define cival(c) (cval(c).y)
 #define sval(x) ((char*)val(x))
 #define xval(x) ((x_any)val(x))
 
@@ -138,6 +143,7 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_xector(x) (is_ixector(x) || is_dxector(x))
 #define is_int(x) (type(x) == x_env.int_)
 #define is_double(x) (type(x) == x_env.double_)
+#define is_dcomplex(x) (type(x) == x_env.dcomplex)
 #define is_str(x) (type(x) == x_env.str)
 
 #define are_symbols(x, y) (is_symbol(x) && is_symbol(y))
@@ -147,6 +153,7 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define are_dxectors(x, y) (is_dxector(x) && is_dxector(y))
 #define are_ints(x, y) (is_int(x) && is_int(y))
 #define are_doubles(x, y) (is_double(x) && is_double(y))
+#define are_dcomplex(x, y) (is_dcomplex(x) && is_dcomplex(y))
 #define are_strs(x, y) (is_str(x) && is_str(y))
 
 #define is_fn0(x) (type(x) == x_env.fn0)
@@ -169,6 +176,7 @@ char* new_name(const char*);
 x_any new_cell(const char*, x_any);
 x_any new_int(int64_t);
 x_any new_double(double);
+x_any new_dcomplex(cuDoubleComplex);
 x_any new_ixector(size_t);
 x_any new_dxector(size_t);
 
@@ -215,6 +223,8 @@ x_any x_is(x_any, x_any);
 x_any x_isinstance(x_any, x_any);
 x_any x_assert(x_any);
 x_any x_asserteq(x_any, x_any);
+x_any x_assertall(x_any);
+x_any x_assertany(x_any);
 x_any x_type(x_any);
 x_any x_len(x_any);
 x_any x_range(x_any, x_any, x_any);
@@ -258,12 +268,16 @@ x_any _x_fma(x_any, x_any, x_any, bool);
 x_any x_fma(x_any, x_any, x_any);
 x_any x_fmaass(x_any, x_any, x_any);
 
+x_any x_complex(x_any, x_any);
+
 // cmp
 
 x_any x_eq(x_any, x_any);
 x_any x_neq(x_any, x_any);
 x_any x_lt(x_any, x_any);
 x_any x_gt(x_any, x_any);
+x_any x_gte(x_any, x_any);
+x_any x_lte(x_any, x_any);
 
 // bool
 

@@ -62,10 +62,33 @@ x_any _x_add(x_any a, x_any b, bool assign) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b))
-    return new_int(ival(a) + ival(b));
-  else if (are_doubles(a, b))
-    return new_double(dval(a) + dval(b));
+  else if (are_ints(a, b)) {
+    if (assign) {
+      set_val(a, ival(a) + ival(b));
+      return a;
+    }
+    else {
+      return new_int(ival(a) + ival(b));
+    }
+  }
+  else if (are_doubles(a, b)) {
+    if (assign) {
+      dval(a) = dval(a) + dval(b);
+      return a;
+    }
+    else {
+      return new_double(dval(a) + dval(b));
+    }
+  }
+  else if (are_dcomplex(a, b)) {
+    if (assign) {
+      cval(a) = cuCadd(cval(a), cval(b));
+      return a;
+    }
+    else {
+      return new_dcomplex(cuCadd(cval(a), cval(b)));
+    }
+  }
   assert(0);
   return x_env.nil;
 }
@@ -105,10 +128,33 @@ x_any _x_sub(x_any a, x_any b, bool assign) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b))
-    return new_int(ival(a) - ival(b));
-  else if (are_doubles(a, b))
-    return new_double(dval(a) - dval(b));
+  else if (are_ints(a, b)) {
+    if (assign) {
+      set_val(a, ival(a) - ival(b));
+      return a;
+    }
+    else {
+      return new_int(ival(a) - ival(b));
+    }
+  }
+  else if (are_doubles(a, b)) {
+    if (assign) {
+      dval(a) = dval(a) - dval(b);
+      return a;
+    }
+    else {
+      return new_double(dval(a) - dval(b));
+    }
+  }
+  else if (are_dcomplex(a, b)) {
+    if (assign) {
+      cval(a) = cuCsub(cval(a), cval(b));
+      return a;
+    }
+    else {
+      return new_dcomplex(cuCsub(cval(a), cval(b)));
+    }
+  }
   assert(0);
   return x_env.nil;
 }
@@ -148,11 +194,30 @@ x_any _x_mul(x_any a, x_any b, bool assign) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b))
-    return new_int(ival(a) * ival(b));
- else if (are_doubles(a, b))
-    return new_double(dval(a) * dval(b));
-   assert(0);
+  else if (are_ints(a, b)) {
+    if (assign) {
+      set_val(a, ival(a) * ival(b));
+      return a;
+    } else {
+      return new_int(ival(a) * ival(b));
+    }
+  }
+  else if (are_doubles(a, b)) {
+    if (assign) {
+      dval(a) = dval(a) * dval(b);
+      return a;
+    } else {
+      return new_double(dval(a) * dval(b));
+    }
+  }
+  else if (are_dcomplex(a, b)) {
+    if (assign) {
+      cval(a) = cuCmul(cval(a), cval(b));
+    } else {
+      return new_dcomplex(cuCmul(cval(a), cval(b)));
+    }
+  }
+  assert(0);
   return x_env.nil;
 }
 
@@ -190,11 +255,31 @@ x_any _x_div(x_any a, x_any b, bool assign) {
     CHECK;
     return c;
   }
-  else if (are_ints(a, b))
-    return new_int(ival(a) / ival(b));
- else if (are_doubles(a, b))
-    return new_double(dval(a) / dval(b));
-   assert(0);
+  else if (are_ints(a, b)) {
+    if (assign) {
+      set_val(a, ival(a) / ival(b));
+      return a;
+    } else {
+      return new_int(ival(a) / ival(b));
+    }
+  }
+  else if (are_doubles(a, b)) {
+    if (assign) {
+      dval(a) = dval(a) / dval(b);
+      return a;
+    } else {
+      return new_double(dval(a) / dval(b));
+    }
+  }
+  else if (are_dcomplex(a, b)) {
+    if (assign) {
+      cval(a) = cuCdiv(cval(a), cval(b));
+      return a;
+    } else {
+      return new_dcomplex(cuCdiv(cval(a), cval(b)));
+    }
+  }
+  assert(0);
   return x_env.nil;
 }
 
@@ -221,10 +306,30 @@ x_any _x_fma(x_any a, x_any b, x_any c, bool assign) {
     CHECK;
     return d;
   }
-  else if (are_ints(a, b))
-    return new_int(ival(a) * ival(b) + ival(c));
-  else if (are_doubles(a, b))
-    return new_double(dval(a) * dval(b) + dval(c));
+  else if (are_ints(a, b)) {
+    if (assign) {
+      set_val(a, ival(a) * ival(b) + ival(c));
+      return a;
+    } else {
+      return new_int(ival(a) * ival(b) + ival(c));
+    }
+  }
+  else if (are_doubles(a, b)) {
+    if (assign) {
+      dval(a) = dval(a) * dval(b) + dval(c);
+      return a;
+    } else {
+      return new_double(dval(a) * dval(b) + dval(c));
+    }
+  }
+  else if (are_dcomplex(a, b)) {
+    if (assign) {
+      cval(a) = cuCadd(cuCmul(cval(a), cval(b)), cval(c));
+      return a;
+    } else {
+      return new_dcomplex(cuCadd(cuCmul(cval(a), cval(b)), cval(c)));
+    }
+  }
   assert(0);
   return x_env.nil;
 }
@@ -235,4 +340,8 @@ x_any x_fma(x_any a, x_any b, x_any c) {
 
 x_any x_fmaass(x_any a, x_any b, x_any c) {
   return _x_fma(a, b, c, true);
+}
+
+x_any x_complex(x_any real, x_any imag) {
+  return new_dcomplex(make_cuDoubleComplex(dval(real), dval(imag)));
 }

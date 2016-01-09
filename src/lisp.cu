@@ -65,6 +65,7 @@ void init(void) {
 
   x_env.int_ = intern("int");
   x_env.double_ = intern("double");
+  x_env.dcomplex = intern("dcomplex");
   x_env.str = intern("str");
 
   x_env.ixector = intern("ixector");
@@ -96,6 +97,8 @@ void init(void) {
   def_builtin("apply", (void*)x_apply, 2);
   def_builtin("assert", (void*)x_assert, 1);
   def_builtin("asserteq", (void*)x_asserteq, 2);
+  def_builtin("assertall", (void*)x_assertall, 1);
+  def_builtin("assertany", (void*)x_assertany, 1);
   def_builtin("print", (void*)x_print, 1);
   def_builtin("println", (void*)x_println, 1);
   def_builtin("printsp", (void*)x_printsp, 1);
@@ -113,6 +116,9 @@ void init(void) {
   def_builtin("!=", (void*)x_neq, 2);
   def_builtin(">", (void*)x_gt, 2);
   def_builtin("<", (void*)x_lt, 2);
+  def_builtin(">=", (void*)x_gte, 2);
+  def_builtin("<=", (void*)x_lte, 2);
+  def_builtin("complex", (void*)x_complex, 2);
   def_builtin("not", (void*)x_not, 1);
   def_builtin("and", (void*)x_and, 2);
   def_builtin("all", (void*)x_all, 1);

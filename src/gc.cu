@@ -114,6 +114,17 @@ x_any new_double(double value) {
   return cell;
 }
 
+x_any new_dcomplex(cuDoubleComplex value) {
+  x_any cell;
+  cuDoubleComplex *v;
+  cell = new_cell(NULL, x_env.dcomplex);
+  v = (cuDoubleComplex*)malloc(sizeof(cuDoubleComplex));
+  assert(v != NULL);
+  *v = value;
+  set_val(cell, v);
+  return cell;
+}
+
 x_any new_ixector(size_t size) {
   x_any cell, csize;
   cell = new_cell(NULL, x_env.ixector);

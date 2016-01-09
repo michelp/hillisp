@@ -57,7 +57,9 @@ void print_cell(x_any cell, FILE *outfile) {
   else if (is_int(cell))
     fprintf(outfile, "%" PRIi64, ival(cell));
   else if (is_double(cell))
-    fprintf(outfile, "%f", dval(cell));
+    fprintf(outfile, "%9.16f", dval(cell));
+  else if (is_dcomplex(cell))
+    fprintf(outfile, "(%9.16f+%9.16fi)", crval(cell), cival(cell));
   else if (is_xector(cell))
     print_xector(cell, outfile);
   else if (is_symbol(cell))

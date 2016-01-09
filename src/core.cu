@@ -60,6 +60,16 @@ x_any x_asserteq(x_any cell1, x_any cell2) {
   return x_env.true_;
 }
 
+x_any x_assertall(x_any cell1) {
+  assert(x_all(cell1) != x_env.nil);
+  return x_env.true_;
+}
+
+x_any x_assertany(x_any cell1) {
+  assert(x_any(cell1) != x_env.nil);
+  return x_env.true_;
+}
+
 x_any x_car(x_any cell) {
   assert(is_pair(cell) || is_user(cell));
   return car(cell);
@@ -111,7 +121,7 @@ x_any x_apply(x_any cell, x_any args) {
     else
       assert(0);
   }
-  else if (is_user(cell)) {
+  else if (is_user(cell) || is_pair(cell)) {
     expr = car(cell);
     assert(length(args) == length(expr));
     push_frame();
@@ -132,12 +142,6 @@ x_any x_apply(x_any cell, x_any args) {
   }
   else if (is_symbol(cell) || is_int(cell))
     return x_cons(cell, args);
-  else if (is_pair(cell)) {
-    result = new_cell(NULL, x_env.user);
-    set_car(result, car(cell));
-    set_cdr(result, cdr(cell));
-    return x_apply(result, args);
-  }
   else
     assert(0);
   return x_env.nil;

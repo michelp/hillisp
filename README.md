@@ -177,6 +177,14 @@ Assert 'x' is true.
 
 Assert 'x' equals 'y' by comparison ('==').
 
+### (assertall x)
+
+Assert all elements in 'x' are true.
+
+### (assertany x)
+
+Assert at least one element in 'x' is true.
+
 
 ##List
 
