@@ -11,11 +11,16 @@ char* x_str(x_any cell) {
 }
 
 void print_el(FILE* outfile, x_any cell, int i) {
-  assert(is_ixector(cell) || is_dxector(cell));
+  assert(is_xector(cell));
   if (is_ixector(cell))
     fprintf(outfile, "%" PRIi64, xector_car_ith(cell, i));
   else if (is_dxector(cell))
     fprintf(outfile, "%9.16f", xector_car_dth(cell, i));
+  else if (is_dcxector(cell)) {
+    cuDoubleComplex val;
+    val = xector_car_dcth(cell, i);
+    fprintf(outfile, "(%9.16f+%9.16fi)", val.x, val.y);
+  }
 }
 
 void print_xector(x_any cell, FILE *outfile) {

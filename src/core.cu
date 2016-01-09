@@ -228,6 +228,11 @@ x_any x_fill(x_any value, x_any size) {
     xd_fill<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<double>(cell), dval(value), xector_size(cell));
   }
+  else if (is_dcomplex(value)) {
+    cell = new_dcxector(ival(size));
+    xd_fill<cuDoubleComplex><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<cuDoubleComplex>(cell), cval(value), xector_size(cell));
+  }
   CHECK;
   return cell;
 }

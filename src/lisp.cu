@@ -70,6 +70,7 @@ void init(void) {
 
   x_env.ixector = intern("ixector");
   x_env.dxector = intern("dxector");
+  x_env.dcxector = intern("dcxector");
 
   x_env.fn0 = intern("fn0");
   x_env.fn1 = intern("fn1");

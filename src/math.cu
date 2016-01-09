@@ -1,10 +1,16 @@
 #include "lisp.h"
 
 template<typename T>
-__global__ void 
+__global__ void
 xd_add(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     c[i] = a[i] + b[i];
+}
+
+__global__ void
+xd_dcadd(const cuDoubleComplex* __restrict__ a, const cuDoubleComplex* __restrict__ b, cuDoubleComplex* __restrict__ c, const size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = cuCadd(a[i], b[i]);
 }
 
 template<typename T>
@@ -14,6 +20,12 @@ xd_sub(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, cons
     c[i] = a[i] - b[i];
 }
 
+__global__ void
+xd_dcsub(const cuDoubleComplex* __restrict__ a, const cuDoubleComplex* __restrict__ b, cuDoubleComplex* __restrict__ c, const size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = cuCsub(a[i], b[i]);
+}
+
 template<typename T>
 __global__ void
 xd_mul(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
@@ -21,11 +33,23 @@ xd_mul(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, cons
     c[i] = a[i] * b[i];
 }
 
+__global__ void
+xd_dcmul(const cuDoubleComplex* __restrict__ a, const cuDoubleComplex* __restrict__ b, cuDoubleComplex* __restrict__ c, const size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = cuCmul(a[i], b[i]);
+}
+
 template<typename T>
 __global__ void
 xd_div(const T* __restrict__ a, const T* __restrict__ b, T* __restrict__ c, const size_t size) {
   for (int i = TID; i < size; i += STRIDE)
     c[i] = a[i] / b[i];
+}
+
+__global__ void
+xd_dcdiv(const cuDoubleComplex* __restrict__ a, const cuDoubleComplex* __restrict__ b, cuDoubleComplex* __restrict__ c, const size_t size) {
+  for (int i = TID; i < size; i += STRIDE)
+    c[i] = cuCdiv(a[i], b[i]);
 }
 
 template<typename T>
@@ -59,6 +83,18 @@ x_any _x_add(x_any a, x_any b, bool assign) {
     SYNCS(x_env.stream);
     xd_add<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
+  else if (are_dcxectors(a, b)) {
+    assert_xectors_align(a, b);
+    if (assign)
+      c = a;
+    else
+      c = new_dcxector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_dcadd<<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<cuDoubleComplex>(a), cars<cuDoubleComplex>(b), cars<cuDoubleComplex>(c), xector_size(a));
     CHECK;
     return c;
   }
@@ -128,6 +164,18 @@ x_any _x_sub(x_any a, x_any b, bool assign) {
     CHECK;
     return c;
   }
+  else if (are_dcxectors(a, b)) {
+    assert_xectors_align(a, b);
+    if (assign)
+      c = a;
+    else
+      c = new_dcxector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_dcsub<<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<cuDoubleComplex>(a), cars<cuDoubleComplex>(b), cars<cuDoubleComplex>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
   else if (are_ints(a, b)) {
     if (assign) {
       set_val(a, ival(a) - ival(b));
@@ -194,6 +242,18 @@ x_any _x_mul(x_any a, x_any b, bool assign) {
     CHECK;
     return c;
   }
+  else if (are_dcxectors(a, b)) {
+    assert_xectors_align(a, b);
+    if (assign)
+      c = a;
+    else
+      c = new_dcxector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_dcmul<<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<cuDoubleComplex>(a), cars<cuDoubleComplex>(b), cars<cuDoubleComplex>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
   else if (are_ints(a, b)) {
     if (assign) {
       set_val(a, ival(a) * ival(b));
@@ -252,6 +312,18 @@ x_any _x_div(x_any a, x_any b, bool assign) {
     SYNCS(x_env.stream);
     xd_div<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
       (cars<double>(a), cars<double>(b), cars<double>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
+  else if (are_dcxectors(a, b)) {
+    assert_xectors_align(a, b);
+    if (assign)
+      c = a;
+    else
+      c = new_dcxector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_dcdiv<<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<cuDoubleComplex>(a), cars<cuDoubleComplex>(b), cars<cuDoubleComplex>(c), xector_size(a));
     CHECK;
     return c;
   }

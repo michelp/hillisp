@@ -82,6 +82,7 @@ typedef struct __align__(16) x_environ {
   x_any str;
   x_any ixector;
   x_any dxector;
+  x_any dcxector;
   x_any fn0;
   x_any fn1;
   x_any fn2;
@@ -130,6 +131,8 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 
 #define xector_car_dth(x, i) (cars<double>((x))[(i)])
 
+#define xector_car_dcth(x, i) (cars<cuDoubleComplex>((x))[(i)])
+
 #define xector_set_car_ith(x, i, y) (cars<int64_t>((x))[(i)]) = (int64_t)(y)
 #define xector_set_car_dth(x, i, y) (cars<double>((x))[(i)]) = (double)(y)
 
@@ -140,7 +143,8 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define is_binding(x) (type(x) == x_env.binding)
 #define is_ixector(x) (type(x) == x_env.ixector)
 #define is_dxector(x) (type(x) == x_env.dxector)
-#define is_xector(x) (is_ixector(x) || is_dxector(x))
+#define is_dcxector(x) (type(x) == x_env.dcxector)
+#define is_xector(x) (is_ixector(x) || is_dxector(x) || is_dxector(x) || is_dcxector(x))
 #define is_int(x) (type(x) == x_env.int_)
 #define is_double(x) (type(x) == x_env.double_)
 #define is_dcomplex(x) (type(x) == x_env.dcomplex)
@@ -151,6 +155,7 @@ template <typename T> inline T* cars(x_any x) { return (T*)(xval(x)); }
 #define are_xectors(x, y) (is_xector(x) && is_xector(y))
 #define are_ixectors(x, y) (is_ixector(x) && is_ixector(y))
 #define are_dxectors(x, y) (is_dxector(x) && is_dxector(y))
+#define are_dcxectors(x, y) (is_dcxector(x) && is_dcxector(y))
 #define are_ints(x, y) (is_int(x) && is_int(y))
 #define are_doubles(x, y) (is_double(x) && is_double(y))
 #define are_dcomplex(x, y) (is_dcomplex(x) && is_dcomplex(y))
@@ -179,6 +184,7 @@ x_any new_double(double);
 x_any new_dcomplex(cuDoubleComplex);
 x_any new_ixector(size_t);
 x_any new_dxector(size_t);
+x_any new_dcxector(size_t);
 
 x_cell_pool* new_cell_pool(x_cell_pool*);
 x_any def_token(const char*);

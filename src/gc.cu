@@ -143,6 +143,15 @@ x_any new_dxector(size_t size) {
   return cell;
 }
 
+x_any new_dcxector(size_t size) {
+  x_any cell, csize;
+  cell = new_cell(NULL, x_env.dcxector);
+  csize = new_int(size);
+  set_car(cell, csize);
+  set_val(cell, x_alloc(size * sizeof(cuDoubleComplex)));
+  return cell;
+}
+
 x_cell_pool* new_cell_pool(x_cell_pool* old) {
   x_cell_pool* h;
   x_any cell;
