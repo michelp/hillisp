@@ -2,250 +2,268 @@
 
 template<typename T>
 __global__ void
- xd_eq(const T* __restrict__ cell1, const T* __restrict__ cell2, int64_t* __restrict__ cell3, const size_t size) {
+ xd_eq(const T* __restrict__ a, const T* __restrict__ b, int64_t* __restrict__ c, const size_t size) {
   int i = TID;
   while (i < size) {
-    cell3[i] = (int64_t)(cell1[i] == cell2[i]);
+    c[i] = (int64_t)(a[i] == b[i]);
+    i += STRIDE;
+  }
+}
+
+__global__ void
+ xd_dceq(const cuDoubleComplex* __restrict__ a, const cuDoubleComplex* __restrict__ b, int64_t* __restrict__ c, const size_t size) {
+  int i = TID;
+  while (i < size) {
+    c[i] = (int64_t)(a[i].x == b[i].x && a[i].y == b[i].y);
     i += STRIDE;
   }
 }
 
 template<typename T>
 __global__ void
- xd_gt(const T* __restrict__ cell1, const T* __restrict__ cell2, int64_t* __restrict__ cell3, const size_t size) {
+ xd_gt(const T* __restrict__ a, const T* __restrict__ b, int64_t* __restrict__ c, const size_t size) {
   int i = TID;
   while (i < size) {
-    cell3[i] = (int64_t)(cell1[i] > cell2[i]);
+    c[i] = (int64_t)(a[i] > b[i]);
     i += STRIDE;
   }
 }
 
 template<typename T>
 __global__ void
- xd_lt(const T* __restrict__ cell1, const T* __restrict__ cell2, int64_t* __restrict__ cell3, const size_t size) {
+ xd_lt(const T* __restrict__ a, const T* __restrict__ b, int64_t* __restrict__ c, const size_t size) {
   int i = TID;
   while (i < size) {
-    cell3[i] = (int64_t)(cell1[i] < cell2[i]);
+    c[i] = (int64_t)(a[i] < b[i]);
     i += STRIDE;
   }
 }
 
 template<typename T>
 __global__ void
- xd_gte(const T* __restrict__ cell1, const T* __restrict__ cell2, int64_t* __restrict__ cell3, const size_t size) {
+ xd_gte(const T* __restrict__ a, const T* __restrict__ b, int64_t* __restrict__ c, const size_t size) {
   int i = TID;
   while (i < size) {
-    cell3[i] = (int64_t)(cell1[i] >= cell2[i]);
+    c[i] = (int64_t)(a[i] >= b[i]);
     i += STRIDE;
   }
 }
 
 template<typename T>
 __global__ void
- xd_lte(const T* __restrict__ cell1, const T* __restrict__ cell2, int64_t* __restrict__ cell3, const size_t size) {
+ xd_lte(const T* __restrict__ a, const T* __restrict__ b, int64_t* __restrict__ c, const size_t size) {
   int i = TID;
   while (i < size) {
-    cell3[i] = (int64_t)(cell1[i] <= cell2[i]);
+    c[i] = (int64_t)(a[i] <= b[i]);
     i += STRIDE;
   }
 }
 
-x_any x_eq(x_any cell1, x_any cell2) {
-  x_any cell;
-  if (cell1 == cell2)
+x_any x_eq(x_any a, x_any b) {
+  x_any c;
+  if (a == b)
     return x_env.true_;
-  else if (are_ixectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+  else if (are_ixectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_eq<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_dxectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_eq<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<double>(cell1), cars<double>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<double>(a), cars<double>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_symbols(cell1, cell2)) {
-    if (strcmp(sval(cell1), sval(cell2)) == 0)
+  else if (are_dcxectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
+    SYNCS(x_env.stream);
+    xd_dceq<<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
+      (cars<cuDoubleComplex>(a), cars<cuDoubleComplex>(b), cars<int64_t>(c), xector_size(a));
+    CHECK;
+    return c;
+  }
+  else if (are_symbols(a, b)) {
+    if (strcmp(sval(a), sval(b)) == 0)
       return x_env.true_;
   }
-  else if (are_ints(cell1, cell2)) {
-    if (ival(cell1) == ival(cell2))
+  else if (are_ints(a, b)) {
+    if (ival(a) == ival(b))
       return x_env.true_;
   }
-  else if (are_doubles(cell1, cell2)) {
-    if (dval(cell1) == dval(cell2))
+  else if (are_doubles(a, b)) {
+    if (dval(a) == dval(b))
       return x_env.true_;
   }
-  else if (are_dcomplex(cell1, cell2)) {
-    if (crval(cell1) == crval(cell2) && cival(cell1) == cival(cell2))
+  else if (are_dcomplex(a, b)) {
+    if (crval(a) == crval(b) && cival(a) == cival(b))
       return x_env.true_;
   }
-  else if (are_strs(cell1, cell2)) {
-    if (strcmp(sval(cell1), sval(cell2)) == 0)
+  else if (are_strs(a, b)) {
+    if (strcmp(sval(a), sval(b)) == 0)
       return x_env.true_;
   }
-  else if (are_pairs(cell1, cell2)) {
+  else if (are_pairs(a, b)) {
     do {
-      if (x_eq(car(cell1), car(cell2)) == x_env.nil)
+      if (x_eq(car(a), car(b)) == x_env.nil)
         return x_env.nil;
-      cell1 = cdr(cell1);
-      cell2 = cdr(cell2);
-    } while (are_pairs(cell1, cell2));
-    if (x_eq(cell1, cell2) != x_env.nil)
+      a = cdr(a);
+      b = cdr(b);
+    } while (are_pairs(a, b));
+    if (x_eq(a, b) != x_env.nil)
       return x_env.true_;
   }
   return x_env.nil;
 }
 
-x_any x_neq(x_any cell1, x_any cell2) {
-  if (x_eq(cell1, cell2) == x_env.true_)
+x_any x_neq(x_any a, x_any b) {
+  if (x_eq(a, b) == x_env.true_)
     return x_env.nil;
   return x_env.true_;
 }
 
-x_any x_gt(x_any cell1, x_any cell2) {
-  x_any cell;
-  if (are_ixectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+x_any x_gt(x_any a, x_any b) {
+  x_any c;
+  if (are_ixectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_gt<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_dxectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_gt<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<double>(cell1), cars<double>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<double>(a), cars<double>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_ints(cell1, cell2)) {
-    if (ival(cell1) > ival(cell2))
+  else if (are_ints(a, b)) {
+    if (ival(a) > ival(b))
       return x_env.true_;
   }
-  else if (are_doubles(cell1, cell2)) {
-    if (dval(cell1) > dval(cell2))
+  else if (are_doubles(a, b)) {
+    if (dval(a) > dval(b))
       return x_env.true_;
   }
-  else if (are_strs(cell1, cell2)) {
-    if (strcmp(sval(cell1), sval(cell2)) > 0)
+  else if (are_strs(a, b)) {
+    if (strcmp(sval(a), sval(b)) > 0)
       return x_env.true_;
   }
   return x_env.nil;
 }
 
-x_any x_lt(x_any cell1, x_any cell2) {
-  x_any cell;
-  if (are_ixectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+x_any x_lt(x_any a, x_any b) {
+  x_any c;
+  if (are_ixectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_lt<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_dxectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_lt<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<double>(cell1), cars<double>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<double>(a), cars<double>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_ints(cell1, cell2)) {
-    if (ival(cell1) < ival(cell2))
+  else if (are_ints(a, b)) {
+    if (ival(a) < ival(b))
       return x_env.true_;
   }
-  else if (are_doubles(cell1, cell2)) {
-    if (dval(cell1) < dval(cell2))
+  else if (are_doubles(a, b)) {
+    if (dval(a) < dval(b))
       return x_env.true_;
   }
-  else if (are_strs(cell1, cell2)) {
-    if (strcmp(sval(cell1), sval(cell2)) < 0)
+  else if (are_strs(a, b)) {
+    if (strcmp(sval(a), sval(b)) < 0)
       return x_env.true_;
   }
   return x_env.nil;
 }
 
-x_any x_gte(x_any cell1, x_any cell2) {
-  x_any cell;
-  if (are_ixectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+x_any x_gte(x_any a, x_any b) {
+  x_any c;
+  if (are_ixectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_gte<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_dxectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_gte<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<double>(cell1), cars<double>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<double>(a), cars<double>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_ints(cell1, cell2)) {
-    if (ival(cell1) > ival(cell2))
+  else if (are_ints(a, b)) {
+    if (ival(a) > ival(b))
       return x_env.true_;
   }
-  else if (are_doubles(cell1, cell2)) {
-    if (dval(cell1) > dval(cell2))
+  else if (are_doubles(a, b)) {
+    if (dval(a) > dval(b))
       return x_env.true_;
   }
-  else if (are_strs(cell1, cell2)) {
-    if (strcmp(sval(cell1), sval(cell2)) > 0)
+  else if (are_strs(a, b)) {
+    if (strcmp(sval(a), sval(b)) > 0)
       return x_env.true_;
   }
   return x_env.nil;
 }
 
-x_any x_lte(x_any cell1, x_any cell2) {
-  x_any cell;
-  if (are_ixectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+x_any x_lte(x_any a, x_any b) {
+  x_any c;
+  if (are_ixectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_lte<int64_t><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<int64_t>(cell1), cars<int64_t>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<int64_t>(a), cars<int64_t>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_dxectors(cell1, cell2)) {
-    assert_xectors_align(cell1, cell2);
-    cell = new_ixector(xector_size(cell1));
+  else if (are_dxectors(a, b)) {
+    assert_xectors_align(a, b);
+    c = new_ixector(xector_size(a));
     SYNCS(x_env.stream);
     xd_lte<double><<<BLOCKS, THREADSPERBLOCK, 0, x_env.stream>>>
-      (cars<double>(cell1), cars<double>(cell2), cars<int64_t>(cell), xector_size(cell1));
+      (cars<double>(a), cars<double>(b), cars<int64_t>(c), xector_size(a));
     CHECK;
-    return cell;
+    return c;
   }
-  else if (are_ints(cell1, cell2)) {
-    if (ival(cell1) < ival(cell2))
+  else if (are_ints(a, b)) {
+    if (ival(a) < ival(b))
       return x_env.true_;
   }
-  else if (are_doubles(cell1, cell2)) {
-    if (dval(cell1) < dval(cell2))
+  else if (are_doubles(a, b)) {
+    if (dval(a) < dval(b))
       return x_env.true_;
   }
-  else if (are_strs(cell1, cell2)) {
-    if (strcmp(sval(cell1), sval(cell2)) < 0)
+  else if (are_strs(a, b)) {
+    if (strcmp(sval(a), sval(b)) < 0)
       return x_env.true_;
   }
   return x_env.nil;
