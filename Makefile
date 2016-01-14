@@ -15,3 +15,6 @@ $(BIN): $(OBJ)
 
 clean:
 	rm -f src/*.o lisp
+
+check: all
+	./lisp test/test.lsp

@@ -338,4 +338,3 @@ void inline push_frame() {
 void inline pop_frame() {
   x_env.frame_count -= 1;
 }
-
