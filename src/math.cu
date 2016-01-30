@@ -129,12 +129,12 @@ x_any _x_add(x_any a, x_any b, bool assign) {
   return x_env.nil;
 }
 
-x_any x_add(x_any a, x_any b) {
-  return _x_add(a, b, false);
+x_any x_add(x_any args) {
+  return _x_add(car(args), cadr(args), false);
 }
 
-x_any x_addass(x_any a, x_any b) {
-  return _x_add(a, b, true);
+x_any x_addass(x_any args) {
+  return _x_add(car(args), cadr(args), true);
 }
 
 x_any _x_sub(x_any a, x_any b, bool assign) {
@@ -208,12 +208,12 @@ x_any _x_sub(x_any a, x_any b, bool assign) {
 }
 
 
-x_any x_sub(x_any a, x_any b) {
-  return _x_sub(a, b, false);
+x_any x_sub(x_any args) {
+  return _x_sub(car(args), cadr(args), false);
 }
 
-x_any x_subass(x_any a, x_any b) {
-  return _x_sub(a, b, true);
+x_any x_subass(x_any args) {
+  return _x_sub(car(args), cadr(args), true);
 }
 
 x_any _x_mul(x_any a, x_any b, bool assign) {
@@ -281,12 +281,12 @@ x_any _x_mul(x_any a, x_any b, bool assign) {
   return x_env.nil;
 }
 
-x_any x_mul(x_any a, x_any b) {
-  return _x_mul(a, b, false);
+x_any x_mul(x_any args) {
+  return _x_mul(car(args), cadr(args), false);
 }
 
-x_any x_mulass(x_any a, x_any b) {
-  return _x_mul(a, b, true);
+x_any x_mulass(x_any args) {
+  return _x_mul(car(args), cadr(args), true);
 }
 
 x_any _x_div(x_any a, x_any b, bool assign) {
@@ -355,12 +355,12 @@ x_any _x_div(x_any a, x_any b, bool assign) {
   return x_env.nil;
 }
 
-x_any x_div(x_any a, x_any b) {
-  return _x_div(a, b, false);
+x_any x_div(x_any args) {
+  return _x_div(car(args), cadr(args), false);
 }
 
-x_any x_divass(x_any a, x_any b) {
-  return _x_div(a, b, true);
+x_any x_divass(x_any args) {
+  return _x_div(car(args), cadr(args), true);
 }
 
 x_any _x_fma(x_any a, x_any b, x_any c, bool assign) {
@@ -406,14 +406,14 @@ x_any _x_fma(x_any a, x_any b, x_any c, bool assign) {
   return x_env.nil;
 }
 
-x_any x_fma(x_any a, x_any b, x_any c) {
-  return _x_fma(a, b, c, false);
+x_any x_fma(x_any args) {
+  return _x_fma(car(args), cadr(args), caddr(args), false);
 }
 
-x_any x_fmaass(x_any a, x_any b, x_any c) {
-  return _x_fma(a, b, c, true);
+x_any x_fmaass(x_any args) {
+  return _x_fma(car(args), cadr(args), caddr(args), true);
 }
 
-x_any x_complex(x_any real, x_any imag) {
-  return new_dcomplex(make_cuDoubleComplex(dval(real), dval(imag)));
+x_any x_complex(x_any args) {
+  return new_dcomplex(make_cuDoubleComplex(dval(car(args)), dval(cadr(args))));
 }

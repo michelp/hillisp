@@ -55,14 +55,14 @@ x_any read_sexpr_tail(FILE *infile) {
   x_any temp;
   token = read_token(infile);
   if (is_symbol(token))
-    return x_cons(token, read_sexpr_tail(infile));
+    return cons(token, read_sexpr_tail(infile));
   if (token == x_env.lparen) {
     temp = read_sexpr_head(infile);
-    return x_cons(temp, read_sexpr_tail(infile));
+    return cons(temp, read_sexpr_tail(infile));
   }
   if (token == x_env.lbrack) {
     temp = read_xector(infile);
-    return x_cons(temp, read_sexpr_tail(infile));
+    return cons(temp, read_sexpr_tail(infile));
   }
   if (token == x_env.dot)
     return read_cdr(infile);
@@ -78,14 +78,14 @@ x_any read_sexpr_head(FILE *infile) {
   x_any temp;
   token = read_token(infile);
   if (is_symbol(token))
-    return x_cons(token, read_sexpr_tail(infile));
+    return cons(token, read_sexpr_tail(infile));
   else if (token == x_env.lparen) {
     temp = read_sexpr_head(infile);
-    return x_cons(temp, read_sexpr_tail(infile));
+    return cons(temp, read_sexpr_tail(infile));
   }
   else if (token == x_env.lbrack) {
     temp = read_xector(infile);
-    return x_cons(temp, read_sexpr_tail(infile));
+    return cons(temp, read_sexpr_tail(infile));
   }
   else if (token == x_env.rparen)
     return x_env.nil;
@@ -103,7 +103,7 @@ x_any read_xector(FILE *infile) {
   size_t size = 0;
 
   cell = x_env.nil;
-  val = x_eval(read_sexpr(infile));
+  val = eval(read_sexpr(infile));
   if (val == x_env.nil)
     return cell;
   typ = type(val);
@@ -121,7 +121,7 @@ x_any read_xector(FILE *infile) {
     else
       assert(0);
     size++;
-    val = x_eval(read_sexpr(infile));
+    val = eval(read_sexpr(infile));
     if (val == x_env.nil)
       break;
     if (type(val) != typ)

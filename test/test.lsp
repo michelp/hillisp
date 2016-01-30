@@ -8,8 +8,10 @@
 (asserteq -3 -3)
 (asserteq (1 2) (1 2))
 (asserteq (1 . 2) (1 . 2))
+
 (asserteq (1 . 2) (cons 1 2))
 (assert (not (== (1 . 2) (1 . 3))))
+
 (asserteq (list a b c) (a b c))
 (assert (!= (1 . 2) (1 . 3)))
 (assert (!= (1 1) (1 2)))
@@ -53,7 +55,7 @@
 
 (println types)
 (asserteq (eval (quote (+ 3 4))) 7)
-(assert (is (type print) fn1))
+(assert (is (type print) fn))
 (assert (is (type 3) int))
 (assert (is (type foo) symbol))
 (assert (not (is (1 2) (1 2))))
@@ -66,8 +68,8 @@
 (assert (not (!= (1 2) (1 2))))
 (assert (!= (1 2) (3 4)))
 (assert (!= (1 2) (1 2 3)))
-(asserteq (apply cons (3 4)) (3 . 4))
-(asserteq (apply ((a b) (cons a b)) (3 4)) (3 . 4))
+(asserteq (apply cons 3 4) (3 . 4))
+(asserteq (apply ((a b) (cons a b)) 3 4) (3 . 4))
 
 (asserteq (eval (cons 3 4)) (3 . 4))
 (assert (isinstance (time) int))

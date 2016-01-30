@@ -6,28 +6,11 @@ x_any def_token(const char* new_name) {
   return new_cell(new_name, x_env.token);
 }
 
-x_any def_builtin(char const *name, void *fn, int num_args) {
+x_any def_fn(char const *name, void *fn) {
   x_any cell;
   cell = intern(name);
-  set_type(cell, x_env.builtin);
+  set_type(cell, x_env.fn);
   set_val(cell, fn);
-  switch(num_args) {
-  case -1:
-    set_type(cell, x_env.fnv);
-    break;
-  case 0:
-    set_type(cell, x_env.fn0);
-    break;
-  case 1:
-    set_type(cell, x_env.fn1);
-    break;
-  case 2:
-    set_type(cell, x_env.fn2);
-    break;
-  case 3:
-    set_type(cell, x_env.fn3);
-    break;
-  }
   return cell;
 }
 
@@ -72,11 +55,7 @@ void init(void) {
   x_env.dxector = intern("dxector");
   x_env.dcxector = intern("dcxector");
 
-  x_env.fn0 = intern("fn0");
-  x_env.fn1 = intern("fn1");
-  x_env.fn2 = intern("fn2");
-  x_env.fn3 = intern("fn3");
-  x_env.fnv = intern("fnv");
+  x_env.fn = intern("fn");
   x_env.special = intern("special");
 
   x_env.dot = def_token(".");
@@ -87,52 +66,52 @@ void init(void) {
   x_env.rbrack = def_token("]");
   x_env.eof = def_token("EOF");
 
-  def_builtin("is", (void*)x_is, 2);
-  def_builtin("isinstance", (void*)x_isinstance, 2);
-  def_builtin("type", (void*)x_type, 1);
-  def_builtin("car", (void*)x_car, 1);
-  def_builtin("cdr", (void*)x_cdr, 1);
-  def_builtin("cons", (void*)x_cons, 2);
-  def_builtin("list", (void*)x_list, -1);
-  def_builtin("eval", (void*)x_eval, 1);
-  def_builtin("apply", (void*)x_apply, 2);
-  def_builtin("assert", (void*)x_assert, 1);
-  def_builtin("asserteq", (void*)x_asserteq, 2);
-  def_builtin("assertall", (void*)x_assertall, 1);
-  def_builtin("assertany", (void*)x_assertany, 1);
-  def_builtin("print", (void*)x_print, 1);
-  def_builtin("println", (void*)x_println, 1);
-  def_builtin("printsp", (void*)x_printsp, 1);
-  def_builtin("+", (void*)x_add, 2);
-  def_builtin("+=", (void*)x_addass, 2);
-  def_builtin("-", (void*)x_sub, 2);
-  def_builtin("-=", (void*)x_subass, 2);
-  def_builtin("*", (void*)x_mul, 2);
-  def_builtin("*=", (void*)x_mulass, 2);
-  def_builtin("/", (void*)x_div, 2);
-  def_builtin("/=", (void*)x_divass, 2);
-  def_builtin("fma", (void*)x_fma, 3);
-  def_builtin("fma=", (void*)x_fmaass, 3);
-  def_builtin("==", (void*)x_eq, 2);
-  def_builtin("!=", (void*)x_neq, 2);
-  def_builtin(">", (void*)x_gt, 2);
-  def_builtin("<", (void*)x_lt, 2);
-  def_builtin(">=", (void*)x_gte, 2);
-  def_builtin("<=", (void*)x_lte, 2);
-  def_builtin("complex", (void*)x_complex, 2);
-  def_builtin("not", (void*)x_not, 1);
-  def_builtin("and", (void*)x_and, 2);
-  def_builtin("all", (void*)x_all, 1);
-  def_builtin("any", (void*)x_any_, 1);
-  def_builtin("or", (void*)x_or, 2);
-  def_builtin("fill", (void*)x_fill, 2);
-  def_builtin("empty", (void*)x_empty, 2);
-  def_builtin("time", (void*)x_time, 0);
-  def_builtin("gc", (void*)x_gc, 0);
-  def_builtin("set", (void*)x_set, 2);
-  def_builtin("dir", (void*)x_dir, 0);
-  def_builtin("len", (void*)x_len, 1);
-  def_builtin("range", (void*)x_range, 3);
+  def_fn("is", (void*)x_is);
+  def_fn("isinstance", (void*)x_isinstance);
+  def_fn("type", (void*)x_type);
+  def_fn("car", (void*)x_car);
+  def_fn("cdr", (void*)x_cdr);
+  def_fn("cons", (void*)x_cons);
+  def_fn("list", (void*)x_list);
+  def_fn("eval", (void*)x_eval);
+  def_fn("apply", (void*)x_apply);
+  def_fn("assert", (void*)x_assert);
+  def_fn("asserteq", (void*)x_asserteq);
+  def_fn("assertall", (void*)x_assertall);
+  def_fn("assertany", (void*)x_assertany);
+  def_fn("print", (void*)x_print);
+  def_fn("println", (void*)x_println);
+  def_fn("printsp", (void*)x_printsp);
+  def_fn("+", (void*)x_add);
+  def_fn("+=", (void*)x_addass);
+  def_fn("-", (void*)x_sub);
+  def_fn("-=", (void*)x_subass);
+  def_fn("*", (void*)x_mul);
+  def_fn("*=", (void*)x_mulass);
+  def_fn("/", (void*)x_div);
+  def_fn("/=", (void*)x_divass);
+  def_fn("fma", (void*)x_fma);
+  def_fn("fma=", (void*)x_fmaass);
+  def_fn("==", (void*)x_eq);
+  def_fn("!=", (void*)x_neq);
+  def_fn(">", (void*)x_gt);
+  def_fn("<", (void*)x_lt);
+  def_fn(">=", (void*)x_gte);
+  def_fn("<=", (void*)x_lte);
+  def_fn("complex", (void*)x_complex);
+  def_fn("not", (void*)x_not);
+  def_fn("and", (void*)x_and);
+  def_fn("all", (void*)x_all);
+  def_fn("any", (void*)x_any_);
+  def_fn("or", (void*)x_or);
+  def_fn("fill", (void*)x_fill);
+  def_fn("empty", (void*)x_empty);
+  def_fn("time", (void*)x_time);
+  def_fn("gc", (void*)x_gc);
+  def_fn("dir", (void*)x_dir);
+  def_fn("len", (void*)x_len);
+  def_fn("range", (void*)x_range);
+  def_fn("collect", (void*)x_collect);
 
   def_special("quote", (void*)x_quote);
   def_special("def", (void*)x_def);
@@ -141,8 +120,6 @@ void init(void) {
   def_special("do", (void*)x_do);
   def_special("for", (void*)x_for);
   def_special("set", (void*)x_set);
-
-  def_builtin("collect", (void*)x_collect, 1);
 }
 
 int main(int argc, const char* argv[]) {
@@ -166,7 +143,7 @@ int main(int argc, const char* argv[]) {
           expr = read_sexpr(fp);
           if (expr == x_env.eof)
             break;
-          value = x_eval(expr);
+          value = eval(expr);
           x_gc();
         }
       }
@@ -178,7 +155,7 @@ int main(int argc, const char* argv[]) {
       expr = read_sexpr(stdin);
       if (expr == x_env.eof)
         break;
-      value = x_eval(expr);
+      value = eval(expr);
       printf(": ");
       print_cell(value, stdout);
       putchar('\n');

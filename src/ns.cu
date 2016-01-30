@@ -73,7 +73,7 @@ x_any x_dir() {
       binding = x_env.frames[i][j];
       if (binding != x_env.nil) {
         do {
-          result = x_cons(binding, result);
+          result = cons(binding, result);
           binding = cdr(binding);
         } while (binding != x_env.nil);
       }

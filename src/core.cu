@@ -31,60 +31,79 @@ __global__ void
   __syncthreads();
 }
 
-x_any x_is(x_any cell1, x_any cell2) {
-  if (cell1 == cell2)
+x_any x_is(x_any args) {
+  if (car(args) == cadr(args))
     return x_env.true_;
   return x_env.nil;
 }
 
-x_any x_isinstance(x_any cell1, x_any cell2) {
+x_any x_isinstance(x_any args) {
+  x_any a, b;
+  a = car(args);
+  b = cadr(args);
   do {
-    cell1 = type(cell1);
-    if (cell1 == cell2)
+    a = type(a);
+    if (a == b)
       return x_env.true_;
-  } while(cell1 != x_env.symbol);
+  } while(a != x_env.symbol);
   return x_env.nil;
 }
 
-x_any x_type(x_any cell) {
-  return cell->type;
+x_any x_type(x_any args) {
+  return car(args)->type;
 }
 
-x_any x_assert(x_any cell) {
+x_any x_assert(x_any args) {
+  x_any cell;
+  cell = car(args);
   assert(cell != x_env.nil);
   return cell;
 }
 
-x_any x_asserteq(x_any cell1, x_any cell2) {
-  assert(x_eq(cell1, cell2) != x_env.nil);
+x_any x_asserteq(x_any args) {
+  assert(x_eq(args) != x_env.nil);
   return x_env.true_;
 }
 
-x_any x_assertall(x_any cell1) {
-  assert(x_all(cell1) != x_env.nil);
+x_any x_assertall(x_any args) {
+  assert(x_all(args) != x_env.nil);
   return x_env.true_;
 }
 
-x_any x_assertany(x_any cell1) {
-  assert(x_any(cell1) != x_env.nil);
+x_any x_assertany(x_any args) {
+  assert(x_any(args) != x_env.nil);
   return x_env.true_;
 }
 
-x_any x_car(x_any cell) {
+x_any x_car(x_any args) {
+  x_any cell;
+  cell = car(args);
   assert(is_pair(cell) || is_user(cell));
   return car(cell);
 }
 
-x_any x_cdr(x_any cell) {
+x_any x_cdr(x_any args) {
+  x_any cell;
+  cell = car(args);
   assert(is_pair(cell) || is_user(cell));
   return cdr(cell);
 }
 
-x_any inline x_cons(x_any cell1, x_any cell2) {
+x_any inline cons(x_any a, x_any b) {
   x_any cell;
   cell = new_cell(NULL, x_env.pair);
-  set_car(cell, cell1);
-  set_cdr(cell, cell2);
+  set_car(cell, a);
+  set_cdr(cell, b);
+  return cell;
+}
+
+x_any x_cons(x_any args) {
+  x_any a, b, cell;
+  a = car(args);
+  b = cadr(args);
+  cell = new_cell(NULL, x_env.pair);
+  set_car(cell, a);
+  set_cdr(cell, b);
   return cell;
 }
 
@@ -92,56 +111,38 @@ x_any x_list(x_any args) {
   return args;
 }
 
-x_any x_apply(x_any cell, x_any args) {
-  x_any expr, result;
+x_any x_apply(x_any args) {
+  x_any cell, fargs, expr, result;
+  cell = car(args);
+  fargs = cdr(args);
   if (is_special(cell))
-    return ((x_fn1)val(cell))(args);
+    return ((x_fn)val(cell))(fargs);
 
-  args = eval_list(args);
-  if (is_builtin(cell)) {
-    if (is_fn1(cell)) {
-      assert(length(args) == 1);
-      return ((x_fn1)val(cell))(car(args));
-    }
-    else if (is_fn2(cell)) {
-      assert(length(args) == 2);
-      return ((x_fn2)val(cell))(car(args), cadr(args));
-    }
-    else if (is_fn3(cell)) {
-      assert(length(args) == 3);
-      return ((x_fn3)val(cell))(car(args), cadr(args), caddr(args));
-    }
-    else if (is_fn0(cell)) {
-      assert(length(args) == 0);
-      return ((x_fn0)val(cell))();
-    }
-    else if (is_fnv(cell)) {
-      return ((x_fnv)val(cell))(args);
-    }
-    else
-      assert(0);
-  }
+  fargs = eval_list(fargs);
+  if (is_fn(cell))
+    return ((x_fn)val(cell))(fargs);
+
   else if (is_user(cell) || is_pair(cell)) {
     expr = car(cell);
-    assert(length(args) == length(expr));
+    assert(length(fargs) == length(expr));
     push_frame();
 
     do {
-      local(sval(car(expr)), car(args));
+      local(sval(car(expr)), car(fargs));
       expr = cdr(expr);
-      args = cdr(args);
+      fargs = cdr(fargs);
     } while(expr != x_env.nil);
 
     expr = cdr(cell);
     do {
-      result = x_eval(car(expr));
+      result = eval(car(expr));
       expr = cdr(expr);
     } while (expr != x_env.nil);
     pop_frame();
     return result;
   }
   else if (is_symbol(cell) || is_int(cell))
-    return x_cons(cell, args);
+    return cons(cell, fargs);
   else
     assert(0);
   return x_env.nil;
@@ -176,46 +177,52 @@ x_any eval_list(x_any cell) {
   else if (is_atom(cell))
     return cell;
   else
-    return x_cons(x_eval(car(cell)), eval_list(cdr(cell)));
+    return cons(eval(car(cell)), eval_list(cdr(cell)));
 }
 
-x_any x_eval(x_any cell) {
+x_any x_eval(x_any args) {
+  return eval(car(args));
+}
+
+x_any eval(x_any cell) {
   x_any temp;
   if (is_symbol(cell))
       return eval_symbol(cell);
   else if (is_atom(cell))
     return cell;
   else if (is_pair(cell)) {
-    temp = x_eval(car(cell));
+    temp = eval(car(cell));
     if (is_func(temp))
-      return x_apply(temp, cdr(cell));
+      return x_apply(cons(temp, cdr(cell)));
     else
-      return x_cons(temp, eval_list(cdr(cell)));
+      return cons(temp, eval_list(cdr(cell)));
   }
   assert(0);
   return x_env.nil;
 }
 
-x_any x_not(x_any cell) {
-  if (cell == x_env.nil)
+x_any x_not(x_any args) {
+  if (car(args) == x_env.nil)
     return x_env.true_;
   return x_env.nil;
 }
 
-x_any x_and(x_any cell1, x_any cell2) {
-  if (cell1 != x_env.nil && cell2 != x_env.nil)
+x_any x_and(x_any args) {
+  if (car(args) != x_env.nil && cadr(args) != x_env.nil)
     return x_env.true_;
   return x_env.nil;
 }
 
-x_any x_or(x_any cell1, x_any cell2) {
-  if (cell1 != x_env.nil || cell2 != x_env.nil)
+x_any x_or(x_any args) {
+  if (car(args) != x_env.nil || cadr(args) != x_env.nil)
     return x_env.true_;
   return x_env.nil;
 }
 
-x_any x_fill(x_any value, x_any size) {
-  x_any cell;
+x_any x_fill(x_any args) {
+  x_any value, size, cell;
+  value = car(args);
+  size = cadr(args);
   if (!is_int(size))
     assert(0);
   if (is_int(value)) {
@@ -237,8 +244,10 @@ x_any x_fill(x_any value, x_any size) {
   return cell;
 }
 
-x_any x_empty(x_any type, x_any size) {
-  x_any cell;
+x_any x_empty(x_any args) {
+  x_any type, size, cell;
+  type = car(args);
+  size = cadr(args);
   if (!is_int(size))
     assert(0);
   if (type == x_env.int_) {
@@ -251,8 +260,10 @@ x_any x_empty(x_any type, x_any size) {
   return cell;
 }
 
-x_any x_all(x_any cell) {
+x_any x_all(x_any args) {
   int* result;
+  x_any cell;
+  cell = car(args);
   if (!is_xector(cell))
     assert(0);
   SYNCS(x_env.stream);
@@ -268,8 +279,10 @@ x_any x_all(x_any cell) {
   return x_env.true_;
 }
 
-x_any x_any_(x_any cell) {
+x_any x_any_(x_any args) {
   int* result;
+  x_any cell;
+  cell = car(args);
   if (!is_xector(cell))
     assert(0);
   SYNCS(x_env.stream);
@@ -292,7 +305,7 @@ x_any x_time() {
 }
 
 x_any x_set(x_any args) {
-  return bind(sval(car(args)), x_eval(cadr(args)));
+  return bind(sval(car(args)), eval(cadr(args)));
 }
 
 int64_t inline length(x_any cell) {
@@ -309,17 +322,21 @@ int64_t inline length(x_any cell) {
   return length;
 }
 
-x_any x_len(x_any cell) {
-  return new_int(length(cell));
+x_any x_len(x_any args) {
+  return new_int(length(car(args)));
 }
 
-x_any x_range(x_any start, x_any stop, x_any step) {
-  x_any result;
+x_any x_range(x_any args) {
+  x_any start, stop, step, result;
+  start = car(args);
+  stop = cadr(args);
+  step = caddr(args);
+
   assert(are_ints(start, stop) && is_int(step));
   assert(ival(step) != 0);
   result = x_env.nil;
   for (int i = ival(stop) - 1; i >= ival(start); i -= ival(step)) {
-    result = x_cons(new_int(i), result);
+    result = cons(new_int(i), result);
   }
   return result;
 }
