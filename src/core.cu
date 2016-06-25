@@ -98,13 +98,7 @@ x_any inline cons(x_any a, x_any b) {
 }
 
 x_any x_cons(x_any args) {
-  x_any a, b, cell;
-  a = car(args);
-  b = cadr(args);
-  cell = new_cell(NULL, x_env.pair);
-  set_car(cell, a);
-  set_cdr(cell, b);
-  return cell;
+  return cons(car(args), cadr(args));
 }
 
 x_any x_list(x_any args) {
@@ -172,7 +166,7 @@ x_any eval_symbol(x_any sym) {
 x_any eval_list(x_any cell) {
   if (cell == x_env.nil)
     return x_env.nil;
-  if (is_symbol(cell))
+  else if (is_symbol(cell))
     return eval_symbol(cell);
   else if (is_atom(cell))
     return cell;
